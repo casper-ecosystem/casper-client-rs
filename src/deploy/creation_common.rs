@@ -317,6 +317,7 @@ pub(super) mod arg_simple {
         }
 
         pub fn get(matches: &ArgMatches) -> Vec<&str> {
+            #[allow(clippy::iter_overeager_cloned)]
             matches
                 .values_of(ARG_NAME)
                 .iter()
@@ -337,6 +338,7 @@ pub(super) mod arg_simple {
         }
 
         pub fn get(matches: &ArgMatches) -> Vec<&str> {
+            #[allow(clippy::iter_overeager_cloned)]
             matches
                 .values_of(ARG_NAME)
                 .iter()

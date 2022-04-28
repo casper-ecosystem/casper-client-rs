@@ -15,4 +15,5 @@ pub(crate) mod get_state_root_hash;
 pub(crate) mod get_validator_changes;
 pub(crate) mod list_rpcs;
 pub(crate) mod put_deploy;
+pub(crate) mod query_balance;
 pub(crate) mod query_global_state;
