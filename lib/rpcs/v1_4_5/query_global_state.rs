@@ -2,10 +2,12 @@ use serde::{Deserialize, Serialize};
 
 use casper_types::{Key, ProtocolVersion};
 
-use crate::rpcs::common::GlobalStateIdentifier;
-use crate::types::{BlockHeader, StoredValue};
 #[cfg(doc)]
 use crate::BlockIdentifier;
+use crate::{
+    types::{BlockHeader, StoredValue},
+    GlobalStateIdentifier,
+};
 
 pub(crate) const QUERY_GLOBAL_STATE_METHOD: &str = "query_global_state";
 
