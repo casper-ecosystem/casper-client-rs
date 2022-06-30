@@ -36,17 +36,18 @@ impl Call {
             format!("{}/{}", self.node_address, RPC_API_PATH)
         };
 
-        let params = match maybe_params {
-            Some(params) => Params::Map(
-                json!(params)
-                    .as_object()
-                    .unwrap_or_else(|| panic!("should be a JSON Map"))
-                    .clone(),
-            ),
-            None => Params::None(()),
+        let rpc_request = match maybe_params {
+            Some(params) => {
+                let params = Params::Map(
+                    json!(params)
+                        .as_object()
+                        .unwrap_or_else(|| panic!("should be a JSON Map"))
+                        .clone(),
+                );
+                JsonRpc::request_with_params(&self.rpc_id, method, params)
+            }
+            None => JsonRpc::request(&self.rpc_id, method),
         };
-
-        let rpc_request = JsonRpc::request_with_params(&self.rpc_id, method, params);
 
         crate::json_pretty_print(&rpc_request, self.verbosity)?;
 
