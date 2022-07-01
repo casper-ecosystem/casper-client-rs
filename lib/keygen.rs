@@ -4,7 +4,7 @@ use std::{fs, path::Path};
 
 use casper_types::{AsymmetricType, PublicKey, SecretKey};
 
-use crate::{AsymmetricKeyExt, Error};
+use crate::Error;
 
 /// Default filename for the PEM-encoded secret key file.
 pub const SECRET_KEY_PEM: &str = "secret_key.pem";
@@ -34,7 +34,7 @@ pub fn generate_files(output_dir: &str, algorithm: &str, force: bool) -> Result<
     if output_dir.is_empty() {
         return Err(Error::EmptyKeygenPath);
     }
-    let _ = fs::create_dir_all(output_dir).map_err(move |error| Error::IoError {
+    fs::create_dir_all(output_dir).map_err(move |error| Error::IoError {
         context: format!("unable to create directory at '{}'", output_dir),
         error,
     })?;

@@ -37,7 +37,7 @@ use serde::Serialize;
 use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{AsymmetricType, PublicKey, URef};
+use casper_types::{crypto, AsymmetricType, PublicKey, URef};
 
 use crate::{
     rpcs::{
@@ -452,7 +452,7 @@ pub async fn get_account(
     let account_identifier =
         PublicKey::from_hex(public_key).map_err(|error| crate::Error::CryptoError {
             context: "public key in get_account",
-            error: crate::CryptoError::from(error),
+            error: crypto::ErrorExt::from(error),
         })?;
 
     crate::get_account(

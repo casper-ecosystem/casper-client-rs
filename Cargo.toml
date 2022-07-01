@@ -24,7 +24,7 @@ async-trait = "0.1.56"
 base16 = "0.2.1"
 base64 = "0.13.0"
 casper-hashing = "*"
-casper-types = { version = "*", features = ["datasize"] }
+casper-types = { version = "*", features = ["std"] }
 clap = { version = "3", features = ["cargo", "deprecated"] }
 clap_complete = "3"
 derp = "0.0.14"
