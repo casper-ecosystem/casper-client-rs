@@ -1,7 +1,6 @@
 use casper_types::SecretKey;
 
 use crate::{
-    crypto::AsymmetricKeyExt,
     types::{ExecutableDeployItem, MAX_SERIALIZED_SIZE_OF_DEPLOY},
     Error, OutputKind,
 };

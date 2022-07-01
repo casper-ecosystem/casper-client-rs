@@ -6,11 +6,10 @@ use serde::{Deserialize, Serialize};
 use casper_hashing::Digest;
 use casper_types::{
     bytesrepr::{self, ToBytes},
-    PublicKey, SecretKey, Signature, URef, U512,
+    crypto, PublicKey, SecretKey, Signature, URef, U512,
 };
 
 use crate::{
-    crypto,
     types::{ExecutableDeployItem, TimeDiff, Timestamp},
     Error, TransferTarget,
 };

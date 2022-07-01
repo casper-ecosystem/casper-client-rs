@@ -2,13 +2,13 @@ use std::{io, path::PathBuf};
 
 use thiserror::Error;
 
-use casper_types::{bytesrepr::Error as ToBytesError, Key};
+use casper_types::{bytesrepr::Error as ToBytesError, crypto, Key};
 #[cfg(doc)]
 use casper_types::{CLValue, URef};
 
 #[cfg(doc)]
 use crate::types::{Deploy, DeployBuilder, TimeDiff, Timestamp};
-use crate::{validation::ValidateResponseError, CryptoError, JsonRpcId};
+use crate::{validation::ValidateResponseError, JsonRpcId};
 
 /// Errors that may be returned by `casper_client` functions.
 #[derive(Error, Debug)]
@@ -150,7 +150,7 @@ pub enum Error {
         /// filenames, etc.
         context: &'static str,
         /// Underlying crypto error.
-        error: CryptoError,
+        error: crypto::ErrorExt,
     },
 
     /// Failed to validate response.

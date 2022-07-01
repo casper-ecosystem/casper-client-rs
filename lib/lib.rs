@@ -36,7 +36,6 @@
 )]
 
 pub mod cli;
-pub mod crypto;
 mod error;
 mod json_rpc;
 pub mod keygen;
@@ -60,7 +59,6 @@ use casper_hashing::Digest;
 use casper_types::Transfer;
 use casper_types::{Key, PublicKey, SecretKey, URef};
 
-pub use crypto::{AsymmetricKeyExt, CryptoError};
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};

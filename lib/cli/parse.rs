@@ -8,13 +8,12 @@ use serde::{self, Deserialize};
 
 use casper_hashing::Digest;
 use casper_types::{
-    account::AccountHash, bytesrepr, AsymmetricType, CLType, CLValue, HashAddr, Key, NamedArg,
-    PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
+    account::AccountHash, bytesrepr, crypto, AsymmetricType, CLType, CLValue, HashAddr, Key,
+    NamedArg, PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
 };
 
 use super::{cl_type, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
-    crypto::AsymmetricKeyExt,
     types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
     BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
 };
@@ -80,7 +79,7 @@ pub(super) fn session_account(value: &str) -> Result<Option<PublicKey>, CliError
 
     let public_key = PublicKey::from_hex(value).map_err(|error| crate::Error::CryptoError {
         context: "session account",
-        error: crate::CryptoError::from(error),
+        error: crypto::ErrorExt::from(error),
     })?;
     Ok(Some(public_key))
 }

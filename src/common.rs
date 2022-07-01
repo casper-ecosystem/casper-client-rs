@@ -214,7 +214,7 @@ pub mod block_identifier {
 
 /// Handles providing the arg for and retrieval of the public key.
 pub(super) mod public_key {
-    use casper_client::{cli::CliError, AsymmetricKeyExt};
+    use casper_client::cli::CliError;
     use casper_types::AsymmetricType;
 
     use super::*;
