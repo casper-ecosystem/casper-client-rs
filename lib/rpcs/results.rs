@@ -10,7 +10,9 @@ pub use super::v1_5_0::get_deploy::GetDeployResult;
 pub use super::v1_5_0::get_dictionary_item::GetDictionaryItemResult;
 pub use super::v1_5_0::get_era_info::{EraSummary, GetEraInfoResult};
 pub use super::v1_5_0::get_node_status::{
-    ActivationPoint, GetNodeStatusResult, MinimalBlockInfo, NextUpgrade, NodeState,
+    ActivationPoint, FastSync as FastSyncProgress, FetchingTriesReason, GetNodeStatusResult,
+    MinimalBlockInfo, NextUpgrade, NodeState, Progress, SyncBlock as SyncBlockProgress,
+    SyncBlockFetching as SyncBlockFetchingProgress, SyncToGenesis as SyncToGenesisProgress,
 };
 pub use super::v1_5_0::get_peers::{GetPeersResult, PeerEntry};
 pub use super::v1_5_0::get_state_root_hash::GetStateRootHashResult;
