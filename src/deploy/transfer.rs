@@ -19,7 +19,8 @@ pub(super) mod amount {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required_unless_present(creation_common::show_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferAmount as usize)
@@ -50,7 +51,8 @@ pub(super) mod target_account {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required_unless_present(creation_common::show_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferTargetAccount as usize)
@@ -77,7 +79,8 @@ pub(super) mod transfer_id {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required_unless_present(creation_common::show_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferId as usize)
@@ -112,7 +115,8 @@ impl ClientCommand for Transfer {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_arg_examples_and_exit_if_required(matches);
+        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
+        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
         let amount = amount::get(matches);
         let target_account = target_account::get(matches);

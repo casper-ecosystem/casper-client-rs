@@ -4,9 +4,10 @@ use humantime::{DurationError, TimestampError};
 use thiserror::Error;
 
 #[cfg(doc)]
-use casper_types::{account::AccountHash, Key, PublicKey, URef};
+use casper_types::{account::AccountHash, Key, NamedArg, PublicKey, RuntimeArgs, URef};
 use casper_types::{CLValueError, KeyFromStrError, UIntParseError, URefFromStrError};
 
+use crate::cli::JsonArgsError;
 #[cfg(doc)]
 use crate::{
     rpcs::{DictionaryItemIdentifier, GlobalStateIdentifier},
@@ -130,6 +131,17 @@ pub enum CliError {
         /// An error message.
         error: String,
     },
+
+    /// Error while parsing the json-args from a string to JSON.
+    #[error(
+        "failed to parse json-args to JSON: {0}.  They should be a JSON Array of Objects, each of \
+        the form {{\"name\":<String>,\"type\":<VALUE>,\"value\":<VALUE>}}"
+    )]
+    FailedToParseJsonArgs(#[from] serde_json::Error),
+
+    /// Error while building a [`NamedArg`] from parsed JSON input.
+    #[error(transparent)]
+    JsonArgs(#[from] JsonArgsError),
 
     /// Core error.
     #[error(transparent)]

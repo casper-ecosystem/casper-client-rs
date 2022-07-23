@@ -1,3 +1,6 @@
+#[cfg(doc)]
+use crate::cli;
+
 /// Container for payment-related arguments used while constructing a `Deploy`.
 ///
 /// ## `payment_args_simple`
@@ -46,10 +49,46 @@
 /// name_10:opt_string=null       # None
 /// ```
 ///
-/// To get a list of supported types, call
-/// [`supported_cl_type_list()`](help/fn.supported_cl_type_list.html). To get this list of examples
-/// for supported types, call
-/// [`supported_cl_type_examples()`](help/fn.supported_cl_type_examples.html).
+/// To get a list of supported types, call [`cli::simple_args_help::supported_cl_type_list`]. To
+/// get this list of examples for supported types, call
+/// [`cli::simple_args_help::supported_cl_type_examples`].
+///
+/// ## `payment_args_json`
+///
+/// For methods taking `payment_args_json`, this parameter is the payment contract arguments, as a
+/// JSON-encoded Array of JSON Objects of the form:
+/// ```json
+/// [{"name":<String>,"type":<VALUE>,"value":<VALUE>}]
+/// ```
+///
+/// To get comprehensive information and a set of examples, call
+/// [`cli::json_args_help::info_and_examples`].
+///
+/// Example inputs are:
+///
+/// ```json
+/// [{"name":"a","type":"Bool","value":false}]
+/// [{"name":"b","type":"I32","value":-1}]
+/// [{"name":"c","type":"U64","value":1}]
+/// [{"name":"d","type":"U512","value":"20000000000000000000"}]
+/// [{"name":"e","type":"Unit","value":null}]
+/// [{"name":"f","type":"String","value":"a"}]
+/// [{"name":"g","type":"Key","value":"account-hash-201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201"}]
+/// [{"name":"h","type":"URef","value":"uref-201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201-007"}]
+/// [{"name":"i","type":"PublicKey","value":"017279ea868d185a40ed32ec076807c070de9c0fe986f5418c2aa71478f1e8ddf8"}]
+/// [{"name":"j","type":{"Option":"U64"},"value":999}]        # Some(999_u64)
+/// [{"name":"k","type":{"Option":"String"},"value":null}]    # None
+/// [{"name":"l","type":{"List":{"Option":"U256"}},"value":[1,null,"3"]}]
+/// [{"name":"m","type":{"List":"U8"},"value":"0102ff"}]      # for Vec<u8> only, can parse from hex string
+/// [{"name":"n","type":{"ByteArray":3},"value":"0114ff"}]
+/// [{"name":"o","type":{"ByteArray":3},"value":[1,20,255]}]
+/// [{"name":"p","type":{"Result":{"ok":"Bool","err":"U8"}},"value":{"Ok":true}}]
+/// [{"name":"q","type":{"Result":{"ok":"Bool","err":"U8"}},"value":{"Err":1}}]
+/// [{"name":"r","type":{"Map":{"key":"U8","value":"Bool"}},"value":[{"key":1,"value":true},{"key":2,"value":false}]}]
+/// ## for Map with key as String or Number can use an Object rather than an Array:
+/// [{"name":"s","type":{"Map":{"key":"U8","value":"Bool"}},"value":{"1":true,"2":false}}]
+/// [{"name":"t","type":{"Tuple3":["Bool","U8","String"]},"value":[true,128,"a"]}]
+/// ```
 ///
 /// ## `payment_args_complex`
 ///
@@ -59,7 +98,7 @@
 /// ---
 ///
 /// **Note** while multiple payment args can be specified for a single payment code instance, only
-/// one of `payment_args_simple` and `payment_args_complex` may be used.
+/// one of `payment_args_simple`, `payment_args_json` or `payment_args_complex` may be used.
 #[derive(Default)]
 pub struct PaymentStrParams<'a> {
     pub(super) payment_amount: &'a str,
@@ -69,6 +108,7 @@ pub struct PaymentStrParams<'a> {
     pub(super) payment_package_name: &'a str,
     pub(super) payment_path: &'a str,
     pub(super) payment_args_simple: Vec<&'a str>,
+    pub(super) payment_args_json: &'a str,
     pub(super) payment_args_complex: &'a str,
     pub(super) payment_version: &'a str,
     pub(super) payment_entry_point: &'a str,
@@ -78,16 +118,19 @@ impl<'a> PaymentStrParams<'a> {
     /// Constructs a `PaymentStrParams` using a payment smart contract file.
     ///
     /// * `payment_path` is the path to the compiled Wasm payment code.
-    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple) and
+    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple),
+    ///   [`payment_args_json`](#payment_args_json) and
     ///   [`payment_args_complex`](#payment_args_complex).
     pub fn with_path(
         payment_path: &'a str,
         payment_args_simple: Vec<&'a str>,
+        payment_args_json: &'a str,
         payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_path,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
             ..Default::default()
         }
@@ -110,17 +153,20 @@ impl<'a> PaymentStrParams<'a> {
     ///   to be called as the payment.
     /// * `payment_entry_point` is the name of the method that will be used when calling the payment
     ///   contract.
-    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple) and
+    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple),
+    ///   [`payment_args_json`](#payment_args_json) and
     ///   [`payment_args_complex`](#payment_args_complex).
     pub fn with_name(
         payment_name: &'a str,
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
+        payment_args_json: &'a str,
         payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_name,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
             payment_entry_point,
             ..Default::default()
@@ -132,17 +178,20 @@ impl<'a> PaymentStrParams<'a> {
     /// * `payment_hash` is the hex-encoded hash of the stored contract to be called as the payment.
     /// * `payment_entry_point` is the name of the method that will be used when calling the payment
     ///   contract.
-    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple) and
+    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple),
+    ///   [`payment_args_json`](#payment_args_json) and
     ///   [`payment_args_complex`](#payment_args_complex).
     pub fn with_hash(
         payment_hash: &'a str,
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
+        payment_args_json: &'a str,
         payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_hash,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
             payment_entry_point,
             ..Default::default()
@@ -156,18 +205,21 @@ impl<'a> PaymentStrParams<'a> {
     ///   if `payment_version` is empty.
     /// * `payment_entry_point` is the name of the method that will be used when calling the payment
     ///   contract.
-    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple) and
+    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple),
+    ///   [`payment_args_json`](#payment_args_json) and
     ///   [`payment_args_complex`](#payment_args_complex).
     pub fn with_package_name(
         payment_package_name: &'a str,
         payment_version: &'a str,
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
+        payment_args_json: &'a str,
         payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_package_name,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
             payment_version,
             payment_entry_point,
@@ -183,18 +235,21 @@ impl<'a> PaymentStrParams<'a> {
     ///   if `payment_version` is empty.
     /// * `payment_entry_point` is the name of the method that will be used when calling the payment
     ///   contract.
-    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple) and
+    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple),
+    ///   [`payment_args_json`](#payment_args_json) and
     ///   [`payment_args_complex`](#payment_args_complex).
     pub fn with_package_hash(
         payment_package_hash: &'a str,
         payment_version: &'a str,
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
+        payment_args_json: &'a str,
         payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_package_hash,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
             payment_version,
             payment_entry_point,

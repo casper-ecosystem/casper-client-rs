@@ -31,7 +31,8 @@ impl ClientCommand for MakeDeploy {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_arg_examples_and_exit_if_required(matches);
+        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
+        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
         let secret_key = common::secret_key::get(matches);
         let timestamp = creation_common::timestamp::get(matches);

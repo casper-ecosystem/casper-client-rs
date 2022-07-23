@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.  The format
 * Add support for new node RPC method `info_get_status`, used in the binary's new `get-node-status` subcommand.
 * Add support for new node RPC method `info_get_peers`, used in the binary's new `get-peers` subcommand.
 * Add support for new node RPC method `query_balance`, used in the binary's new `query-balance` subcommand.
+* Add support for passing payment and session args as JSON.
 
 ### Changed
 * Update dependencies.

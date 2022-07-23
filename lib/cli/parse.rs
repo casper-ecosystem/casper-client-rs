@@ -12,7 +12,7 @@ use casper_types::{
     NamedArg, PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
 };
 
-use super::{cl_type, CliError, PaymentStrParams, SessionStrParams};
+use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
     types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
     BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
@@ -132,11 +132,11 @@ mod arg_simple {
                 arg, ARG_VALUE_NAME
             )));
         }
-        let cl_type = cl_type::parse(parts[1]).map_err(|_| {
+        let cl_type = simple_args::parse_cl_type(parts[1]).map_err(|_| {
             CliError::InvalidCLValue(format!(
                 "unknown variant {}, expected one of {}",
                 parts[1],
-                cl_type::help::supported_cl_type_list()
+                simple_args::help::supported_cl_type_list()
             ))
         })?;
         Ok((parts[0], cl_type, parts[2]))
@@ -148,9 +148,42 @@ mod arg_simple {
         runtime_args: &mut RuntimeArgs,
     ) -> Result<(), CliError> {
         let (name, cl_type, value) = parts;
-        let cl_value = cl_type::parts_to_cl_value(cl_type, value)?;
+        let cl_value = simple_args::parts_to_cl_value(cl_type, value)?;
         runtime_args.insert_cl_value(name, cl_value);
         Ok(())
+    }
+}
+
+mod args_json {
+    use super::*;
+    use crate::cli::JsonArg;
+
+    pub mod session {
+        use super::*;
+
+        pub fn parse(json_str: &str) -> Result<Option<RuntimeArgs>, CliError> {
+            get(json_str)
+        }
+    }
+
+    pub mod payment {
+        use super::*;
+
+        pub fn parse(json_str: &str) -> Result<Option<RuntimeArgs>, CliError> {
+            get(json_str)
+        }
+    }
+
+    fn get(json_str: &str) -> Result<Option<RuntimeArgs>, CliError> {
+        if json_str.is_empty() {
+            return Ok(None);
+        }
+        let json_args: Vec<JsonArg> = serde_json::from_str(json_str)?;
+        let mut named_args = Vec::with_capacity(json_args.len());
+        for json_arg in json_args {
+            named_args.push(NamedArg::try_from(json_arg)?);
+        }
+        Ok(Some(RuntimeArgs::from(named_args)))
     }
 }
 
@@ -290,15 +323,16 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     Ok(runtime_args)
 }
 
-fn args_from_simple_or_complex(
+fn args_from_simple_or_json_or_complex(
     simple: Option<RuntimeArgs>,
+    json: Option<RuntimeArgs>,
     complex: Option<RuntimeArgs>,
 ) -> RuntimeArgs {
     // We can have exactly zero or one of the two as `Some`.
-    match (simple, complex) {
-        (Some(args), None) | (None, Some(args)) => args,
-        (None, None) => RuntimeArgs::new(),
-        (Some(_), Some(_)) => unreachable!("should not have both simple and complex args"),
+    match (simple, json, complex) {
+        (Some(args), None, None) | (None, Some(args), None) | (None, None, Some(args)) => args,
+        (None, None, None) => RuntimeArgs::new(),
+        _ => unreachable!("should not have more than one of simple, json or complex args"),
     }
 }
 
@@ -403,6 +437,7 @@ pub(super) fn session_executable_deploy_item(
         session_package_name,
         session_path,
         ref session_args_simple,
+        session_args_json,
         session_args_complex,
         session_version,
         session_entry_point,
@@ -433,8 +468,9 @@ pub(super) fn session_executable_deploy_item(
         });
     }
 
-    let session_args = args_from_simple_or_complex(
+    let session_args = args_from_simple_or_json_or_complex(
         arg_simple::session::parse(session_args_simple)?,
+        args_json::session::parse(session_args_json)?,
         args_complex::session::parse(session_args_complex)?,
     );
     if session_transfer {
@@ -506,6 +542,7 @@ pub(super) fn payment_executable_deploy_item(
         payment_package_name,
         payment_path,
         ref payment_args_simple,
+        payment_args_json,
         payment_args_complex,
         payment_version,
         payment_entry_point,
@@ -546,8 +583,9 @@ pub(super) fn payment_executable_deploy_item(
         error: payment_entry_point.to_string(),
     };
 
-    let payment_args = args_from_simple_or_complex(
+    let payment_args = args_from_simple_or_json_or_complex(
         arg_simple::payment::parse(payment_args_simple)?,
+        args_json::payment::parse(payment_args_json)?,
         args_complex::payment::parse(payment_args_complex)?,
     );
 
@@ -1040,6 +1078,7 @@ mod tests {
                 session_package_name: "",
                 session_path: "",
                 session_args_simple: vec!["something:u32='0'"],
+                session_args_json: "",
                 session_args_complex: "path_to/file",
                 session_version: "",
                 session_entry_point: "entrypoint",
@@ -1060,6 +1099,7 @@ mod tests {
                 payment_package_name: "",
                 payment_path: "",
                 payment_args_simple: vec!["something:u32='0'"],
+                payment_args_json: "",
                 payment_args_complex: "path_to/file",
                 payment_version: "",
                 payment_entry_point: "entrypoint",
@@ -1081,6 +1121,7 @@ mod tests {
                 session_package_name: happy::PACKAGE_NAME,
                 session_path: happy::PATH,
                 session_args_simple: vec![],
+                session_args_json: "",
                 session_args_complex: "",
                 session_version: "",
                 session_entry_point: "",
@@ -1104,6 +1145,7 @@ mod tests {
                 payment_package_name: happy::PACKAGE_NAME,
                 payment_path: happy::PATH,
                 payment_args_simple: vec![],
+                payment_args_json: "",
                 payment_args_complex: "",
                 payment_version: "",
                 payment_entry_point: "",
@@ -1126,6 +1168,7 @@ mod tests {
                 session_package_name: "",
                 session_path: "",
                 session_args_simple: vec![],
+                session_args_json: "",
                 session_args_complex: missing_file,
                 session_version: "",
                 session_entry_point: "entrypoint",
@@ -1150,6 +1193,7 @@ mod tests {
                 payment_package_name: "",
                 payment_path: "",
                 payment_args_simple: vec![],
+                payment_args_json: "",
                 payment_args_complex: missing_file,
                 payment_version: "",
                 payment_entry_point: "entrypoint",
@@ -1534,7 +1578,7 @@ mod tests {
             #[test]
             pub fn with_hash() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    SessionStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "").try_into();
+                    SessionStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "", "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByHash { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1550,7 +1594,7 @@ mod tests {
             #[test]
             pub fn with_name() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    SessionStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "").try_into();
+                    SessionStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "", "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByName { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1571,6 +1615,7 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
+                        "",
                         "",
                     )
                     .try_into();
@@ -1594,6 +1639,7 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
+                        "",
                         "",
                     )
                     .try_into();
@@ -1634,7 +1680,7 @@ mod tests {
             #[test]
             pub fn with_hash() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    PaymentStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "").try_into();
+                    PaymentStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "", "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByHash { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1650,7 +1696,7 @@ mod tests {
             #[test]
             pub fn with_name() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    PaymentStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "").try_into();
+                    PaymentStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "", "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByName { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1671,6 +1717,7 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
+                        "",
                         "",
                     )
                     .try_into();
@@ -1694,6 +1741,7 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
+                        "",
                         "",
                     )
                     .try_into();

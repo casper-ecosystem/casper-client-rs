@@ -5,13 +5,14 @@ use std::process;
 
 use clap::{Arg, ArgAction, ArgGroup, ArgMatches, Command};
 
-use casper_client::cli::{help, PaymentStrParams, SessionStrParams};
+use casper_client::cli::{json_args_help, simple_args_help, PaymentStrParams, SessionStrParams};
 
 use crate::common;
 
 /// This struct defines the order in which the args are shown for this subcommand's help message.
 pub(super) enum DisplayOrder {
-    ShowArgExamples,
+    ShowSimpleArgExamples,
+    ShowJsonArgExamples,
     Verbose,
     NodeAddress,
     RpcId,
@@ -27,6 +28,7 @@ pub(super) enum DisplayOrder {
     ChainName,
     SessionCode,
     SessionArgSimple,
+    SessionArgsJson,
     SessionArgsComplex,
     SessionHash,
     SessionName,
@@ -39,6 +41,7 @@ pub(super) enum DisplayOrder {
     StandardPayment,
     PaymentCode,
     PaymentArgSimple,
+    PaymentArgsJson,
     PaymentArgsComplex,
     PaymentHash,
     PaymentName,
@@ -48,15 +51,47 @@ pub(super) enum DisplayOrder {
     PaymentVersion,
 }
 
-/// Handles providing the arg for and executing the show-arg-examples option.
-pub(super) mod show_arg_examples {
+/// Handles providing the arg for and executing the show-simple-arg-examples option.
+pub(super) mod show_simple_arg_examples {
     use super::*;
 
-    pub(in crate::deploy) const ARG_NAME: &str = "show-arg-examples";
+    pub(in crate::deploy) const ARG_NAME: &str = "show-simple-arg-examples";
+    const ARG_ALIAS: &str = "show-arg-examples";
     const ARG_SHORT: char = 'e';
     const ARG_HELP: &str =
         "If passed, all other options are ignored and a set of examples of session-/payment-args \
         is printed";
+
+    pub(in crate::deploy) fn arg() -> Arg<'static> {
+        Arg::new(ARG_NAME)
+            .alias(ARG_ALIAS)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .required(false)
+            .action(ArgAction::SetTrue)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::ShowSimpleArgExamples as usize)
+    }
+
+    pub(in crate::deploy) fn get(matches: &ArgMatches) -> bool {
+        if let Some(true) = matches.get_one::<bool>(ARG_NAME) {
+            println!("Examples for passing values via --session-arg or --payment-arg:");
+            println!("{}", simple_args_help::supported_cl_type_examples());
+            return true;
+        }
+
+        false
+    }
+}
+
+/// Handles providing the arg for and executing the show-json-arg-examples option.
+pub(super) mod show_json_args_examples {
+    use super::*;
+
+    pub(in crate::deploy) const ARG_NAME: &str = "show-json-args-examples";
+    const ARG_SHORT: char = 'j';
+    const ARG_HELP: &str = "If passed, all other options are ignored and a set of examples of \
+        session-/payment-args-json is printed";
 
     pub(in crate::deploy) fn arg() -> Arg<'static> {
         Arg::new(ARG_NAME)
@@ -65,13 +100,14 @@ pub(super) mod show_arg_examples {
             .required(false)
             .action(ArgAction::SetTrue)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::ShowArgExamples as usize)
+            .display_order(DisplayOrder::ShowJsonArgExamples as usize)
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> bool {
         if let Some(true) = matches.get_one::<bool>(ARG_NAME) {
-            println!("Examples for passing values via --session-arg or --payment-arg:");
-            println!("{}", help::supported_cl_type_examples());
+            println!("Examples for passing values via --session-args-json or --payment-args-json:");
+            println!();
+            println!("{}", json_args_help::info_and_examples());
             return true;
         }
 
@@ -81,14 +117,20 @@ pub(super) mod show_arg_examples {
 
 pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
     let session_args_simple = arg_simple::session::get(matches);
+    let session_args_json = args_json::session::get(matches);
     let session_args_complex = args_complex::session::get(matches);
     if is_session_transfer::get(matches) {
-        return SessionStrParams::with_transfer(session_args_simple, session_args_complex);
+        return SessionStrParams::with_transfer(
+            session_args_simple,
+            session_args_json,
+            session_args_complex,
+        );
     }
     if let Some(session_path) = session_path::get(matches) {
         return SessionStrParams::with_path(
             session_path,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -98,6 +140,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_hash,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -106,6 +149,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_name,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -116,6 +160,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_version,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -125,6 +170,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_version,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -136,11 +182,13 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
         return PaymentStrParams::with_amount(payment_amount);
     }
     let payment_args_simple = arg_simple::payment::get(matches);
+    let payment_args_json = args_json::payment::get(matches);
     let payment_args_complex = args_complex::payment::get(matches);
     if let Some(payment_path) = payment_path::get(matches) {
         return PaymentStrParams::with_path(
             payment_path,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -150,6 +198,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_hash,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -158,6 +207,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_name,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -168,6 +218,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_version,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -177,6 +228,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_version,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -256,7 +308,8 @@ pub(super) mod chain_name {
     pub(in crate::deploy) fn arg() -> Arg<'static> {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required_unless_present(show_arg_examples::ARG_NAME)
+            .required_unless_present(show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::ChainName as usize)
@@ -306,8 +359,8 @@ pub(super) mod arg_simple {
             "For simple CLTypes, a named and typed arg which is passed to the Wasm code. To see \
             an example for each type, run '--{}'. This arg can be repeated to pass multiple named, \
             typed args, but can only be used for the following types: {}",
-            super::show_arg_examples::ARG_NAME,
-            help::supported_cl_type_list()
+            show_simple_arg_examples::ARG_NAME,
+            simple_args_help::supported_cl_type_list()
         )
     });
 
@@ -318,9 +371,7 @@ pub(super) mod arg_simple {
         const ARG_SHORT: char = 'a';
 
         pub fn arg() -> Arg<'static> {
-            super::arg(ARG_NAME, DisplayOrder::SessionArgSimple as usize)
-                .short(ARG_SHORT)
-                .requires(super::session::ARG_NAME)
+            super::arg(ARG_NAME, DisplayOrder::SessionArgSimple as usize).short(ARG_SHORT)
         }
 
         pub fn get(matches: &ArgMatches) -> Vec<&str> {
@@ -339,7 +390,6 @@ pub(super) mod arg_simple {
 
         pub fn arg() -> Arg<'static> {
             super::arg(ARG_NAME, DisplayOrder::PaymentArgSimple as usize)
-                .requires(super::payment::ARG_NAME)
         }
 
         pub fn get(matches: &ArgMatches) -> Vec<&str> {
@@ -348,6 +398,66 @@ pub(super) mod arg_simple {
                 .unwrap_or_default()
                 .map(|simple_payment_arg| simple_payment_arg.as_str())
                 .collect()
+        }
+    }
+
+    fn arg(name: &'static str, order: usize) -> Arg<'static> {
+        Arg::new(name)
+            .long(name)
+            .required(false)
+            .action(ArgAction::Append)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP.as_str())
+            .display_order(order)
+    }
+}
+
+/// Handles providing the arg for and retrieval of JSON session and payment args.
+pub(super) mod args_json {
+    use super::*;
+    use once_cell::sync::Lazy;
+
+    const ARG_VALUE_NAME: &str = "JSON ARRAY";
+
+    static ARG_HELP: Lazy<String> = Lazy::new(|| {
+        format!(
+            "A JSON Array of named and typed args which is passed to the Wasm code. To see \
+            examples, run '--{}'.",
+            show_json_args_examples::ARG_NAME,
+        )
+    });
+
+    pub(in crate::deploy) mod session {
+        use super::*;
+
+        pub const ARG_NAME: &str = "session-args-json";
+
+        pub fn arg() -> Arg<'static> {
+            super::arg(ARG_NAME, DisplayOrder::SessionArgsJson as usize)
+        }
+
+        pub fn get(matches: &ArgMatches) -> &str {
+            matches
+                .get_one::<String>(ARG_NAME)
+                .map(String::as_str)
+                .unwrap_or_default()
+        }
+    }
+
+    pub(in crate::deploy) mod payment {
+        use super::*;
+
+        pub const ARG_NAME: &str = "payment-args-json";
+
+        pub fn arg() -> Arg<'static> {
+            super::arg(ARG_NAME, DisplayOrder::PaymentArgsJson as usize)
+        }
+
+        pub fn get(matches: &ArgMatches) -> &str {
+            matches
+                .get_one::<String>(ARG_NAME)
+                .map(String::as_str)
+                .unwrap_or_default()
         }
     }
 
@@ -473,19 +583,22 @@ pub(super) fn apply_common_creation_options(
 ) -> Command<'static> {
     let mut subcommand = subcommand
         .next_line_help(true)
-        .arg(show_arg_examples::arg());
+        .arg(show_simple_arg_examples::arg())
+        .arg(show_json_args_examples::arg());
 
     if include_node_address {
         subcommand = subcommand.arg(
             common::node_address::arg(DisplayOrder::NodeAddress as usize)
-                .required_unless_present(show_arg_examples::ARG_NAME),
+                .required_unless_present(show_simple_arg_examples::ARG_NAME)
+                .required_unless_present(show_json_args_examples::ARG_NAME),
         );
     }
 
     subcommand = subcommand
         .arg(
             common::secret_key::arg(DisplayOrder::SecretKey as usize)
-                .required_unless_present(show_arg_examples::ARG_NAME),
+                .required_unless_present(show_simple_arg_examples::ARG_NAME)
+                .required_unless_present(show_json_args_examples::ARG_NAME),
         )
         .arg(timestamp::arg())
         .arg(ttl::arg())
@@ -505,11 +618,13 @@ pub(super) fn apply_common_session_options(subcommand: Command<'static>) -> Comm
         .arg(session_hash::arg())
         .arg(session_name::arg())
         .arg(arg_simple::session::arg())
+        .arg(args_json::session::arg())
         .arg(args_complex::session::arg())
         // Group the session-arg args so only one style is used to ensure consistent ordering.
         .group(
             ArgGroup::new("session-args")
                 .arg(arg_simple::session::ARG_NAME)
+                .arg(args_json::session::ARG_NAME)
                 .arg(args_complex::session::ARG_NAME)
                 .required(false),
         )
@@ -523,7 +638,8 @@ pub(super) fn apply_common_session_options(subcommand: Command<'static>) -> Comm
                 .arg(is_session_transfer::ARG_NAME)
                 .arg(session_hash::ARG_NAME)
                 .arg(session_name::ARG_NAME)
-                .arg(show_arg_examples::ARG_NAME)
+                .arg(show_simple_arg_examples::ARG_NAME)
+                .arg(show_json_args_examples::ARG_NAME)
                 .required(true),
         )
 }
@@ -537,11 +653,13 @@ pub(crate) fn apply_common_payment_options(subcommand: Command<'static>) -> Comm
         .arg(payment_hash::arg())
         .arg(payment_name::arg())
         .arg(arg_simple::payment::arg())
+        .arg(args_json::payment::arg())
         .arg(args_complex::payment::arg())
         // Group the payment-arg args so only one style is used to ensure consistent ordering.
         .group(
             ArgGroup::new("payment-args")
                 .arg(arg_simple::payment::ARG_NAME)
+                .arg(args_json::payment::ARG_NAME)
                 .arg(args_complex::payment::ARG_NAME)
                 .required(false),
         )
@@ -555,14 +673,22 @@ pub(crate) fn apply_common_payment_options(subcommand: Command<'static>) -> Comm
                 .arg(payment_package_name::ARG_NAME)
                 .arg(payment_hash::ARG_NAME)
                 .arg(payment_name::ARG_NAME)
-                .arg(show_arg_examples::ARG_NAME)
+                .arg(show_simple_arg_examples::ARG_NAME)
+                .arg(show_json_args_examples::ARG_NAME)
                 .required(true),
         )
 }
 
-pub(super) fn show_arg_examples_and_exit_if_required(matches: &ArgMatches) {
+pub(super) fn show_simple_arg_examples_and_exit_if_required(matches: &ArgMatches) {
     // If we printed the arg examples, exit the process.
-    if show_arg_examples::get(matches) {
+    if show_simple_arg_examples::get(matches) {
+        process::exit(0);
+    }
+}
+
+pub(super) fn show_json_args_examples_and_exit_if_required(matches: &ArgMatches) {
+    // If we printed the arg examples, exit the process.
+    if show_json_args_examples::get(matches) {
         process::exit(0);
     }
 }
