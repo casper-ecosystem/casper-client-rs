@@ -1,4 +1,4 @@
-//! Supported `CLType` and `CLValue` parsing and validation.
+//! `CLType` and `CLValue` parsing and validation from "simple args" syntax.
 
 use std::str::FromStr;
 
@@ -10,7 +10,7 @@ use casper_types::{
 use super::CliError;
 
 /// Parse a `CLType` from `&str`.
-pub(crate) fn parse(strval: &str) -> Result<CLType, ()> {
+pub(crate) fn parse_cl_type(strval: &str) -> Result<CLType, ()> {
     let supported_types = supported_cl_types();
     let cl_type = match strval.to_lowercase() {
         t if t == supported_types[0].0 => supported_types[0].1.clone(),
@@ -170,7 +170,7 @@ enum OptionalStatus {
 
 /// Parses to a given CLValue taking into account whether the arg represents an optional type or
 /// not.
-fn parse_to_cl_value<T, F>(optional_status: OptionalStatus, parse: F) -> Result<CLValue, CliError>
+fn parse_cl_value<T, F>(optional_status: OptionalStatus, parse: F) -> Result<CLValue, CliError>
 where
     T: CLTyped + ToBytes,
     F: FnOnce() -> Result<T, CliError>,
@@ -223,7 +223,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     invalid
                 ))),
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::I32 => {
             let parse = || {
@@ -231,7 +231,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     CliError::InvalidCLValue(format!("can't parse {} as i32: {}", value, error))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::I64 => {
             let parse = || {
@@ -242,7 +242,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::U8 => {
             let parse = || {
@@ -253,7 +253,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::U32 => {
             let parse = || {
@@ -264,7 +264,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::U64 => {
             let parse = || {
@@ -275,7 +275,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::U128 => {
             let parse = || {
@@ -286,7 +286,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::U256 => {
             let parse = || {
@@ -297,7 +297,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::U512 => {
             let parse = || {
@@ -308,7 +308,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::Unit => {
             let parse = || {
@@ -320,11 +320,11 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                 }
                 Ok(())
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::String => {
             let parse = || Ok(trimmed_value.to_string());
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::Key => {
             let parse = || {
@@ -335,7 +335,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::ByteArray(32) => {
             let parse = || {
@@ -347,7 +347,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::URef => {
             let parse = || {
@@ -359,7 +359,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                     ))
                 })
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         CLType::PublicKey => {
             let parse = || {
@@ -371,7 +371,7 @@ pub fn parts_to_cl_value(cl_type: CLType, value: &str) -> Result<CLValue, CliErr
                 })?;
                 Ok(pub_key)
             };
-            parse_to_cl_value(optional_status, parse)
+            parse_cl_value(optional_status, parse)
         }
         _ => unreachable!(),
     }

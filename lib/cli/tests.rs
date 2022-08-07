@@ -103,9 +103,9 @@ fn args_simple() -> Vec<&'static str> {
 fn should_create_deploy() {
     let deploy_params = deploy_params();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
     let session_params =
-        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
+        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
 
     let mut output = Vec::new();
 
@@ -135,7 +135,7 @@ fn should_create_deploy() {
 fn should_fail_to_create_large_deploy() {
     let deploy_params = deploy_params();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
     // Create a string arg of 1048576 letter 'a's to ensure the deploy is greater than 1048576
     // bytes.
     let large_args_simple = format!("name_01:string='{:a<1048576}'", "");
@@ -145,6 +145,7 @@ fn should_fail_to_create_large_deploy() {
         VERSION,
         ENTRYPOINT,
         vec![large_args_simple.as_str()],
+        "",
         "",
     );
 

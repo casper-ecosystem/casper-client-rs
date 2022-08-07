@@ -33,7 +33,8 @@ impl ClientCommand for MakeTransfer {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_arg_examples_and_exit_if_required(matches);
+        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
+        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
         let amount = transfer::amount::get(matches);
         let target_account = transfer::target_account::get(matches);
