@@ -29,14 +29,16 @@ impl TryFrom<JsonArg> for NamedArg {
 
     fn try_from(json_arg: JsonArg) -> Result<Self, Self::Error> {
         let mut bytes = vec![];
-        json_to_bytesrepr(&json_arg.cl_type, &json_arg.value, &mut bytes).map_err(|details| {
-            Error::new(
-                json_arg.name.clone(),
-                json_arg.cl_type.clone(),
-                json_arg.value,
-                details,
-            )
-        })?;
+        write_json_to_bytesrepr(&json_arg.cl_type, &json_arg.value, &mut bytes).map_err(
+            |details| {
+                Error::new(
+                    json_arg.name.clone(),
+                    json_arg.cl_type.clone(),
+                    json_arg.value,
+                    details,
+                )
+            },
+        )?;
         Ok(NamedArg::new(
             json_arg.name,
             CLValue::from_components(json_arg.cl_type, bytes),
@@ -44,7 +46,7 @@ impl TryFrom<JsonArg> for NamedArg {
     }
 }
 
-fn json_to_bytesrepr(
+fn write_json_to_bytesrepr(
     cl_type: &CLType,
     json_value: &Value,
     output: &mut Vec<u8>,
@@ -153,12 +155,12 @@ fn json_to_bytesrepr(
         }
         (&CLType::Option(ref inner_cl_type), _) => {
             output.push(OPTION_SOME_TAG);
-            json_to_bytesrepr(&*inner_cl_type, json_value, output)?
+            write_json_to_bytesrepr(&*inner_cl_type, json_value, output)?
         }
         (&CLType::List(ref inner_cl_type), Value::Array(vec)) => {
             (vec.len() as u32).write_bytes(output)?;
             for item in vec {
-                json_to_bytesrepr(&*inner_cl_type, item, output)?;
+                write_json_to_bytesrepr(&*inner_cl_type, item, output)?;
             }
         }
         (&CLType::List(ref inner_cl_type), Value::String(string)) => {
@@ -206,11 +208,11 @@ fn json_to_bytesrepr(
             match map.iter().next() {
                 Some((key, value)) if key.to_ascii_lowercase() == "ok" => {
                     output.push(RESULT_OK_TAG);
-                    json_to_bytesrepr(&*ok, value, output)?
+                    write_json_to_bytesrepr(&*ok, value, output)?
                 }
                 Some((key, value)) if key.to_ascii_lowercase() == "err" => {
                     output.push(RESULT_ERR_TAG);
-                    json_to_bytesrepr(&*err, value, output)?
+                    write_json_to_bytesrepr(&*err, value, output)?
                 }
                 _ => return Err(ErrorDetails::ResultObjectHasInvalidVariant),
             }
@@ -253,8 +255,8 @@ fn json_to_bytesrepr(
                     CLType::String => json!(key_as_str),
                     _ => return Err(ErrorDetails::MapTypeNotValidAsObject(*key_type.clone())),
                 };
-                json_to_bytesrepr(&*key_type, &key, output)?;
-                json_to_bytesrepr(&*value_type, value, output)?;
+                write_json_to_bytesrepr(&*key_type, &key, output)?;
+                write_json_to_bytesrepr(&*value_type, value, output)?;
             }
         }
         (
@@ -277,11 +279,11 @@ fn json_to_bytesrepr(
                 let key = map
                     .get("key")
                     .ok_or(ErrorDetails::MapEntryObjectMissingKeyField)?;
-                json_to_bytesrepr(&*key_type, key, output)?;
+                write_json_to_bytesrepr(&*key_type, key, output)?;
                 let value = map
                     .get("value")
                     .ok_or(ErrorDetails::MapEntryObjectMissingValueField)?;
-                json_to_bytesrepr(&*value_type, value, output)?;
+                write_json_to_bytesrepr(&*value_type, value, output)?;
             }
         }
         (&CLType::Tuple1(ref inner_cl_types), Value::Array(vec)) => {
@@ -291,7 +293,7 @@ fn json_to_bytesrepr(
                     actual: vec.len(),
                 });
             }
-            json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?
+            write_json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?
         }
         (&CLType::Tuple2(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
@@ -300,8 +302,8 @@ fn json_to_bytesrepr(
                     actual: vec.len(),
                 });
             }
-            json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?;
-            json_to_bytesrepr(&*inner_cl_types[1], &vec[1], output)?
+            write_json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?;
+            write_json_to_bytesrepr(&*inner_cl_types[1], &vec[1], output)?
         }
         (&CLType::Tuple3(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
@@ -310,9 +312,9 @@ fn json_to_bytesrepr(
                     actual: vec.len(),
                 });
             }
-            json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?;
-            json_to_bytesrepr(&*inner_cl_types[1], &vec[1], output)?;
-            json_to_bytesrepr(&*inner_cl_types[2], &vec[2], output)?
+            write_json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?;
+            write_json_to_bytesrepr(&*inner_cl_types[1], &vec[1], output)?;
+            write_json_to_bytesrepr(&*inner_cl_types[2], &vec[2], output)?
         }
         _ => return Err(ErrorDetails::IncompatibleType),
     };
@@ -359,7 +361,7 @@ mod tests {
         let input = create_input(type_str, value_str);
         let json_arg: JsonArg = serde_json::from_str(&input).unwrap();
         let mut bytes = vec![];
-        json_to_bytesrepr(&json_arg.cl_type, &json_arg.value, &mut bytes).unwrap_err()
+        write_json_to_bytesrepr(&json_arg.cl_type, &json_arg.value, &mut bytes).unwrap_err()
     }
 
     #[test]
