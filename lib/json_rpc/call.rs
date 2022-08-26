@@ -7,6 +7,8 @@ use serde_json::json;
 use crate::{Error, JsonRpcId, SuccessResponse, Verbosity};
 
 const RPC_API_PATH: &str = "rpc";
+/// Statically declared client used when making HTTP requests
+/// so opened connections are pooled.
 static CLIENT: OnceCell<Client> = OnceCell::new();
 
 /// Struct representing a single JSON-RPC call to the casper node.
