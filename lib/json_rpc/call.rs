@@ -1,4 +1,5 @@
 use jsonrpc_lite::{JsonRpc, Params};
+use once_cell::sync::OnceCell;
 use reqwest::Client;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::json;
@@ -6,6 +7,7 @@ use serde_json::json;
 use crate::{Error, JsonRpcId, SuccessResponse, Verbosity};
 
 const RPC_API_PATH: &str = "rpc";
+static CLIENT: OnceCell<Client> = OnceCell::new();
 
 /// Struct representing a single JSON-RPC call to the casper node.
 #[derive(Debug)]
@@ -51,7 +53,7 @@ impl Call {
 
         crate::json_pretty_print(&rpc_request, self.verbosity)?;
 
-        let client = Client::new();
+        let client = CLIENT.get_or_init(Client::new);
         let http_response = client
             .post(&url)
             .json(&rpc_request)
