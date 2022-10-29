@@ -27,7 +27,7 @@ impl ClientCommand for GetAccount {
     const NAME: &'static str = "get-account";
     const ABOUT: &'static str = "Retrieve account information from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .alias(COMMAND_ALIAS)
             .about(Self::ABOUT)

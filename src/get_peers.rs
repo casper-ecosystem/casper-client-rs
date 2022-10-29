@@ -22,7 +22,7 @@ impl ClientCommand for GetPeers {
     const ABOUT: &'static str =
         "Retrieve network identity and address of each of the specified node's peers";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

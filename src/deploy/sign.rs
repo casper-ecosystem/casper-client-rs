@@ -15,7 +15,7 @@ impl ClientCommand for SignDeploy {
         "Read a previously-saved deploy from a file, cryptographically sign it, and output it to a \
         file or stdout";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

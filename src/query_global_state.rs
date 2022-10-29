@@ -48,7 +48,7 @@ mod key {
         enter the path to the file as the --key argument. The file should be one of the two public \
         key files generated via the `keygen` subcommand; \"public_key_hex\" or \"public_key.pem\"";
 
-    pub(crate) fn arg(order: usize) -> Arg<'static> {
+    pub(crate) fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -98,7 +98,7 @@ mod path {
     const ARG_VALUE_NAME: &str = "PATH/FROM/KEY";
     const ARG_HELP: &str = "The path from the key of the query";
 
-    pub(crate) fn arg(order: usize) -> Arg<'static> {
+    pub(crate) fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -121,7 +121,7 @@ impl ClientCommand for QueryGlobalState {
     const NAME: &'static str = "query-global-state";
     const ABOUT: &'static str = "Retrieve a stored value from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .alias(COMMAND_ALIAS)
             .about(Self::ABOUT)

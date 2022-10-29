@@ -24,7 +24,7 @@ impl ClientCommand for GetBalance {
     const ABOUT: &'static str = "Retrieve a purse's balance from the network\n\
                                 NOTE: This command is deprecated; use `query-balance` instead.";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

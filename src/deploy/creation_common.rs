@@ -62,7 +62,7 @@ pub(super) mod show_simple_arg_examples {
         "If passed, all other options are ignored and a set of examples of session-/payment-args \
         is printed";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .alias(ARG_ALIAS)
             .long(ARG_NAME)
@@ -93,7 +93,7 @@ pub(super) mod show_json_args_examples {
     const ARG_HELP: &str = "If passed, all other options are ignored and a set of examples of \
         session-/payment-args-json is printed";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -247,7 +247,7 @@ pub(super) mod timestamp {
         https://docs.rs/humantime/latest/humantime/fn.parse_rfc3339_weak.html for more \
         information.";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -277,7 +277,7 @@ pub(super) mod ttl {
         '1day'. For all options, see \
         https://docs.rs/humantime/latest/humantime/fn.parse_duration.html";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -305,7 +305,7 @@ pub(super) mod chain_name {
         "Name of the chain, to avoid the deploy from being accidentally or maliciously included in \
         a different chain";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required_unless_present(show_simple_arg_examples::ARG_NAME)
@@ -332,7 +332,7 @@ pub(super) mod session_path {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to the compiled Wasm session code";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .short(ARG_SHORT)
             .long(ARG_NAME)
@@ -370,7 +370,7 @@ pub(super) mod arg_simple {
         pub const ARG_NAME: &str = "session-arg";
         const ARG_SHORT: char = 'a';
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::SessionArgSimple as usize).short(ARG_SHORT)
         }
 
@@ -388,7 +388,7 @@ pub(super) mod arg_simple {
 
         pub const ARG_NAME: &str = "payment-arg";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::PaymentArgSimple as usize)
         }
 
@@ -401,7 +401,7 @@ pub(super) mod arg_simple {
         }
     }
 
-    fn arg(name: &'static str, order: usize) -> Arg<'static> {
+    fn arg(name: &'static str, order: usize) -> Arg {
         Arg::new(name)
             .long(name)
             .required(false)
@@ -432,7 +432,7 @@ pub(super) mod args_json {
 
         pub const ARG_NAME: &str = "session-args-json";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::SessionArgsJson as usize)
         }
 
@@ -449,7 +449,7 @@ pub(super) mod args_json {
 
         pub const ARG_NAME: &str = "payment-args-json";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::PaymentArgsJson as usize)
         }
 
@@ -461,7 +461,7 @@ pub(super) mod args_json {
         }
     }
 
-    fn arg(name: &'static str, order: usize) -> Arg<'static> {
+    fn arg(name: &'static str, order: usize) -> Arg {
         Arg::new(name)
             .long(name)
             .required(false)
@@ -487,7 +487,7 @@ pub(super) mod args_complex {
 
         pub const ARG_NAME: &str = "session-args-complex";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::SessionArgsComplex as usize)
                 .requires(super::session::ARG_NAME)
         }
@@ -505,7 +505,7 @@ pub(super) mod args_complex {
 
         pub const ARG_NAME: &str = "payment-args-complex";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::PaymentArgsComplex as usize)
                 .requires(super::payment::ARG_NAME)
         }
@@ -518,7 +518,7 @@ pub(super) mod args_complex {
         }
     }
 
-    fn arg(name: &'static str, order: usize) -> Arg<'static> {
+    fn arg(name: &'static str, order: usize) -> Arg {
         Arg::new(name)
             .long(name)
             .required(false)
@@ -536,7 +536,7 @@ pub(super) mod payment_path {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to the compiled Wasm payment code";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -562,7 +562,7 @@ pub(super) mod standard_payment_amount {
         The value is the 'amount' arg of the standard-payment contract. This arg is incompatible \
         with all other --payment-xxx args";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -578,9 +578,9 @@ pub(super) mod standard_payment_amount {
 }
 
 pub(super) fn apply_common_creation_options(
-    subcommand: Command<'static>,
+    subcommand: Command,
     include_node_address: bool,
-) -> Command<'static> {
+) -> Command {
     let mut subcommand = subcommand
         .next_line_help(true)
         .arg(show_simple_arg_examples::arg())
@@ -609,7 +609,7 @@ pub(super) fn apply_common_creation_options(
     subcommand
 }
 
-pub(super) fn apply_common_session_options(subcommand: Command<'static>) -> Command<'static> {
+pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
     subcommand
         .arg(session_path::arg())
         .arg(session_package_hash::arg())
@@ -644,7 +644,7 @@ pub(super) fn apply_common_session_options(subcommand: Command<'static>) -> Comm
         )
 }
 
-pub(crate) fn apply_common_payment_options(subcommand: Command<'static>) -> Command<'static> {
+pub(crate) fn apply_common_payment_options(subcommand: Command) -> Command {
     subcommand
         .arg(standard_payment_amount::arg())
         .arg(payment_path::arg())
@@ -703,7 +703,7 @@ pub(super) mod output {
         "Path to output deploy file. If omitted, defaults to stdout. If the file already exists, \
         the command will fail unless '--force' is also specified";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .required(false)
             .long(ARG_NAME)
@@ -726,7 +726,7 @@ pub(super) mod input {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to input deploy file";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .required(true)
             .long(ARG_NAME)
@@ -751,7 +751,7 @@ pub(super) mod session_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored contract to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -773,7 +773,7 @@ pub(super) mod session_name {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the stored contract (associated with the executing account) to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -794,7 +794,7 @@ pub(super) mod is_session_transfer {
     pub const ARG_NAME: &str = "is-session-transfer";
     const ARG_HELP: &str = "Use this flag if you want to make this a transfer.";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .action(ArgAction::SetTrue)
@@ -818,7 +818,7 @@ pub(super) mod session_package_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored package to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -840,7 +840,7 @@ pub(super) mod session_package_name {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the stored package to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -862,7 +862,7 @@ pub(super) mod session_entry_point {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the method that will be used when calling the session contract";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -886,7 +886,7 @@ pub(super) mod session_version {
     const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
     const ARG_HELP: &str = "Version of the called session contract. Latest will be used by default";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -910,7 +910,7 @@ pub(super) mod payment_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored contract to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -933,7 +933,7 @@ pub(super) mod payment_name {
     const ARG_HELP: &str = "Name of the stored contract (associated with the executing account) \
     to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -955,7 +955,7 @@ pub(super) mod payment_package_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored package to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -977,7 +977,7 @@ pub(super) mod payment_package_name {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the stored package to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -999,7 +999,7 @@ pub(super) mod payment_entry_point {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the method that will be used when calling the payment contract";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -1023,7 +1023,7 @@ pub(super) mod payment_version {
     const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
     const ARG_HELP: &str = "Version of the called payment contract. Latest will be used by default";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)

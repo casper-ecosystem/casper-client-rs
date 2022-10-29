@@ -25,7 +25,7 @@ impl ClientCommand for GetEraInfo {
     const NAME: &'static str = "get-era-info";
     const ABOUT: &'static str = "Retrieve era information from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .alias(COMMAND_ALIAS)
             .about(Self::ABOUT)

@@ -20,7 +20,7 @@ pub mod verbose {
         "Generates verbose output, e.g. prints the RPC request.  If repeated by using '-vv' then \
         all output will be extra verbose, meaning that large JSON strings will be shown in full";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .short(ARG_NAME_SHORT)
             .required(false)
@@ -47,7 +47,7 @@ pub mod node_address {
     const ARG_DEFAULT: &str = "http://localhost:7777";
     const ARG_HELP: &str = "Hostname or IP and port of node on which HTTP service is running";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -76,7 +76,7 @@ pub mod rpc_id {
         "JSON-RPC identifier, applied to the request and returned in the response. If not \
         provided, a random integer will be assigned";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -102,7 +102,7 @@ pub mod secret_key {
     const ARG_VALUE_NAME: &str = super::ARG_PATH;
     const ARG_HELP: &str = "Path to secret key file";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -132,7 +132,7 @@ pub mod force {
         "If this flag is passed, any existing output files will be overwritten. Without this flag, \
         if any output file exists, no output files will be generated and the command will fail";
 
-    pub fn arg(order: usize, singular: bool) -> Arg<'static> {
+    pub fn arg(order: usize, singular: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -163,7 +163,7 @@ pub mod state_root_hash {
     const ARG_VALUE_NAME: &str = super::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the state root";
 
-    pub(crate) fn arg(order: usize, is_required: bool) -> Arg<'static> {
+    pub(crate) fn arg(order: usize, is_required: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -190,7 +190,7 @@ pub mod block_identifier {
         "Hex-encoded block hash or height of the block. If not given, the last block added to the \
         chain as known at the given node will be used";
 
-    pub(crate) fn arg(order: usize, extra_help_string: bool) -> Arg<'static> {
+    pub(crate) fn arg(order: usize, extra_help_string: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -228,7 +228,7 @@ pub(super) mod public_key {
         should be one of the two public key files generated via the `keygen` subcommand; \
         \"public_key_hex\" or \"public_key.pem\"";
 
-    pub fn arg(order: usize, is_required: bool) -> Arg<'static> {
+    pub fn arg(order: usize, is_required: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -298,7 +298,7 @@ pub(super) mod purse_identifier {
         be formatted as \"account-hash-<HEX STRING>\", or for a URef as \
         \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\"";
 
-    pub fn arg(order: usize, is_required: bool) -> Arg<'static> {
+    pub fn arg(order: usize, is_required: bool) -> Arg {
         Arg::new(ARG_NAME)
             .alias(PURSE_IDENTIFIER_ALIAS)
             .long(ARG_NAME)
@@ -329,7 +329,7 @@ pub(super) mod purse_uref {
         "The URef under which the purse is stored. This must be a properly formatted URef \
         \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\"";
 
-    pub fn arg(display_order: usize, is_required: bool) -> Arg<'static> {
+    pub fn arg(display_order: usize, is_required: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -358,7 +358,7 @@ pub(super) mod session_account {
         argument. The file should be one of the two public key files generated via the `keygen`
         subcommand; \"public_key_hex\" or \"public_key.pem\"";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)

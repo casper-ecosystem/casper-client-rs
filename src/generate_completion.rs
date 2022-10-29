@@ -27,7 +27,7 @@ mod output_dir {
         normally requires running the command with sudo";
     const ARG_DEFAULT: &str = "/usr/share/bash-completion/completions";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -55,7 +55,7 @@ mod shell {
     const ARG_DEFAULT: &str = "bash";
     const ARG_HELP: &str = "The type of shell to generate the completion script for";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -80,7 +80,7 @@ impl ClientCommand for GenerateCompletion {
     const NAME: &'static str = "generate-completion";
     const ABOUT: &'static str = "Generate a shell completion script";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

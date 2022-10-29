@@ -32,11 +32,7 @@ mod key {
 
     const ARG_VALUE_NAME: &str = "FORMATTED STRING or PATH";
 
-    pub(super) fn arg(
-        arg_name: &'static str,
-        arg_help: &'static str,
-        display_order: usize,
-    ) -> Arg<'static> {
+    pub(super) fn arg(arg_name: &'static str, arg_help: &'static str, display_order: usize) -> Arg {
         Arg::new(arg_name)
             .long(arg_name)
             .required(false)
@@ -84,7 +80,7 @@ mod account_hash {
         "This must be a properly formatted account hash. The format for account hash is \
         \"account-hash-<HEX STRING>\".";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         key::arg(ARG_NAME, ARG_HELP, DisplayOrder::AccountHash as usize)
     }
 
@@ -101,7 +97,7 @@ mod contract_hash {
         "This must be a properly formatted contract hash. The format for contract hash is \
         \"hash-<HEX STRING>\".";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         key::arg(ARG_NAME, ARG_HELP, DisplayOrder::ContractHash as usize)
     }
 
@@ -118,7 +114,7 @@ mod dictionary_name {
     const ARG_VALUE_NAME: &str = "STRING";
     const ARG_HELP: &str = "The named key under which the dictionary seed URef is stored.";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -143,7 +139,7 @@ mod dictionary_item_key {
     const ARG_VALUE_NAME: &str = "STRING";
     const ARG_HELP: &str = "The dictionary item key formatted as a string.";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(true)
@@ -169,7 +165,7 @@ mod seed_uref {
     const ARG_HELP: &str = "The dictionary's seed URef. This must be a properly formatted URef \
         \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\"";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -194,7 +190,7 @@ mod dictionary_address {
     const ARG_VALUE_NAME: &str = "FORMATTED STRING";
     const ARG_HELP: &str = "The dictionary item's unique key.";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -216,7 +212,7 @@ impl ClientCommand for GetDictionaryItem {
     const NAME: &'static str = "get-dictionary-item";
     const ABOUT: &'static str = "Retrieve a stored value from a dictionary";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

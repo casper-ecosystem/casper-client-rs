@@ -22,7 +22,7 @@ impl ClientCommand for GetBlockTransfers {
     const NAME: &'static str = "get-block-transfers";
     const ABOUT: &'static str = "Retrieve all transfers for a block from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
