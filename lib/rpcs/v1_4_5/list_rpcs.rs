@@ -69,7 +69,7 @@ pub struct ResponseResult {
 }
 
 /// An example request parameter.
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub struct ExampleParam {
     /// Canonical name of the example parameter.
     pub name: String,
@@ -78,7 +78,7 @@ pub struct ExampleParam {
 }
 
 /// An example result.
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub struct ExampleResult {
     /// Canonical name of the example result.
     pub name: String,
@@ -87,7 +87,7 @@ pub struct ExampleResult {
 }
 
 /// An example pair of request parameters and response result.
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub struct Example {
     /// Name for the example pairing.
     pub name: String,

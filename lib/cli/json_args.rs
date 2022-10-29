@@ -155,12 +155,12 @@ fn write_json_to_bytesrepr(
         }
         (&CLType::Option(ref inner_cl_type), _) => {
             output.push(OPTION_SOME_TAG);
-            write_json_to_bytesrepr(&*inner_cl_type, json_value, output)?
+            write_json_to_bytesrepr(inner_cl_type, json_value, output)?
         }
         (&CLType::List(ref inner_cl_type), Value::Array(vec)) => {
             (vec.len() as u32).write_bytes(output)?;
             for item in vec {
-                write_json_to_bytesrepr(&*inner_cl_type, item, output)?;
+                write_json_to_bytesrepr(inner_cl_type, item, output)?;
             }
         }
         (&CLType::List(ref inner_cl_type), Value::String(string)) => {
@@ -208,11 +208,11 @@ fn write_json_to_bytesrepr(
             match map.iter().next() {
                 Some((key, value)) if key.to_ascii_lowercase() == "ok" => {
                     output.push(RESULT_OK_TAG);
-                    write_json_to_bytesrepr(&*ok, value, output)?
+                    write_json_to_bytesrepr(ok, value, output)?
                 }
                 Some((key, value)) if key.to_ascii_lowercase() == "err" => {
                     output.push(RESULT_ERR_TAG);
-                    write_json_to_bytesrepr(&*err, value, output)?
+                    write_json_to_bytesrepr(err, value, output)?
                 }
                 _ => return Err(ErrorDetails::ResultObjectHasInvalidVariant),
             }
@@ -255,8 +255,8 @@ fn write_json_to_bytesrepr(
                     CLType::String => json!(key_as_str),
                     _ => return Err(ErrorDetails::MapTypeNotValidAsObject(*key_type.clone())),
                 };
-                write_json_to_bytesrepr(&*key_type, &key, output)?;
-                write_json_to_bytesrepr(&*value_type, value, output)?;
+                write_json_to_bytesrepr(key_type, &key, output)?;
+                write_json_to_bytesrepr(value_type, value, output)?;
             }
         }
         (
@@ -279,11 +279,11 @@ fn write_json_to_bytesrepr(
                 let key = map
                     .get("key")
                     .ok_or(ErrorDetails::MapEntryObjectMissingKeyField)?;
-                write_json_to_bytesrepr(&*key_type, key, output)?;
+                write_json_to_bytesrepr(key_type, key, output)?;
                 let value = map
                     .get("value")
                     .ok_or(ErrorDetails::MapEntryObjectMissingValueField)?;
-                write_json_to_bytesrepr(&*value_type, value, output)?;
+                write_json_to_bytesrepr(value_type, value, output)?;
             }
         }
         (&CLType::Tuple1(ref inner_cl_types), Value::Array(vec)) => {
