@@ -36,7 +36,7 @@ mod output_dir {
         "Path to output directory where key files will be created. If the path doesn't exist, it \
         will be created. If not set, the current working directory will be used";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .required(false)
             .value_name(ARG_VALUE_NAME)
@@ -61,7 +61,7 @@ mod algorithm {
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
     const ARG_HELP: &str = "The type of keys to generate";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -91,7 +91,7 @@ impl ClientCommand for Keygen {
     const NAME: &'static str = "keygen";
     const ABOUT: &'static str = "Generate account key files in the given directory";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .long_about(MORE_ABOUT.as_str())

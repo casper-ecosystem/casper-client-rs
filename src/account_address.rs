@@ -23,7 +23,7 @@ impl ClientCommand for AccountAddress {
     const NAME: &'static str = "account-address";
     const ABOUT: &'static str = "Generate an account hash from a given public key";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

@@ -16,7 +16,7 @@ impl ClientCommand for MakeDeploy {
         be signed by other parties using the 'sign-deploy' subcommand and then sent to the network \
         for execution using the 'send-deploy' subcommand";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .arg(creation_common::output::arg())

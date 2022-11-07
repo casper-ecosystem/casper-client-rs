@@ -15,7 +15,7 @@ impl ClientCommand for SendDeploy {
     const ABOUT: &'static str =
         "Read a previously-saved deploy from a file and send it to the network for execution";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

@@ -23,7 +23,7 @@ impl ClientCommand for GetAuctionInfo {
     const ABOUT: &'static str =
         "Retrieve the bids and validators as of either a specific block (by height or hash), or the most recently added block";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

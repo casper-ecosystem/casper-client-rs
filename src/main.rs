@@ -94,7 +94,7 @@ enum DisplayOrder {
     GenerateCompletion,
 }
 
-fn cli() -> Command<'static> {
+fn cli() -> Command {
     Command::new(APP_NAME)
         .version(VERSION.as_str())
         .about("A client for interacting with the Casper network")

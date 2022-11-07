@@ -8,8 +8,8 @@ use serde::{self, Deserialize};
 
 use casper_hashing::Digest;
 use casper_types::{
-    account::AccountHash, bytesrepr, crypto, AsymmetricType, CLType, CLValue, HashAddr, Key,
-    NamedArg, PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
+    account::AccountHash, bytesrepr, crypto, AsymmetricType, CLValue, HashAddr, Key, NamedArg,
+    PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -88,8 +88,6 @@ pub(super) fn session_account(value: &str) -> Result<Option<PublicKey>, CliError
 mod arg_simple {
     use super::*;
 
-    const ARG_VALUE_NAME: &str = r#""NAME:TYPE='VALUE'" OR "NAME:TYPE=null""#;
-
     pub(crate) mod session {
         use super::*;
 
@@ -117,40 +115,9 @@ mod arg_simple {
     fn get(values: &[&str]) -> Result<RuntimeArgs, CliError> {
         let mut runtime_args = RuntimeArgs::new();
         for arg in values {
-            let parts = split_arg(arg)?;
-            parts_to_cl_value(parts, &mut runtime_args)?;
+            simple_args::insert_arg(arg, &mut runtime_args)?;
         }
         Ok(runtime_args)
-    }
-
-    /// Splits a single arg of the form `NAME:TYPE='VALUE'` into its constituent parts.
-    fn split_arg(arg: &str) -> Result<(&str, CLType, &str), CliError> {
-        let parts: Vec<_> = arg.splitn(3, &[':', '='][..]).collect();
-        if parts.len() != 3 {
-            return Err(CliError::InvalidCLValue(format!(
-                "arg {} should be formatted as {}",
-                arg, ARG_VALUE_NAME
-            )));
-        }
-        let cl_type = simple_args::parse_cl_type(parts[1]).map_err(|_| {
-            CliError::InvalidCLValue(format!(
-                "unknown variant {}, expected one of {}",
-                parts[1],
-                simple_args::help::supported_cl_type_list()
-            ))
-        })?;
-        Ok((parts[0], cl_type, parts[2]))
-    }
-
-    /// Insert a value built from a single arg which has been split into its constituent parts.
-    fn parts_to_cl_value(
-        parts: (&str, CLType, &str),
-        runtime_args: &mut RuntimeArgs,
-    ) -> Result<(), CliError> {
-        let (name, cl_type, value) = parts;
-        let cl_value = simple_args::parts_to_cl_value(cl_type, value)?;
-        runtime_args.insert_cl_value(name, cl_value);
-        Ok(())
     }
 }
 
@@ -802,87 +769,18 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
 
 #[cfg(test)]
 mod tests {
-    use casper_types::{
-        account::AccountHash, bytesrepr::ToBytes, AccessRights, CLTyped, CLValue, NamedArg,
-        PublicKey, RuntimeArgs, URef, U128, U256, U512,
-    };
     use std::convert::TryFrom;
 
     use super::*;
 
-    mod bad {
-        pub const EMPTY: &str = "";
-        pub const ARG_UNQUOTED: &str = "name:u32=0"; // value needs single quotes to be valid
-        pub const ARG_BAD_TYPE: &str = "name:wat='false'";
-        pub const ARG_GIBBERISH: &str = "asdf|1234(..)";
-        pub const LARGE_2K_INPUT: &str = r#"
-        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
-        "#;
-    }
-
-    mod happy {
-        pub const HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
-        pub const NAME: &str = "name";
-        pub const PACKAGE_HASH: &str =
-            "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
-        pub const PACKAGE_NAME: &str = "package_name";
-        pub const PATH: &str = "./session.wasm";
-        pub const ENTRY_POINT: &str = "entrypoint";
-        pub const VERSION: &str = "1.0.0";
-        pub const TRANSFER: bool = true;
-    }
-
-    fn invalid_simple_args_test(cli_string: &str) {
-        assert!(
-            arg_simple::payment::parse(&[cli_string]).is_err(),
-            "{} should be an error",
-            cli_string
-        );
-        assert!(
-            arg_simple::session::parse(&[cli_string]).is_err(),
-            "{} should be an error",
-            cli_string
-        );
-    }
-
-    fn valid_simple_args_test<T: CLTyped + ToBytes>(cli_string: &str, expected: T) {
-        let expected = Some(RuntimeArgs::from(vec![NamedArg::new(
-            "x".to_string(),
-            CLValue::from_t(expected).unwrap(),
-        )]));
-
-        assert_eq!(
-            arg_simple::payment::parse(&[cli_string]).expect("should parse"),
-            expected
-        );
-        assert_eq!(
-            arg_simple::session::parse(&[cli_string]).expect("should parse"),
-            expected
-        );
-    }
+    const HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
+    const NAME: &str = "name";
+    const PACKAGE_HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
+    const PACKAGE_NAME: &str = "package_name";
+    const PATH: &str = "./session.wasm";
+    const ENTRY_POINT: &str = "entrypoint";
+    const VERSION: &str = "1.0.0";
+    const TRANSFER: bool = true;
 
     impl<'a> TryFrom<SessionStrParams<'a>> for ExecutableDeployItem {
         type Error = CliError;
@@ -898,174 +796,6 @@ mod tests {
         fn try_from(params: PaymentStrParams<'a>) -> Result<ExecutableDeployItem, Self::Error> {
             payment_executable_deploy_item(params)
         }
-    }
-
-    #[test]
-    fn should_parse_bool_via_args_simple() {
-        valid_simple_args_test("x:bool='f'", false);
-        valid_simple_args_test("x:bool='false'", false);
-        valid_simple_args_test("x:bool='t'", true);
-        valid_simple_args_test("x:bool='true'", true);
-        valid_simple_args_test("x:opt_bool='f'", Some(false));
-        valid_simple_args_test("x:opt_bool='t'", Some(true));
-        valid_simple_args_test::<Option<bool>>("x:opt_bool=null", None);
-    }
-
-    #[test]
-    fn should_parse_i32_via_args_simple() {
-        valid_simple_args_test("x:i32='2147483647'", i32::max_value());
-        valid_simple_args_test("x:i32='0'", 0_i32);
-        valid_simple_args_test("x:i32='-2147483648'", i32::min_value());
-        valid_simple_args_test("x:opt_i32='-1'", Some(-1_i32));
-        valid_simple_args_test::<Option<i32>>("x:opt_i32=null", None);
-    }
-
-    #[test]
-    fn should_parse_i64_via_args_simple() {
-        valid_simple_args_test("x:i64='9223372036854775807'", i64::max_value());
-        valid_simple_args_test("x:i64='0'", 0_i64);
-        valid_simple_args_test("x:i64='-9223372036854775808'", i64::min_value());
-        valid_simple_args_test("x:opt_i64='-1'", Some(-1_i64));
-        valid_simple_args_test::<Option<i64>>("x:opt_i64=null", None);
-    }
-
-    #[test]
-    fn should_parse_u8_via_args_simple() {
-        valid_simple_args_test("x:u8='0'", 0_u8);
-        valid_simple_args_test("x:u8='255'", u8::max_value());
-        valid_simple_args_test("x:opt_u8='1'", Some(1_u8));
-        valid_simple_args_test::<Option<u8>>("x:opt_u8=null", None);
-    }
-
-    #[test]
-    fn should_parse_u32_via_args_simple() {
-        valid_simple_args_test("x:u32='0'", 0_u32);
-        valid_simple_args_test("x:u32='4294967295'", u32::max_value());
-        valid_simple_args_test("x:opt_u32='1'", Some(1_u32));
-        valid_simple_args_test::<Option<u32>>("x:opt_u32=null", None);
-    }
-
-    #[test]
-    fn should_parse_u64_via_args_simple() {
-        valid_simple_args_test("x:u64='0'", 0_u64);
-        valid_simple_args_test("x:u64='18446744073709551615'", u64::max_value());
-        valid_simple_args_test("x:opt_u64='1'", Some(1_u64));
-        valid_simple_args_test::<Option<u64>>("x:opt_u64=null", None);
-    }
-
-    #[test]
-    fn should_parse_u128_via_args_simple() {
-        valid_simple_args_test("x:u128='0'", U128::zero());
-        valid_simple_args_test(
-            "x:u128='340282366920938463463374607431768211455'",
-            U128::max_value(),
-        );
-        valid_simple_args_test("x:opt_u128='1'", Some(U128::from(1)));
-        valid_simple_args_test::<Option<U128>>("x:opt_u128=null", None);
-    }
-
-    #[test]
-    fn should_parse_u256_via_args_simple() {
-        valid_simple_args_test("x:u256='0'", U256::zero());
-        valid_simple_args_test(
-            "x:u256='115792089237316195423570985008687907853269984665640564039457584007913129639935'",
-            U256::max_value(),
-        );
-        valid_simple_args_test("x:opt_u256='1'", Some(U256::from(1)));
-        valid_simple_args_test::<Option<U256>>("x:opt_u256=null", None);
-    }
-
-    #[test]
-    fn should_parse_u512_via_args_simple() {
-        valid_simple_args_test("x:u512='0'", U512::zero());
-        valid_simple_args_test(
-            "x:u512='134078079299425970995740249982058461274793658205923933777235614437217640300735\
-            46976801874298166903427690031858186486050853753882811946569946433649006084095'",
-            U512::max_value(),
-        );
-        valid_simple_args_test("x:opt_u512='1'", Some(U512::from(1)));
-        valid_simple_args_test::<Option<U512>>("x:opt_u512=null", None);
-    }
-
-    #[test]
-    fn should_parse_unit_via_args_simple() {
-        valid_simple_args_test("x:unit=''", ());
-        valid_simple_args_test("x:opt_unit=''", Some(()));
-        valid_simple_args_test::<Option<()>>("x:opt_unit=null", None);
-    }
-
-    #[test]
-    fn should_parse_string_via_args_simple() {
-        let value = String::from("test string");
-        valid_simple_args_test(&format!("x:string='{}'", value), value.clone());
-        valid_simple_args_test(&format!("x:opt_string='{}'", value), Some(value));
-        valid_simple_args_test::<Option<String>>("x:opt_string=null", None);
-    }
-
-    #[test]
-    fn should_parse_key_via_args_simple() {
-        let bytes = (1..33).collect::<Vec<_>>();
-        let array = <[u8; 32]>::try_from(bytes.as_ref()).unwrap();
-
-        let key_account = Key::Account(AccountHash::new(array));
-        let key_hash = Key::Hash(array);
-        let key_uref = Key::URef(URef::new(array, AccessRights::NONE));
-
-        for key in &[key_account, key_hash, key_uref] {
-            valid_simple_args_test(&format!("x:key='{}'", key.to_formatted_string()), *key);
-            valid_simple_args_test(
-                &format!("x:opt_key='{}'", key.to_formatted_string()),
-                Some(*key),
-            );
-            valid_simple_args_test::<Option<Key>>("x:opt_key=null", None);
-        }
-    }
-
-    #[test]
-    fn should_parse_account_hash_via_args_simple() {
-        let bytes = (1..33).collect::<Vec<_>>();
-        let array = <[u8; 32]>::try_from(bytes.as_ref()).unwrap();
-        let value = AccountHash::new(array);
-        valid_simple_args_test(
-            &format!("x:account_hash='{}'", value.to_formatted_string()),
-            value,
-        );
-        valid_simple_args_test(
-            &format!("x:opt_account_hash='{}'", value.to_formatted_string()),
-            Some(value),
-        );
-        valid_simple_args_test::<Option<AccountHash>>("x:opt_account_hash=null", None);
-    }
-
-    #[test]
-    fn should_parse_uref_via_args_simple() {
-        let bytes = (1..33).collect::<Vec<_>>();
-        let array = <[u8; 32]>::try_from(bytes.as_ref()).unwrap();
-        let value = URef::new(array, AccessRights::READ_ADD_WRITE);
-        valid_simple_args_test(&format!("x:uref='{}'", value.to_formatted_string()), value);
-        valid_simple_args_test(
-            &format!("x:opt_uref='{}'", value.to_formatted_string()),
-            Some(value),
-        );
-        valid_simple_args_test::<Option<URef>>("x:opt_uref=null", None);
-    }
-
-    #[test]
-    fn should_parse_public_key_via_args_simple() {
-        let hex_value = "0119bf44096984cdfe8541bac167dc3b96c85086aa30b6b6cb0c5c38ad703166e1";
-        let value = PublicKey::from_hex(hex_value).unwrap();
-        valid_simple_args_test(&format!("x:public_key='{}'", hex_value), value.clone());
-        valid_simple_args_test(&format!("x:opt_public_key='{}'", hex_value), Some(value));
-        valid_simple_args_test::<Option<PublicKey>>("x:opt_public_key=null", None);
-    }
-
-    #[test]
-    fn should_fail_to_parse_bad_args() {
-        invalid_simple_args_test(bad::ARG_BAD_TYPE);
-        invalid_simple_args_test(bad::ARG_GIBBERISH);
-        invalid_simple_args_test(bad::ARG_UNQUOTED);
-        invalid_simple_args_test(bad::EMPTY);
-        invalid_simple_args_test(bad::LARGE_2K_INPUT);
     }
 
     #[test]
@@ -1115,11 +845,11 @@ mod tests {
     fn should_fail_to_parse_conflicting_session_parameters() {
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
-                session_hash: happy::HASH,
-                session_name: happy::NAME,
-                session_package_hash: happy::PACKAGE_HASH,
-                session_package_name: happy::PACKAGE_NAME,
-                session_path: happy::PATH,
+                session_hash: HASH,
+                session_name: NAME,
+                session_package_hash: PACKAGE_HASH,
+                session_package_name: PACKAGE_NAME,
+                session_path: PATH,
                 session_args_simple: vec![],
                 session_args_json: "",
                 session_args_complex: "",
@@ -1139,11 +869,11 @@ mod tests {
         assert!(matches!(
             payment_executable_deploy_item(PaymentStrParams {
                 payment_amount: "12345",
-                payment_hash: happy::HASH,
-                payment_name: happy::NAME,
-                payment_package_hash: happy::PACKAGE_HASH,
-                payment_package_name: happy::PACKAGE_NAME,
-                payment_path: happy::PATH,
+                payment_hash: HASH,
+                payment_name: NAME,
+                payment_package_hash: PACKAGE_HASH,
+                payment_package_name: PACKAGE_NAME,
+                payment_path: PATH,
                 payment_args_simple: vec![],
                 payment_args_json: "",
                 payment_args_complex: "",
@@ -1162,7 +892,7 @@ mod tests {
         let missing_file = "missing/file";
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
-                session_hash: happy::HASH,
+                session_hash: HASH,
                 session_name: "",
                 session_package_hash: "",
                 session_package_name: "",
@@ -1187,7 +917,7 @@ mod tests {
         assert!(matches!(
             payment_executable_deploy_item(PaymentStrParams {
                 payment_amount: "",
-                payment_hash: happy::HASH,
+                payment_hash: HASH,
                 payment_name: "",
                 payment_package_hash: "",
                 payment_package_name: "",
@@ -1211,7 +941,7 @@ mod tests {
         #[test]
         fn session_name_should_fail_to_parse_missing_entry_point() {
             let result = session_executable_deploy_item(SessionStrParams {
-                session_name: happy::NAME,
+                session_name: NAME,
                 ..Default::default()
             });
 
@@ -1227,7 +957,7 @@ mod tests {
         #[test]
         fn session_hash_should_fail_to_parse_missing_entry_point() {
             let result = session_executable_deploy_item(SessionStrParams {
-                session_hash: happy::HASH,
+                session_hash: HASH,
                 ..Default::default()
             });
 
@@ -1243,7 +973,7 @@ mod tests {
         #[test]
         fn session_package_hash_should_fail_to_parse_missing_entry_point() {
             let result = session_executable_deploy_item(SessionStrParams {
-                session_package_hash: happy::PACKAGE_HASH,
+                session_package_hash: PACKAGE_HASH,
                 ..Default::default()
             });
 
@@ -1259,7 +989,7 @@ mod tests {
         #[test]
         fn session_package_name_should_fail_to_parse_missing_entry_point() {
             let result = session_executable_deploy_item(SessionStrParams {
-                session_package_name: happy::PACKAGE_NAME,
+                session_package_name: PACKAGE_NAME,
                 ..Default::default()
             });
 
@@ -1275,7 +1005,7 @@ mod tests {
         #[test]
         fn payment_name_should_fail_to_parse_missing_entry_point() {
             let result = payment_executable_deploy_item(PaymentStrParams {
-                payment_name: happy::NAME,
+                payment_name: NAME,
                 ..Default::default()
             });
 
@@ -1291,7 +1021,7 @@ mod tests {
         #[test]
         fn payment_hash_should_fail_to_parse_missing_entry_point() {
             let result = payment_executable_deploy_item(PaymentStrParams {
-                payment_hash: happy::HASH,
+                payment_hash: HASH,
                 ..Default::default()
             });
 
@@ -1307,7 +1037,7 @@ mod tests {
         #[test]
         fn payment_package_hash_should_fail_to_parse_missing_entry_point() {
             let result = payment_executable_deploy_item(PaymentStrParams {
-                payment_package_hash: happy::PACKAGE_HASH,
+                payment_package_hash: PACKAGE_HASH,
                 ..Default::default()
             });
 
@@ -1323,7 +1053,7 @@ mod tests {
         #[test]
         fn payment_package_name_should_fail_to_parse_missing_entry_point() {
             let result = payment_executable_deploy_item(PaymentStrParams {
-                payment_package_name: happy::PACKAGE_NAME,
+                payment_package_name: PACKAGE_NAME,
                 ..Default::default()
             });
 
@@ -1353,8 +1083,8 @@ mod tests {
         ///     context: "parse_session_info",
         ///     session_str_params[
         ///         test[
-        ///             session_path => happy::PATH,
-        ///             conflict: session_package_hash => happy::PACKAGE_HASH,
+        ///             session_path => PATH,
+        ///             conflict: session_package_hash => PACKAGE_HASH,
         ///             requires[],
         ///             path_conflicts_with_package_hash
         ///         ]
@@ -1371,14 +1101,14 @@ mod tests {
         ///     #[test]
         ///     fn path_conflicts_with_package_hash() {
         ///         let info: StdResult<ExecutableDeployItem, _> = SessionStrParams {
-        ///                 session_path: happy::PATH,
-        ///                 session_package_hash: happy::PACKAGE_HASH,
+        ///                 session_path: PATH,
+        ///                 session_package_hash: PACKAGE_HASH,
         ///                 ..Default::default()
         ///             }
         ///             .try_into();
         ///         let mut conflicting = vec![
-        ///             format!("{}={}", "session_path", happy::PATH),
-        ///             format!("{}={}", "session_package_hash", happy::PACKAGE_HASH),
+        ///             format!("{}={}", "session_path", PATH),
+        ///             format!("{}={}", "session_package_hash", PACKAGE_HASH),
         ///         ];
         ///         conflicting.sort();
         ///         assert!(matches!(
@@ -1456,40 +1186,40 @@ mod tests {
             session_str_params[
 
                 // path
-                test[session_path => happy::PATH, conflict: session_package_hash => happy::PACKAGE_HASH, requires[], path_conflicts_with_package_hash]
-                test[session_path => happy::PATH, conflict: session_package_name => happy::PACKAGE_NAME, requires[], path_conflicts_with_package_name]
-                test[session_path => happy::PATH, conflict: session_hash =>         happy::HASH,         requires[], path_conflicts_with_hash]
-                test[session_path => happy::PATH, conflict: session_name =>         happy::HASH,         requires[], path_conflicts_with_name]
-                test[session_path => happy::PATH, conflict: session_version =>      happy::VERSION,      requires[], path_conflicts_with_version]
-                test[session_path => happy::PATH, conflict: session_entry_point =>  happy::ENTRY_POINT,  requires[], path_conflicts_with_entry_point]
-                test[session_path => happy::PATH, conflict: is_session_transfer =>  happy::TRANSFER,     requires[], path_conflicts_with_transfer]
+                test[session_path => PATH, conflict: session_package_hash => PACKAGE_HASH, requires[], path_conflicts_with_package_hash]
+                test[session_path => PATH, conflict: session_package_name => PACKAGE_NAME, requires[], path_conflicts_with_package_name]
+                test[session_path => PATH, conflict: session_hash =>         HASH,         requires[], path_conflicts_with_hash]
+                test[session_path => PATH, conflict: session_name =>         HASH,         requires[], path_conflicts_with_name]
+                test[session_path => PATH, conflict: session_version =>      VERSION,      requires[], path_conflicts_with_version]
+                test[session_path => PATH, conflict: session_entry_point =>  ENTRY_POINT,  requires[], path_conflicts_with_entry_point]
+                test[session_path => PATH, conflict: is_session_transfer =>  TRANSFER,     requires[], path_conflicts_with_transfer]
 
                 // name
-                test[session_name => happy::NAME, conflict: session_package_hash => happy::PACKAGE_HASH, requires[session_entry_point => happy::ENTRY_POINT], name_conflicts_with_package_hash]
-                test[session_name => happy::NAME, conflict: session_package_name => happy::PACKAGE_NAME, requires[session_entry_point => happy::ENTRY_POINT], name_conflicts_with_package_name]
-                test[session_name => happy::NAME, conflict: session_hash =>         happy::HASH,         requires[session_entry_point => happy::ENTRY_POINT], name_conflicts_with_hash]
-                test[session_name => happy::NAME, conflict: session_version =>      happy::VERSION,      requires[session_entry_point => happy::ENTRY_POINT], name_conflicts_with_version]
-                test[session_name => happy::NAME, conflict: is_session_transfer =>  happy::TRANSFER,     requires[session_entry_point => happy::ENTRY_POINT], name_conflicts_with_transfer]
+                test[session_name => NAME, conflict: session_package_hash => PACKAGE_HASH, requires[session_entry_point => ENTRY_POINT], name_conflicts_with_package_hash]
+                test[session_name => NAME, conflict: session_package_name => PACKAGE_NAME, requires[session_entry_point => ENTRY_POINT], name_conflicts_with_package_name]
+                test[session_name => NAME, conflict: session_hash =>         HASH,         requires[session_entry_point => ENTRY_POINT], name_conflicts_with_hash]
+                test[session_name => NAME, conflict: session_version =>      VERSION,      requires[session_entry_point => ENTRY_POINT], name_conflicts_with_version]
+                test[session_name => NAME, conflict: is_session_transfer =>  TRANSFER,     requires[session_entry_point => ENTRY_POINT], name_conflicts_with_transfer]
 
                 // hash
-                test[session_hash => happy::HASH, conflict: session_package_hash => happy::PACKAGE_HASH, requires[session_entry_point => happy::ENTRY_POINT], hash_conflicts_with_package_hash]
-                test[session_hash => happy::HASH, conflict: session_package_name => happy::PACKAGE_NAME, requires[session_entry_point => happy::ENTRY_POINT], hash_conflicts_with_package_name]
-                test[session_hash => happy::HASH, conflict: session_version =>      happy::VERSION,      requires[session_entry_point => happy::ENTRY_POINT], hash_conflicts_with_version]
-                test[session_hash => happy::HASH, conflict: is_session_transfer =>  happy::TRANSFER,     requires[session_entry_point => happy::ENTRY_POINT], hash_conflicts_with_transfer]
+                test[session_hash => HASH, conflict: session_package_hash => PACKAGE_HASH, requires[session_entry_point => ENTRY_POINT], hash_conflicts_with_package_hash]
+                test[session_hash => HASH, conflict: session_package_name => PACKAGE_NAME, requires[session_entry_point => ENTRY_POINT], hash_conflicts_with_package_name]
+                test[session_hash => HASH, conflict: session_version =>      VERSION,      requires[session_entry_point => ENTRY_POINT], hash_conflicts_with_version]
+                test[session_hash => HASH, conflict: is_session_transfer =>  TRANSFER,     requires[session_entry_point => ENTRY_POINT], hash_conflicts_with_transfer]
                 // name <-> hash is already checked
                 // name <-> path is already checked
 
                 // package_name
                 // package_name + session_version is optional and allowed
-                test[session_package_name => happy::PACKAGE_NAME, conflict: session_package_hash => happy::PACKAGE_HASH, requires[session_entry_point => happy::ENTRY_POINT], package_name_conflicts_with_package_hash]
-                test[session_package_name => happy::VERSION, conflict: is_session_transfer => happy::TRANSFER, requires[session_entry_point => happy::ENTRY_POINT], package_name_conflicts_with_transfer]
+                test[session_package_name => PACKAGE_NAME, conflict: session_package_hash => PACKAGE_HASH, requires[session_entry_point => ENTRY_POINT], package_name_conflicts_with_package_hash]
+                test[session_package_name => VERSION, conflict: is_session_transfer => TRANSFER, requires[session_entry_point => ENTRY_POINT], package_name_conflicts_with_transfer]
                 // package_name <-> hash is already checked
                 // package_name <-> name is already checked
                 // package_name <-> path is already checked
 
                 // package_hash
                 // package_hash + session_version is optional and allowed
-                test[session_package_hash => happy::PACKAGE_HASH, conflict: is_session_transfer => happy::TRANSFER, requires[session_entry_point => happy::ENTRY_POINT], package_hash_conflicts_with_transfer]
+                test[session_package_hash => PACKAGE_HASH, conflict: is_session_transfer => TRANSFER, requires[session_entry_point => ENTRY_POINT], package_hash_conflicts_with_transfer]
                 // package_hash <-> package_name is already checked
                 // package_hash <-> hash is already checked
                 // package_hash <-> name is already checked
@@ -1504,40 +1234,40 @@ mod tests {
             payment_str_params[
 
                 // amount
-                test[payment_amount => happy::PATH, conflict: payment_package_hash => happy::PACKAGE_HASH, requires[], amount_conflicts_with_package_hash]
-                test[payment_amount => happy::PATH, conflict: payment_package_name => happy::PACKAGE_NAME, requires[], amount_conflicts_with_package_name]
-                test[payment_amount => happy::PATH, conflict: payment_hash =>         happy::HASH,         requires[], amount_conflicts_with_hash]
-                test[payment_amount => happy::PATH, conflict: payment_name =>         happy::HASH,         requires[], amount_conflicts_with_name]
-                test[payment_amount => happy::PATH, conflict: payment_version =>      happy::VERSION,      requires[], amount_conflicts_with_version]
-                test[payment_amount => happy::PATH, conflict: payment_entry_point =>  happy::ENTRY_POINT,  requires[], amount_conflicts_with_entry_point]
+                test[payment_amount => PATH, conflict: payment_package_hash => PACKAGE_HASH, requires[], amount_conflicts_with_package_hash]
+                test[payment_amount => PATH, conflict: payment_package_name => PACKAGE_NAME, requires[], amount_conflicts_with_package_name]
+                test[payment_amount => PATH, conflict: payment_hash =>         HASH,         requires[], amount_conflicts_with_hash]
+                test[payment_amount => PATH, conflict: payment_name =>         HASH,         requires[], amount_conflicts_with_name]
+                test[payment_amount => PATH, conflict: payment_version =>      VERSION,      requires[], amount_conflicts_with_version]
+                test[payment_amount => PATH, conflict: payment_entry_point =>  ENTRY_POINT,  requires[], amount_conflicts_with_entry_point]
 
                 // path
                 // amount <-> path is already checked
-                test[payment_path => happy::PATH, conflict: payment_package_hash => happy::PACKAGE_HASH, requires[], path_conflicts_with_package_hash]
-                test[payment_path => happy::PATH, conflict: payment_package_name => happy::PACKAGE_NAME, requires[], path_conflicts_with_package_name]
-                test[payment_path => happy::PATH, conflict: payment_hash =>         happy::HASH,         requires[], path_conflicts_with_hash]
-                test[payment_path => happy::PATH, conflict: payment_name =>         happy::HASH,         requires[], path_conflicts_with_name]
-                test[payment_path => happy::PATH, conflict: payment_version =>      happy::VERSION,      requires[], path_conflicts_with_version]
-                test[payment_path => happy::PATH, conflict: payment_entry_point =>  happy::ENTRY_POINT,  requires[], path_conflicts_with_entry_point]
+                test[payment_path => PATH, conflict: payment_package_hash => PACKAGE_HASH, requires[], path_conflicts_with_package_hash]
+                test[payment_path => PATH, conflict: payment_package_name => PACKAGE_NAME, requires[], path_conflicts_with_package_name]
+                test[payment_path => PATH, conflict: payment_hash =>         HASH,         requires[], path_conflicts_with_hash]
+                test[payment_path => PATH, conflict: payment_name =>         HASH,         requires[], path_conflicts_with_name]
+                test[payment_path => PATH, conflict: payment_version =>      VERSION,      requires[], path_conflicts_with_version]
+                test[payment_path => PATH, conflict: payment_entry_point =>  ENTRY_POINT,  requires[], path_conflicts_with_entry_point]
 
                 // name
                 // amount <-> path is already checked
-                test[payment_name => happy::NAME, conflict: payment_package_hash => happy::PACKAGE_HASH, requires[payment_entry_point => happy::ENTRY_POINT], name_conflicts_with_package_hash]
-                test[payment_name => happy::NAME, conflict: payment_package_name => happy::PACKAGE_NAME, requires[payment_entry_point => happy::ENTRY_POINT], name_conflicts_with_package_name]
-                test[payment_name => happy::NAME, conflict: payment_hash =>         happy::HASH,         requires[payment_entry_point => happy::ENTRY_POINT], name_conflicts_with_hash]
-                test[payment_name => happy::NAME, conflict: payment_version =>      happy::VERSION,      requires[payment_entry_point => happy::ENTRY_POINT], name_conflicts_with_version]
+                test[payment_name => NAME, conflict: payment_package_hash => PACKAGE_HASH, requires[payment_entry_point => ENTRY_POINT], name_conflicts_with_package_hash]
+                test[payment_name => NAME, conflict: payment_package_name => PACKAGE_NAME, requires[payment_entry_point => ENTRY_POINT], name_conflicts_with_package_name]
+                test[payment_name => NAME, conflict: payment_hash =>         HASH,         requires[payment_entry_point => ENTRY_POINT], name_conflicts_with_hash]
+                test[payment_name => NAME, conflict: payment_version =>      VERSION,      requires[payment_entry_point => ENTRY_POINT], name_conflicts_with_version]
 
                 // hash
                 // amount <-> hash is already checked
-                test[payment_hash => happy::HASH, conflict: payment_package_hash => happy::PACKAGE_HASH, requires[payment_entry_point => happy::ENTRY_POINT], hash_conflicts_with_package_hash]
-                test[payment_hash => happy::HASH, conflict: payment_package_name => happy::PACKAGE_NAME, requires[payment_entry_point => happy::ENTRY_POINT], hash_conflicts_with_package_name]
-                test[payment_hash => happy::HASH, conflict: payment_version =>      happy::VERSION,      requires[payment_entry_point => happy::ENTRY_POINT], hash_conflicts_with_version]
+                test[payment_hash => HASH, conflict: payment_package_hash => PACKAGE_HASH, requires[payment_entry_point => ENTRY_POINT], hash_conflicts_with_package_hash]
+                test[payment_hash => HASH, conflict: payment_package_name => PACKAGE_NAME, requires[payment_entry_point => ENTRY_POINT], hash_conflicts_with_package_name]
+                test[payment_hash => HASH, conflict: payment_version =>      VERSION,      requires[payment_entry_point => ENTRY_POINT], hash_conflicts_with_version]
                 // name <-> hash is already checked
                 // name <-> path is already checked
 
                 // package_name
                 // amount <-> package_name is already checked
-                test[payment_package_name => happy::PACKAGE_NAME, conflict: payment_package_hash => happy::PACKAGE_HASH, requires[payment_entry_point => happy::ENTRY_POINT], package_name_conflicts_with_package_hash]
+                test[payment_package_name => PACKAGE_NAME, conflict: payment_package_hash => PACKAGE_HASH, requires[payment_entry_point => ENTRY_POINT], package_name_conflicts_with_package_hash]
                 // package_name <-> hash is already checked
                 // package_name <-> name is already checked
                 // package_name <-> path is already checked

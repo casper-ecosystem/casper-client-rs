@@ -13,7 +13,7 @@ impl ClientCommand for PutDeploy {
     const NAME: &'static str = "put-deploy";
     const ABOUT: &'static str = "Create a deploy and send it to the network for execution";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

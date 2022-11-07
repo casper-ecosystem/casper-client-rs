@@ -30,7 +30,7 @@ impl ClientCommand for QueryBalance {
     const NAME: &'static str = "query-balance";
     const ABOUT: &'static str = "Retrieve a purse's balance from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .after_help(AFTER_HELP)

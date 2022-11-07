@@ -22,7 +22,7 @@ impl ClientCommand for GetChainspec {
     const ABOUT: &'static str =
         "Retrieve the chainspec of the network (to print the full TOML, run with '-vv')";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

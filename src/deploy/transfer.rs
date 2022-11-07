@@ -15,7 +15,7 @@ pub(super) mod amount {
     const ARG_VALUE_NAME: &str = "512-BIT INTEGER";
     const ARG_HELP: &str = "The number of motes to transfer";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -47,7 +47,7 @@ pub(super) mod target_account {
 
     // Conflicts with --target-purse, but that's handled via an `ArgGroup` in the subcommand. Don't
     // add a `conflicts_with()` to the arg or the `ArgGroup` fails to work correctly.
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -75,7 +75,7 @@ pub(super) mod transfer_id {
     const ARG_VALUE_NAME: &str = "64-BIT INTEGER";
     const ARG_HELP: &str = "User-defined identifier, permanently associated with the transfer";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -101,7 +101,7 @@ impl ClientCommand for Transfer {
     const NAME: &'static str = "transfer";
     const ABOUT: &'static str = "Transfer funds between purses";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

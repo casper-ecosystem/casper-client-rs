@@ -21,7 +21,7 @@ impl ClientCommand for GetNodeStatus {
     const NAME: &'static str = "get-node-status";
     const ABOUT: &'static str = "Retrieve status of the specified node";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

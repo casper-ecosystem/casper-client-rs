@@ -16,7 +16,7 @@ impl ClientCommand for MakeTransfer {
         subsequently be signed by other parties using the 'sign-deploy' subcommand and then sent \
         to the network for execution using the 'send-deploy' subcommand";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

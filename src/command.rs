@@ -24,7 +24,7 @@ pub trait ClientCommand {
     const NAME: &'static str;
     const ABOUT: &'static str;
     /// Constructs the clap subcommand.
-    fn build(display_order: usize) -> Command<'static>;
+    fn build(display_order: usize) -> Command;
 
     /// Parses the arg matches and runs the subcommand.
     async fn run(matches: &ArgMatches) -> Result<Success, CliError>;
