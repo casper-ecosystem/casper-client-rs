@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.  The format
 * Add support for passing variable-length byte lists as simple args in payment and session args.
 * Add support for passing fixed-length byte arrays as simple args in payment and session args.
 * Add support for passing payment and session args as JSON.
+* Add support for new `lock_status` field in the the `ContractPackage` value.
 
 ### Changed
 * Update dependencies.
