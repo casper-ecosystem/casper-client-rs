@@ -117,7 +117,7 @@ mod dictionary_name {
     pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required(false)
+            .required_unless_present_any(&[seed_uref::ARG_NAME, dictionary_address::ARG_NAME])
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::DictionaryName as usize)
@@ -142,7 +142,7 @@ mod dictionary_item_key {
     pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required(true)
+            .required_unless_present(dictionary_address::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::DictionaryItemKey as usize)
@@ -229,12 +229,8 @@ impl ClientCommand for GetDictionaryItem {
             .arg(contract_hash::arg())
             .arg(seed_uref::arg())
             .arg(dictionary_address::arg())
-            .arg(
-                dictionary_name::arg()
-                    .required_unless_present(seed_uref::ARG_NAME)
-                    .required_unless_present(dictionary_address::ARG_NAME),
-            )
-            .arg(dictionary_item_key::arg().required_unless_present(dictionary_address::ARG_NAME))
+            .arg(dictionary_name::arg())
+            .arg(dictionary_item_key::arg())
             .group(
                 ArgGroup::new("dictionary-identifier")
                     .arg(account_hash::ARG_NAME)
