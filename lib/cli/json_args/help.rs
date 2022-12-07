@@ -199,7 +199,7 @@ Details for each CLType variant:
 /// Returns a string listing examples of the format required when passing in payment code or
 /// session code args.
 pub fn info_and_examples() -> &'static str {
-    &*HELP
+    &HELP
 }
 
 #[cfg(test)]
