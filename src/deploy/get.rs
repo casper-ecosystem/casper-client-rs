@@ -25,7 +25,7 @@ mod deploy_hash {
     const ARG_VALUE_NAME: &str = "HEX STRING";
     const ARG_HELP: &str = "Hex-encoded deploy hash";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .required(true)
             .value_name(ARG_VALUE_NAME)
@@ -35,7 +35,8 @@ mod deploy_hash {
 
     pub(super) fn get(matches: &ArgMatches) -> &str {
         matches
-            .value_of(ARG_NAME)
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
     }
 }
@@ -45,7 +46,7 @@ impl ClientCommand for GetDeploy {
     const NAME: &'static str = "get-deploy";
     const ABOUT: &'static str = "Retrieve a deploy from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

@@ -25,42 +25,42 @@ OPTIONS:
     -V, --version    Print version information
 
 SUBCOMMANDS:
-    put-deploy               Creates a deploy and sends it to the network for execution
-    make-deploy              Creates a deploy and outputs it to a file or stdout. As a file, the
-                                 deploy can subsequently be signed by other parties using the 'sign-
-                                 deploy' subcommand and then sent to the network for execution using
-                                 the 'send-deploy' subcommand
-    sign-deploy              Reads a previously-saved deploy from a file, cryptographically
-                                 signs it, and outputs it to a file or stdout
-    send-deploy              Reads a previously-saved deploy from a file and sends it to the
+    put-deploy               Create a deploy and send it to the network for execution
+    make-deploy              Create a deploy and output it to a file or stdout. As a file, the
+                                 deploy can subsequently be signed by other parties using the
+                                 'sign-deploy' subcommand and then sent to the network for execution
+                                 using the 'send-deploy' subcommand
+    sign-deploy              Read a previously-saved deploy from a file, cryptographically sign
+                                 it, and output it to a file or stdout
+    send-deploy              Read a previously-saved deploy from a file and send it to the
                                  network for execution
-    transfer                 Transfers funds between purses
-    make-transfer            Creates a transfer deploy and outputs it to a file or stdout. As a
+    transfer                 Transfer funds between purses
+    make-transfer            Create a transfer deploy and output it to a file or stdout. As a
                                  file, the deploy can subsequently be signed by other parties using
                                  the 'sign-deploy' subcommand and then sent to the network for
                                  execution using the 'send-deploy' subcommand
-    get-deploy               Retrieves a deploy from the network
-    get-block                Retrieves a block from the network
-    get-block-transfers      Retrieves all transfers for a block from the network
-    list-deploys             Retrieves the list of all deploy hashes in a given block
-    get-state-root-hash      Retrieves a state root hash at a given block
-    get-era-info             Retrieves era information from the network
-    query-global-state       Retrieves a stored value from the network using either the state
-                                 root hash or block hash
-    get-dictionary-item      Query for values managed in a dictionary
-    get-balance              Retrieves a purse's balance from the network
-    get-account              Retrieves account information from the network
-    get-auction-info         Returns the bids and validators as of either a specific block (by
+    get-deploy               Retrieve a deploy from the network
+    get-block                Retrieve a block from the network
+    get-block-transfers      Retrieve all transfers for a block from the network
+    list-deploys             Retrieve the list of all deploy hashes in a given block
+    get-state-root-hash      Retrieve a state root hash at a given block
+    get-era-info             Retrieve era information from the network
+    query-global-state       Retrieve a stored value from the network
+    query-balance            Retrieve a purse's balance from the network
+    get-dictionary-item      Retrieve a stored value from a dictionary
+    get-account              Retrieve account information from the network
+    get-auction-info         Retrieve the bids and validators as of either a specific block (by
                                  height or hash), or the most recently added block
-    get-validator-changes    Retrieves status changes of active validators
-    get-peers                Retrieves network identity and address of each of the specified
+    get-validator-changes    Retrieve status changes of active validators
+    get-peers                Retrieve network identity and address of each of the specified
                                  node's peers
-    get-node-status          Retrieves status of the specified node
-    get-chainspec            Retrieves the chainspec of the network
+    get-node-status          Retrieve status of the specified node
+    get-chainspec            Retrieve the chainspec of the network (to print the full TOML, run
+                                 with '-vv')
     list-rpcs                List all currently supported RPCs
-    keygen                   Generates account key files in the given directory
-    account-address          Generates an account hash from a given public key
-    generate-completion      Generates a shell completion script
+    keygen                   Generate account key files in the given directory
+    account-address          Generate an account hash from a given public key
+    generate-completion      Generate a shell completion script
     help                     Print this message or the help of the given subcommand(s)
 ```
 </details>
@@ -404,15 +404,15 @@ cargo run --release -- query-global-state \
 This yields details of the newly-created account object, including the `URef` of the account's main purse.
 
 
-### Get the balance of a purse
+### Query the balance of a purse
 
-This can be done via `get-balance`. For example, to get the balance of the main purse of our newly-created account:
+This can be done via `query-balance`. For example, to get the balance of the main purse of our newly-created account:
 
 ```
-cargo run --release -- get-balance \
+cargo run --release -- query-balance \
     --node-address=http://localhost:11101 \
     --state-root-hash=242666f5959e6a51b7a75c23264f3cb326eecd6bec6dbab147f5801ec23daed6 \
-    --purse-uref=uref-09480c3248ef76b603d386f3f4f8a5f87f597d4eaffd475433f861af187ab5db-007
+    --purse-identifier=account-hash-f7196ed0f4a4aa2aae02daa8f0bdad39ed3098c028979db4f96c3c25670a8240
 ```
 
 <details><summary>example output</summary>

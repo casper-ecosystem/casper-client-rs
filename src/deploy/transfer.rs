@@ -15,11 +15,12 @@ pub(super) mod amount {
     const ARG_VALUE_NAME: &str = "512-BIT INTEGER";
     const ARG_HELP: &str = "The number of motes to transfer";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required_unless_present(creation_common::show_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferAmount as usize)
@@ -27,7 +28,8 @@ pub(super) mod amount {
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
         matches
-            .value_of(ARG_NAME)
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
     }
 }
@@ -45,18 +47,22 @@ pub(super) mod target_account {
 
     // Conflicts with --target-purse, but that's handled via an `ArgGroup` in the subcommand. Don't
     // add a `conflicts_with()` to the arg or the `ArgGroup` fails to work correctly.
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required_unless_present(creation_common::show_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferTargetAccount as usize)
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -69,18 +75,22 @@ pub(super) mod transfer_id {
     const ARG_VALUE_NAME: &str = "64-BIT INTEGER";
     const ARG_HELP: &str = "User-defined identifier, permanently associated with the transfer";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required_unless_present(creation_common::show_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(creation_common::show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferId as usize)
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -91,7 +101,7 @@ impl ClientCommand for Transfer {
     const NAME: &'static str = "transfer";
     const ABOUT: &'static str = "Transfer funds between purses";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
@@ -105,7 +115,8 @@ impl ClientCommand for Transfer {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_arg_examples_and_exit_if_required(matches);
+        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
+        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
         let amount = amount::get(matches);
         let target_account = target_account::get(matches);

@@ -2,13 +2,13 @@ use std::{io, path::PathBuf};
 
 use thiserror::Error;
 
-use casper_types::{bytesrepr::Error as ToBytesError, Key};
+use casper_types::{bytesrepr::Error as ToBytesError, crypto, Key};
 #[cfg(doc)]
 use casper_types::{CLValue, URef};
 
 #[cfg(doc)]
 use crate::types::{Deploy, DeployBuilder, TimeDiff, Timestamp};
-use crate::{validation::ValidateResponseError, CryptoError, JsonRpcId};
+use crate::{validation::ValidateResponseError, JsonRpcId};
 
 /// Errors that may be returned by `casper_client` functions.
 #[derive(Error, Debug)]
@@ -83,14 +83,20 @@ pub enum Error {
     },
 
     /// Invalid response returned from the node.
-    #[error("response for rpc-id {rpc_id} {rpc_method} is not valid: {response}")]
+    #[error(
+        "response {response_kind} for rpc-id {rpc_id} {rpc_method} is not valid because {source:?}: {response}"
+    )]
     InvalidRpcResponse {
         /// The JSON-RPC ID.
         rpc_id: JsonRpcId,
         /// The JSON-RPC request method.
         rpc_method: &'static str,
+        /// What kind of Json response was received.
+        response_kind: &'static str,
         /// The JSON response.
         response: serde_json::Value,
+        /// If available, the original error from Serde.
+        source: Option<serde_json::Error>,
     },
 
     /// Failed to encode to JSON.
@@ -144,7 +150,7 @@ pub enum Error {
         /// filenames, etc.
         context: &'static str,
         /// Underlying crypto error.
-        error: CryptoError,
+        error: crypto::ErrorExt,
     },
 
     /// Failed to validate response.

@@ -3,15 +3,16 @@
 
 use std::process;
 
-use clap::{Arg, ArgGroup, ArgMatches, Command};
+use clap::{Arg, ArgAction, ArgGroup, ArgMatches, Command};
 
-use casper_client::cli::{help, PaymentStrParams, SessionStrParams};
+use casper_client::cli::{json_args_help, simple_args_help, PaymentStrParams, SessionStrParams};
 
 use crate::common;
 
 /// This struct defines the order in which the args are shown for this subcommand's help message.
 pub(super) enum DisplayOrder {
-    ShowArgExamples,
+    ShowSimpleArgExamples,
+    ShowJsonArgExamples,
     Verbose,
     NodeAddress,
     RpcId,
@@ -27,6 +28,7 @@ pub(super) enum DisplayOrder {
     ChainName,
     SessionCode,
     SessionArgSimple,
+    SessionArgsJson,
     SessionArgsComplex,
     SessionHash,
     SessionName,
@@ -39,6 +41,7 @@ pub(super) enum DisplayOrder {
     StandardPayment,
     PaymentCode,
     PaymentArgSimple,
+    PaymentArgsJson,
     PaymentArgsComplex,
     PaymentHash,
     PaymentName,
@@ -48,47 +51,86 @@ pub(super) enum DisplayOrder {
     PaymentVersion,
 }
 
-/// Handles providing the arg for and executing the show-arg-examples option.
-pub(super) mod show_arg_examples {
+/// Handles providing the arg for and executing the show-simple-arg-examples option.
+pub(super) mod show_simple_arg_examples {
     use super::*;
 
-    pub(in crate::deploy) const ARG_NAME: &str = "show-arg-examples";
+    pub(in crate::deploy) const ARG_NAME: &str = "show-simple-arg-examples";
+    const ARG_ALIAS: &str = "show-arg-examples";
     const ARG_SHORT: char = 'e';
     const ARG_HELP: &str =
         "If passed, all other options are ignored and a set of examples of session-/payment-args \
         is printed";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .alias(ARG_ALIAS)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .required(false)
+            .action(ArgAction::SetTrue)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::ShowSimpleArgExamples as usize)
+    }
+
+    pub(in crate::deploy) fn get(matches: &ArgMatches) -> bool {
+        if let Some(true) = matches.get_one::<bool>(ARG_NAME) {
+            println!("Examples for passing values via --session-arg or --payment-arg:");
+            println!("{}", simple_args_help::supported_cl_type_examples());
+            return true;
+        }
+
+        false
+    }
+}
+
+/// Handles providing the arg for and executing the show-json-arg-examples option.
+pub(super) mod show_json_args_examples {
+    use super::*;
+
+    pub(in crate::deploy) const ARG_NAME: &str = "show-json-args-examples";
+    const ARG_SHORT: char = 'j';
+    const ARG_HELP: &str = "If passed, all other options are ignored and a set of examples of \
+        session-/payment-args-json is printed";
+
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
             .required(false)
+            .action(ArgAction::SetTrue)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::ShowArgExamples as usize)
+            .display_order(DisplayOrder::ShowJsonArgExamples as usize)
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> bool {
-        if !matches.is_present(ARG_NAME) {
-            return false;
+        if let Some(true) = matches.get_one::<bool>(ARG_NAME) {
+            println!("Examples for passing values via --session-args-json or --payment-args-json:");
+            println!();
+            println!("{}", json_args_help::info_and_examples());
+            return true;
         }
 
-        println!("Examples for passing values via --session-arg or --payment-arg:");
-        println!("{}", help::supported_cl_type_examples());
-
-        true
+        false
     }
 }
 
 pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
     let session_args_simple = arg_simple::session::get(matches);
+    let session_args_json = args_json::session::get(matches);
     let session_args_complex = args_complex::session::get(matches);
     if is_session_transfer::get(matches) {
-        return SessionStrParams::with_transfer(session_args_simple, session_args_complex);
+        return SessionStrParams::with_transfer(
+            session_args_simple,
+            session_args_json,
+            session_args_complex,
+        );
     }
     if let Some(session_path) = session_path::get(matches) {
         return SessionStrParams::with_path(
             session_path,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -98,6 +140,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_hash,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -106,6 +149,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_name,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -116,6 +160,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_version,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -125,6 +170,7 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_version,
             session_entry_point,
             session_args_simple,
+            session_args_json,
             session_args_complex,
         );
     }
@@ -136,11 +182,13 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
         return PaymentStrParams::with_amount(payment_amount);
     }
     let payment_args_simple = arg_simple::payment::get(matches);
+    let payment_args_json = args_json::payment::get(matches);
     let payment_args_complex = args_complex::payment::get(matches);
     if let Some(payment_path) = payment_path::get(matches) {
         return PaymentStrParams::with_path(
             payment_path,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -150,6 +198,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_hash,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -158,6 +207,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_name,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -168,6 +218,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_version,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -177,6 +228,7 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_version,
             payment_entry_point,
             payment_args_simple,
+            payment_args_json,
             payment_args_complex,
         );
     }
@@ -195,7 +247,7 @@ pub(super) mod timestamp {
         https://docs.rs/humantime/latest/humantime/fn.parse_rfc3339_weak.html for more \
         information.";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -205,7 +257,10 @@ pub(super) mod timestamp {
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -222,7 +277,7 @@ pub(super) mod ttl {
         '1day'. For all options, see \
         https://docs.rs/humantime/latest/humantime/fn.parse_duration.html";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -233,7 +288,10 @@ pub(super) mod ttl {
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -247,10 +305,11 @@ pub(super) mod chain_name {
         "Name of the chain, to avoid the deploy from being accidentally or maliciously included in \
         a different chain";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required_unless_present(show_arg_examples::ARG_NAME)
+            .required_unless_present(show_simple_arg_examples::ARG_NAME)
+            .required_unless_present(show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::ChainName as usize)
@@ -258,7 +317,8 @@ pub(super) mod chain_name {
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
         matches
-            .value_of(ARG_NAME)
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
     }
 }
@@ -272,7 +332,7 @@ pub(super) mod session_path {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to the compiled Wasm session code";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .short(ARG_SHORT)
             .long(ARG_NAME)
@@ -283,7 +343,7 @@ pub(super) mod session_path {
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -299,8 +359,8 @@ pub(super) mod arg_simple {
             "For simple CLTypes, a named and typed arg which is passed to the Wasm code. To see \
             an example for each type, run '--{}'. This arg can be repeated to pass multiple named, \
             typed args, but can only be used for the following types: {}",
-            super::show_arg_examples::ARG_NAME,
-            help::supported_cl_type_list()
+            show_simple_arg_examples::ARG_NAME,
+            simple_args_help::supported_cl_type_list()
         )
     });
 
@@ -310,14 +370,16 @@ pub(super) mod arg_simple {
         pub const ARG_NAME: &str = "session-arg";
         const ARG_SHORT: char = 'a';
 
-        pub fn arg() -> Arg<'static> {
-            super::arg(ARG_NAME, DisplayOrder::SessionArgSimple as usize)
-                .short(ARG_SHORT)
-                .requires(super::session::ARG_NAME)
+        pub fn arg() -> Arg {
+            super::arg(ARG_NAME, DisplayOrder::SessionArgSimple as usize).short(ARG_SHORT)
         }
 
         pub fn get(matches: &ArgMatches) -> Vec<&str> {
-            matches.values_of(ARG_NAME).into_iter().flatten().collect()
+            matches
+                .get_many::<String>(ARG_NAME)
+                .unwrap_or_default()
+                .map(|simple_session_arg| simple_session_arg.as_str())
+                .collect()
         }
     }
 
@@ -326,21 +388,84 @@ pub(super) mod arg_simple {
 
         pub const ARG_NAME: &str = "payment-arg";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::PaymentArgSimple as usize)
-                .requires(super::payment::ARG_NAME)
         }
 
         pub fn get(matches: &ArgMatches) -> Vec<&str> {
-            matches.values_of(ARG_NAME).into_iter().flatten().collect()
+            matches
+                .get_many::<String>(ARG_NAME)
+                .unwrap_or_default()
+                .map(|simple_payment_arg| simple_payment_arg.as_str())
+                .collect()
         }
     }
 
-    fn arg(name: &'static str, order: usize) -> Arg<'static> {
+    fn arg(name: &'static str, order: usize) -> Arg {
         Arg::new(name)
             .long(name)
             .required(false)
-            .multiple_occurrences(true)
+            .action(ArgAction::Append)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP.as_str())
+            .display_order(order)
+    }
+}
+
+/// Handles providing the arg for and retrieval of JSON session and payment args.
+pub(super) mod args_json {
+    use super::*;
+    use once_cell::sync::Lazy;
+
+    const ARG_VALUE_NAME: &str = "JSON ARRAY";
+
+    static ARG_HELP: Lazy<String> = Lazy::new(|| {
+        format!(
+            "A JSON Array of named and typed args which is passed to the Wasm code. To see \
+            examples, run '--{}'.",
+            show_json_args_examples::ARG_NAME,
+        )
+    });
+
+    pub(in crate::deploy) mod session {
+        use super::*;
+
+        pub const ARG_NAME: &str = "session-args-json";
+
+        pub fn arg() -> Arg {
+            super::arg(ARG_NAME, DisplayOrder::SessionArgsJson as usize)
+        }
+
+        pub fn get(matches: &ArgMatches) -> &str {
+            matches
+                .get_one::<String>(ARG_NAME)
+                .map(String::as_str)
+                .unwrap_or_default()
+        }
+    }
+
+    pub(in crate::deploy) mod payment {
+        use super::*;
+
+        pub const ARG_NAME: &str = "payment-args-json";
+
+        pub fn arg() -> Arg {
+            super::arg(ARG_NAME, DisplayOrder::PaymentArgsJson as usize)
+        }
+
+        pub fn get(matches: &ArgMatches) -> &str {
+            matches
+                .get_one::<String>(ARG_NAME)
+                .map(String::as_str)
+                .unwrap_or_default()
+        }
+    }
+
+    fn arg(name: &'static str, order: usize) -> Arg {
+        Arg::new(name)
+            .long(name)
+            .required(false)
+            .action(ArgAction::Append)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP.as_str())
             .display_order(order)
@@ -362,13 +487,16 @@ pub(super) mod args_complex {
 
         pub const ARG_NAME: &str = "session-args-complex";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::SessionArgsComplex as usize)
                 .requires(super::session::ARG_NAME)
         }
 
         pub fn get(matches: &ArgMatches) -> &str {
-            matches.value_of(ARG_NAME).unwrap_or_default()
+            matches
+                .get_one::<String>(ARG_NAME)
+                .map(String::as_str)
+                .unwrap_or_default()
         }
     }
 
@@ -377,17 +505,20 @@ pub(super) mod args_complex {
 
         pub const ARG_NAME: &str = "payment-args-complex";
 
-        pub fn arg() -> Arg<'static> {
+        pub fn arg() -> Arg {
             super::arg(ARG_NAME, DisplayOrder::PaymentArgsComplex as usize)
                 .requires(super::payment::ARG_NAME)
         }
 
         pub fn get(matches: &ArgMatches) -> &str {
-            matches.value_of(ARG_NAME).unwrap_or_default()
+            matches
+                .get_one::<String>(ARG_NAME)
+                .map(String::as_str)
+                .unwrap_or_default()
         }
     }
 
-    fn arg(name: &'static str, order: usize) -> Arg<'static> {
+    fn arg(name: &'static str, order: usize) -> Arg {
         Arg::new(name)
             .long(name)
             .required(false)
@@ -405,7 +536,7 @@ pub(super) mod payment_path {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to the compiled Wasm payment code";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -415,7 +546,7 @@ pub(super) mod payment_path {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -431,7 +562,7 @@ pub(super) mod standard_payment_amount {
         The value is the 'amount' arg of the standard-payment contract. This arg is incompatible \
         with all other --payment-xxx args";
 
-    pub(in crate::deploy) fn arg() -> Arg<'static> {
+    pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -442,29 +573,32 @@ pub(super) mod standard_payment_amount {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
 pub(super) fn apply_common_creation_options(
-    subcommand: Command<'static>,
+    subcommand: Command,
     include_node_address: bool,
-) -> Command<'static> {
+) -> Command {
     let mut subcommand = subcommand
         .next_line_help(true)
-        .arg(show_arg_examples::arg());
+        .arg(show_simple_arg_examples::arg())
+        .arg(show_json_args_examples::arg());
 
     if include_node_address {
         subcommand = subcommand.arg(
             common::node_address::arg(DisplayOrder::NodeAddress as usize)
-                .required_unless_present(show_arg_examples::ARG_NAME),
+                .required_unless_present(show_simple_arg_examples::ARG_NAME)
+                .required_unless_present(show_json_args_examples::ARG_NAME),
         );
     }
 
     subcommand = subcommand
         .arg(
             common::secret_key::arg(DisplayOrder::SecretKey as usize)
-                .required_unless_present(show_arg_examples::ARG_NAME),
+                .required_unless_present(show_simple_arg_examples::ARG_NAME)
+                .required_unless_present(show_json_args_examples::ARG_NAME),
         )
         .arg(timestamp::arg())
         .arg(ttl::arg())
@@ -475,7 +609,7 @@ pub(super) fn apply_common_creation_options(
     subcommand
 }
 
-pub(super) fn apply_common_session_options(subcommand: Command<'static>) -> Command<'static> {
+pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
     subcommand
         .arg(session_path::arg())
         .arg(session_package_hash::arg())
@@ -484,11 +618,13 @@ pub(super) fn apply_common_session_options(subcommand: Command<'static>) -> Comm
         .arg(session_hash::arg())
         .arg(session_name::arg())
         .arg(arg_simple::session::arg())
+        .arg(args_json::session::arg())
         .arg(args_complex::session::arg())
         // Group the session-arg args so only one style is used to ensure consistent ordering.
         .group(
             ArgGroup::new("session-args")
                 .arg(arg_simple::session::ARG_NAME)
+                .arg(args_json::session::ARG_NAME)
                 .arg(args_complex::session::ARG_NAME)
                 .required(false),
         )
@@ -502,12 +638,13 @@ pub(super) fn apply_common_session_options(subcommand: Command<'static>) -> Comm
                 .arg(is_session_transfer::ARG_NAME)
                 .arg(session_hash::ARG_NAME)
                 .arg(session_name::ARG_NAME)
-                .arg(show_arg_examples::ARG_NAME)
+                .arg(show_simple_arg_examples::ARG_NAME)
+                .arg(show_json_args_examples::ARG_NAME)
                 .required(true),
         )
 }
 
-pub(crate) fn apply_common_payment_options(subcommand: Command<'static>) -> Command<'static> {
+pub(crate) fn apply_common_payment_options(subcommand: Command) -> Command {
     subcommand
         .arg(standard_payment_amount::arg())
         .arg(payment_path::arg())
@@ -516,11 +653,13 @@ pub(crate) fn apply_common_payment_options(subcommand: Command<'static>) -> Comm
         .arg(payment_hash::arg())
         .arg(payment_name::arg())
         .arg(arg_simple::payment::arg())
+        .arg(args_json::payment::arg())
         .arg(args_complex::payment::arg())
         // Group the payment-arg args so only one style is used to ensure consistent ordering.
         .group(
             ArgGroup::new("payment-args")
                 .arg(arg_simple::payment::ARG_NAME)
+                .arg(args_json::payment::ARG_NAME)
                 .arg(args_complex::payment::ARG_NAME)
                 .required(false),
         )
@@ -534,14 +673,22 @@ pub(crate) fn apply_common_payment_options(subcommand: Command<'static>) -> Comm
                 .arg(payment_package_name::ARG_NAME)
                 .arg(payment_hash::ARG_NAME)
                 .arg(payment_name::ARG_NAME)
-                .arg(show_arg_examples::ARG_NAME)
+                .arg(show_simple_arg_examples::ARG_NAME)
+                .arg(show_json_args_examples::ARG_NAME)
                 .required(true),
         )
 }
 
-pub(super) fn show_arg_examples_and_exit_if_required(matches: &ArgMatches) {
+pub(super) fn show_simple_arg_examples_and_exit_if_required(matches: &ArgMatches) {
     // If we printed the arg examples, exit the process.
-    if show_arg_examples::get(matches) {
+    if show_simple_arg_examples::get(matches) {
+        process::exit(0);
+    }
+}
+
+pub(super) fn show_json_args_examples_and_exit_if_required(matches: &ArgMatches) {
+    // If we printed the arg examples, exit the process.
+    if show_json_args_examples::get(matches) {
         process::exit(0);
     }
 }
@@ -556,7 +703,7 @@ pub(super) mod output {
         "Path to output deploy file. If omitted, defaults to stdout. If the file already exists, \
         the command will fail unless '--force' is also specified";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .required(false)
             .long(ARG_NAME)
@@ -567,7 +714,7 @@ pub(super) mod output {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -579,7 +726,7 @@ pub(super) mod input {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to input deploy file";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .required(true)
             .long(ARG_NAME)
@@ -591,7 +738,8 @@ pub(super) mod input {
 
     pub fn get(matches: &ArgMatches) -> &str {
         matches
-            .value_of(ARG_NAME)
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
     }
 }
@@ -603,7 +751,7 @@ pub(super) mod session_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored contract to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -614,7 +762,7 @@ pub(super) mod session_hash {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -625,7 +773,7 @@ pub(super) mod session_name {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the stored contract (associated with the executing account) to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -636,7 +784,7 @@ pub(super) mod session_name {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -646,16 +794,20 @@ pub(super) mod is_session_transfer {
     pub const ARG_NAME: &str = "is-session-transfer";
     const ARG_HELP: &str = "Use this flag if you want to make this a transfer.";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
+            .action(ArgAction::SetTrue)
             .help(ARG_HELP)
             .required(false)
             .display_order(DisplayOrder::SessionTransfer as usize)
     }
 
     pub fn get(matches: &ArgMatches) -> bool {
-        matches.is_present(ARG_NAME)
+        matches
+            .get_one::<bool>(ARG_NAME)
+            .copied()
+            .unwrap_or_default()
     }
 }
 
@@ -666,7 +818,7 @@ pub(super) mod session_package_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored package to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -677,7 +829,7 @@ pub(super) mod session_package_hash {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -688,7 +840,7 @@ pub(super) mod session_package_name {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the stored package to be called as the session";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -699,7 +851,7 @@ pub(super) mod session_package_name {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -710,7 +862,7 @@ pub(super) mod session_entry_point {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the method that will be used when calling the session contract";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -720,7 +872,10 @@ pub(super) mod session_entry_point {
     }
 
     pub fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -731,7 +886,7 @@ pub(super) mod session_version {
     const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
     const ARG_HELP: &str = "Version of the called session contract. Latest will be used by default";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -741,7 +896,10 @@ pub(super) mod session_version {
     }
 
     pub fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -752,7 +910,7 @@ pub(super) mod payment_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored contract to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -763,7 +921,7 @@ pub(super) mod payment_hash {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -775,7 +933,7 @@ pub(super) mod payment_name {
     const ARG_HELP: &str = "Name of the stored contract (associated with the executing account) \
     to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -786,7 +944,7 @@ pub(super) mod payment_name {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -797,7 +955,7 @@ pub(super) mod payment_package_hash {
     const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the stored package to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -808,7 +966,7 @@ pub(super) mod payment_package_hash {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -819,7 +977,7 @@ pub(super) mod payment_package_name {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the stored package to be called as the payment";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -830,7 +988,7 @@ pub(super) mod payment_package_name {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -841,7 +999,7 @@ pub(super) mod payment_entry_point {
     const ARG_VALUE_NAME: &str = "NAME";
     const ARG_HELP: &str = "Name of the method that will be used when calling the payment contract";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -851,7 +1009,10 @@ pub(super) mod payment_entry_point {
     }
 
     pub fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -862,7 +1023,7 @@ pub(super) mod payment_version {
     const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
     const ARG_HELP: &str = "Version of the called payment contract. Latest will be used by default";
 
-    pub fn arg() -> Arg<'static> {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -872,6 +1033,9 @@ pub(super) mod payment_version {
     }
 
     pub fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }

@@ -23,7 +23,7 @@
 //!   latest `Block` known on the server will be used.
 
 #![doc(
-    html_root_url = "https://docs.rs/casper-client/1.4.4",
+    html_root_url = "https://docs.rs/casper-client/1.5.0",
     html_favicon_url = "https://raw.githubusercontent.com/CasperLabs/casper-node/master/images/CasperLabs_Logo_Favicon_RGB_50px.png",
     html_logo_url = "https://raw.githubusercontent.com/CasperLabs/casper-node/master/images/CasperLabs_Logo_Symbol_RGB.png",
     test(attr(forbid(warnings)))
@@ -36,7 +36,6 @@
 )]
 
 pub mod cli;
-pub mod crypto;
 mod error;
 mod json_rpc;
 pub mod keygen;
@@ -60,7 +59,6 @@ use casper_hashing::Digest;
 use casper_types::Transfer;
 use casper_types::{Key, PublicKey, SecretKey, URef};
 
-pub use crypto::{AsymmetricKeyExt, CryptoError};
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};

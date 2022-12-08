@@ -1,4 +1,5 @@
 use jsonrpc_lite::{JsonRpc, Params};
+use once_cell::sync::OnceCell;
 use reqwest::Client;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::json;
@@ -6,6 +7,9 @@ use serde_json::json;
 use crate::{Error, JsonRpcId, SuccessResponse, Verbosity};
 
 const RPC_API_PATH: &str = "rpc";
+/// Statically declared client used when making HTTP requests
+/// so opened connections are pooled.
+static CLIENT: OnceCell<Client> = OnceCell::new();
 
 /// Struct representing a single JSON-RPC call to the casper node.
 #[derive(Debug)]
@@ -36,21 +40,22 @@ impl Call {
             format!("{}/{}", self.node_address, RPC_API_PATH)
         };
 
-        let params = match maybe_params {
-            Some(params) => Params::Map(
-                json!(params)
-                    .as_object()
-                    .unwrap_or_else(|| panic!("should be a JSON Map"))
-                    .clone(),
-            ),
-            None => Params::None(()),
+        let rpc_request = match maybe_params {
+            Some(params) => {
+                let params = Params::Map(
+                    json!(params)
+                        .as_object()
+                        .unwrap_or_else(|| panic!("should be a JSON Map"))
+                        .clone(),
+                );
+                JsonRpc::request_with_params(&self.rpc_id, method, params)
+            }
+            None => JsonRpc::request(&self.rpc_id, method),
         };
-
-        let rpc_request = JsonRpc::request_with_params(&self.rpc_id, method, params);
 
         crate::json_pretty_print(&rpc_request, self.verbosity)?;
 
-        let client = Client::new();
+        let client = CLIENT.get_or_init(Client::new);
         let http_response = client
             .post(&url)
             .json(&rpc_request)
@@ -82,12 +87,21 @@ impl Call {
 
         crate::json_pretty_print(&rpc_response, self.verbosity)?;
 
+        let response_kind = match &rpc_response {
+            JsonRpc::Request(_) => "Request",
+            JsonRpc::Notification(_) => "Notification",
+            JsonRpc::Success(_) => "Success",
+            JsonRpc::Error(_) => "Error",
+        };
+
         if let Some(json_value) = rpc_response.get_result().cloned() {
             let value =
-                serde_json::from_value(json_value).map_err(|_| Error::InvalidRpcResponse {
+                serde_json::from_value(json_value).map_err(|err| Error::InvalidRpcResponse {
                     rpc_id: self.rpc_id.clone(),
                     rpc_method: method,
+                    response_kind,
                     response: json!(rpc_response),
+                    source: Some(err),
                 })?;
             let success_response = SuccessResponse::new(self.rpc_id.clone(), value);
             return Ok(success_response);
@@ -104,7 +118,9 @@ impl Call {
         Err(Error::InvalidRpcResponse {
             rpc_id: self.rpc_id.clone(),
             rpc_method: method,
+            response_kind,
             response: json!(rpc_response),
+            source: None,
         })
     }
 }

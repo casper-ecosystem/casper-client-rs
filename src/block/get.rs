@@ -22,7 +22,7 @@ impl ClientCommand for GetBlock {
     const NAME: &'static str = "get-block";
     const ABOUT: &'static str = "Retrieve a block from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

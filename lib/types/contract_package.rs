@@ -101,6 +101,12 @@ impl Display for Group {
     }
 }
 
+#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+pub enum ContractPackageStatus {
+    Locked,
+    Unlocked,
+}
+
 /// Contract definition, metadata, and security container.
 #[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
@@ -109,6 +115,7 @@ pub struct ContractPackage {
     versions: Vec<ContractVersion>,
     disabled_versions: Vec<DisabledVersion>,
     groups: Vec<Group>,
+    lock_status: ContractPackageStatus,
 }
 
 impl ContractPackage {

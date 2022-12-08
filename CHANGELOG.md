@@ -20,13 +20,17 @@ All notable changes to this project will be documented in this file.  The format
 * Add support for new node RPC method `info_get_status`, used in the binary's new `get-node-status` subcommand.
 * Add support for new node RPC method `info_get_peers`, used in the binary's new `get-peers` subcommand.
 * Add support for new node RPC method `query_balance`, used in the binary's new `query-balance` subcommand.
+* Add support for passing variable-length byte lists as simple args in payment and session args.
+* Add support for passing fixed-length byte arrays as simple args in payment and session args.
+* Add support for passing payment and session args as JSON.
+* Add support for new `lock_status` field in the the `ContractPackage` value.
 
 ### Changed
 * Update dependencies.
 * Move the previous top-level library API, which targets CLI consumers, to a new module `cli`.
 * Rename subcommand `get-account-info` to `get-account` while retaining the previous name as an alias for backwards compatibility.
 * Rename subcommand `get-era-info-by-switch-block` to `get-era-info` while retaining the previous name as an alias for backwards compatibility.
-* Alias subcommand `query-balance` to `get-balance` to retain backwards compatibility.
+* Deprecated `get-balance` subcommand in favor of the newly added `query-balance` subcommand.
 
 ### Removed
 * Remove the C library support.
@@ -36,6 +40,13 @@ All notable changes to this project will be documented in this file.  The format
 
 ### Fixed
 * Restore the `-p` short form of `--public-key` arg for `get-account` and `account-address` subcommands.
+
+
+
+## [1.5.0] - 2022-05-13
+
+### Changed
+* Update dependencies.
 
 
 
@@ -167,7 +178,8 @@ No changes.
 
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0
-[unreleased]: https://github.com/casper-ecosystem/casper-client-rs/compare/v1.4.4...main
+[unreleased]: https://github.com/casper-ecosystem/casper-client-rs/compare/v1.5.0...main
+[1.5.0]: https://github.com/casper-ecosystem/casper-client-rs/compare/v1.4.5...v1.5.0
 [1.4.4]: https://github.com/casper-ecosystem/casper-client-rs/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/casper-ecosystem/casper-client-rs/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/casper-ecosystem/casper-client-rs/compare/v1.4.1...v1.4.2

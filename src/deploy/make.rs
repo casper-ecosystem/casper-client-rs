@@ -16,7 +16,7 @@ impl ClientCommand for MakeDeploy {
         be signed by other parties using the 'sign-deploy' subcommand and then sent to the network \
         for execution using the 'send-deploy' subcommand";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .arg(creation_common::output::arg())
@@ -31,7 +31,8 @@ impl ClientCommand for MakeDeploy {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_arg_examples_and_exit_if_required(matches);
+        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
+        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
         let secret_key = common::secret_key::get(matches);
         let timestamp = creation_common::timestamp::get(matches);

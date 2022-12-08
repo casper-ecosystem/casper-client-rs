@@ -21,7 +21,7 @@ impl ClientCommand for GetValidatorChanges {
     const NAME: &'static str = "get-validator-changes";
     const ABOUT: &'static str = "Retrieve status changes of active validators";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

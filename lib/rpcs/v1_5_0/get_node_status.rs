@@ -7,17 +7,55 @@ use casper_hashing::Digest;
 use casper_types::{ProtocolVersion, PublicKey};
 
 use super::get_peers::PeerEntry;
-use crate::types::TimeDiff;
+use crate::types::{BlockHash, TimeDiff, Timestamp};
 
-/// The various possible states of operation for the node.
+/// The state of the reactor.
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
-pub enum NodeState {
-    /// The node is fast-syncing.
-    FastSyncing,
-    /// The node is syncing to genesis.
-    SyncingToGenesis,
-    /// The node is participating.
-    Participating,
+pub enum ReactorState {
+    /// Get all components and reactor state set up on start.
+    Initialize,
+    /// Orient to the network and attempt to catch up to tip.
+    CatchUp,
+    /// Running commit upgrade and creating immediate switch block.
+    Upgrading,
+    /// Stay caught up with tip.
+    KeepUp,
+    /// Node is currently caught up and is an active validator.
+    Validate,
+    /// Node should be shut down for upgrade.
+    ShutdownForUpgrade,
+}
+
+/// An unbroken, inclusive range of blocks.
+#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct AvailableBlockRange {
+    /// The inclusive lower bound of the range.
+    low: u64,
+    /// The inclusive upper bound of the range.
+    high: u64,
+}
+
+/// The status of syncing an individual block.
+#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct BlockSyncStatus {
+    /// The block hash.
+    block_hash: BlockHash,
+    /// The height of the block, if known.
+    block_height: Option<u64>,
+    /// The state of acquisition of the data associated with the block.
+    acquisition_state: String,
+}
+
+/// The status of the block synchronizer.
+#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BlockSynchronizerStatus {
+    /// The status of syncing a historical block, if any.
+    historical: Option<BlockSyncStatus>,
+    /// The status of syncing a forward block, if any.
+    forward: Option<BlockSyncStatus>,
 }
 
 /// The `result` field of a successful JSON-RPC response to a `info_get_status` request.
@@ -45,6 +83,12 @@ pub struct GetNodeStatusResult {
     pub build_version: String,
     /// Time that passed since the node has started.
     pub uptime: TimeDiff,
-    /// The current state of node.
-    pub node_state: NodeState,
+    /// The current state of node reactor.
+    pub reactor_state: ReactorState,
+    /// Timestamp of the last recorded progress in the reactor.
+    pub last_progress: Timestamp,
+    /// The available block range in storage.
+    pub available_block_range: AvailableBlockRange,
+    /// The status of the block synchronizer builders.
+    pub block_sync: BlockSynchronizerStatus,
 }

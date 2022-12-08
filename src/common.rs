@@ -1,6 +1,6 @@
 use std::fs;
 
-use clap::{Arg, ArgMatches};
+use clap::{Arg, ArgAction, ArgMatches};
 
 use casper_client::cli::CliError;
 use casper_types::PublicKey;
@@ -20,20 +20,19 @@ pub mod verbose {
         "Generates verbose output, e.g. prints the RPC request.  If repeated by using '-vv' then \
         all output will be extra verbose, meaning that large JSON strings will be shown in full";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .short(ARG_NAME_SHORT)
             .required(false)
-            .multiple_occurrences(true)
+            .action(ArgAction::Count)
             .help(ARG_HELP)
             .display_order(order)
     }
 
     pub fn get(matches: &ArgMatches) -> u64 {
-        if matches.is_valid_arg(ARG_NAME) {
-            matches.occurrences_of(ARG_NAME)
-        } else {
-            0
+        match matches.try_get_one::<u8>(ARG_NAME) {
+            Ok(maybe_count) => maybe_count.copied().unwrap_or_default() as u64,
+            Err(_) => 0,
         }
     }
 }
@@ -48,7 +47,7 @@ pub mod node_address {
     const ARG_DEFAULT: &str = "http://localhost:7777";
     const ARG_HELP: &str = "Hostname or IP and port of node on which HTTP service is running";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -61,7 +60,8 @@ pub mod node_address {
 
     pub fn get(matches: &ArgMatches) -> &str {
         matches
-            .value_of(ARG_NAME)
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
     }
 }
@@ -76,7 +76,7 @@ pub mod rpc_id {
         "JSON-RPC identifier, applied to the request and returned in the response. If not \
         provided, a random integer will be assigned";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -86,7 +86,10 @@ pub mod rpc_id {
     }
 
     pub fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -99,7 +102,7 @@ pub mod secret_key {
     const ARG_VALUE_NAME: &str = super::ARG_PATH;
     const ARG_HELP: &str = "Path to secret key file";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -110,7 +113,8 @@ pub mod secret_key {
 
     pub fn get(matches: &ArgMatches) -> &str {
         matches
-            .value_of(ARG_NAME)
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
     }
 }
@@ -128,11 +132,12 @@ pub mod force {
         "If this flag is passed, any existing output files will be overwritten. Without this flag, \
         if any output file exists, no output files will be generated and the command will fail";
 
-    pub fn arg(order: usize, singular: bool) -> Arg<'static> {
+    pub fn arg(order: usize, singular: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
             .required(false)
+            .action(ArgAction::SetTrue)
             .help(if singular {
                 ARG_HELP_SINGULAR
             } else {
@@ -142,7 +147,10 @@ pub mod force {
     }
 
     pub fn get(matches: &ArgMatches) -> bool {
-        matches.is_present(ARG_NAME)
+        matches
+            .get_one::<bool>(ARG_NAME)
+            .copied()
+            .unwrap_or_default()
     }
 }
 
@@ -155,7 +163,7 @@ pub mod state_root_hash {
     const ARG_VALUE_NAME: &str = super::ARG_HEX_STRING;
     const ARG_HELP: &str = "Hex-encoded hash of the state root";
 
-    pub(crate) fn arg(order: usize, is_required: bool) -> Arg<'static> {
+    pub(crate) fn arg(order: usize, is_required: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -166,7 +174,7 @@ pub mod state_root_hash {
     }
 
     pub(crate) fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.value_of(ARG_NAME)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -182,7 +190,7 @@ pub mod block_identifier {
         "Hex-encoded block hash or height of the block. If not given, the last block added to the \
         chain as known at the given node will be used";
 
-    pub(crate) fn arg(order: usize, extra_help_string: bool) -> Arg<'static> {
+    pub(crate) fn arg(order: usize, extra_help_string: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -197,13 +205,16 @@ pub mod block_identifier {
     }
 
     pub(crate) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
 /// Handles providing the arg for and retrieval of the public key.
 pub(super) mod public_key {
-    use casper_client::{cli::CliError, AsymmetricKeyExt};
+    use casper_client::cli::CliError;
     use casper_types::AsymmetricType;
 
     use super::*;
@@ -217,7 +228,7 @@ pub(super) mod public_key {
         should be one of the two public key files generated via the `keygen` subcommand; \
         \"public_key_hex\" or \"public_key.pem\"";
 
-    pub fn arg(order: usize, is_required: bool) -> Arg<'static> {
+    pub fn arg(order: usize, is_required: bool) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -228,13 +239,16 @@ pub(super) mod public_key {
     }
 
     pub fn get(matches: &ArgMatches, is_required: bool) -> Result<String, CliError> {
-        let value = matches.value_of(ARG_NAME).unwrap_or_else(|| {
-            if is_required {
-                panic!("should have {} arg", ARG_NAME)
-            } else {
-                ""
-            }
-        });
+        let value = matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_else(|| {
+                if is_required {
+                    panic!("should have {} arg", ARG_NAME)
+                } else {
+                    ""
+                }
+            });
         try_read_from_file(value)
     }
 
@@ -265,6 +279,71 @@ pub(super) mod public_key {
     }
 }
 
+pub(super) mod purse_identifier {
+    use super::*;
+
+    /// Legacy name of purse identifier argument from when the command was named "get-balance".
+    pub(crate) const PURSE_IDENTIFIER_ALIAS: &str = "purse-uref";
+
+    pub(super) const ARG_NAME: &str = "purse-identifier";
+    const ARG_SHORT: char = 'p';
+    const ARG_VALUE_NAME: &str = "FORMATTED STRING or PATH";
+    const ARG_HELP: &str =
+        "The identifier for the purse. This can be a public key or account hash, implying the main \
+        purse of the given account should be used. Alternatively it can be a purse URef. To \
+        provide a public key, it must be a properly formatted public key. The public key may \
+        be read in from a file, in which case enter the path to the file as the --purse-identifier \
+        argument. The file should be one of the two public key files generated via the `keygen` \
+        subcommand; \"public_key_hex\" or \"public_key.pem\". To provide an account hash, it must \
+        be formatted as \"account-hash-<HEX STRING>\", or for a URef as \
+        \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\"";
+
+    pub fn arg(order: usize, is_required: bool) -> Arg {
+        Arg::new(ARG_NAME)
+            .alias(PURSE_IDENTIFIER_ALIAS)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .required(is_required)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(order)
+    }
+
+    pub fn get(matches: &ArgMatches) -> Result<String, CliError> {
+        let value = matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default();
+        public_key::try_read_from_file(value)
+    }
+}
+
+/// Handles providing the arg for and retrieval of the purse URef.
+pub(super) mod purse_uref {
+    use super::*;
+
+    pub const ARG_NAME: &str = "purse-uref";
+    const ARG_SHORT: char = 'u';
+    const ARG_VALUE_NAME: &str = "FORMATTED STRING";
+    const ARG_HELP: &str =
+        "The URef under which the purse is stored. This must be a properly formatted URef \
+        \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\"";
+
+    pub fn arg(display_order: usize, is_required: bool) -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .required(is_required)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(display_order)
+    }
+
+    pub fn get(matches: &ArgMatches) -> Option<&str> {
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
+    }
+}
+
 /// Handles providing the arg for and retrieval of the session account arg when specifying an
 /// account for a Deploy.
 pub(super) mod session_account {
@@ -279,7 +358,7 @@ pub(super) mod session_account {
         argument. The file should be one of the two public key files generated via the `keygen`
         subcommand; \"public_key_hex\" or \"public_key.pem\"";
 
-    pub fn arg(order: usize) -> Arg<'static> {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -289,7 +368,10 @@ pub(super) mod session_account {
     }
 
     pub fn get(matches: &ArgMatches) -> Result<String, CliError> {
-        let value = matches.value_of(ARG_NAME).unwrap_or_default();
+        let value = matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default();
         super::public_key::try_read_from_file(value)
     }
 }

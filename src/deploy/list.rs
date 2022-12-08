@@ -51,7 +51,7 @@ impl ClientCommand for ListDeploys {
     const NAME: &'static str = "list-deploys";
     const ABOUT: &'static str = "Retrieve the list of all deploy hashes in a given block";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

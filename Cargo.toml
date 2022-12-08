@@ -1,6 +1,6 @@
 [package]
 name = "casper-client"
-version = "1.4.4" # when updating, also update 'html_root_url' in lib.rs
+version = "1.5.0" # when updating, also update 'html_root_url' in lib.rs
 authors = ["Marc Brinkmann <marc@casperlabs.io>", "Fraser Hutchison <fraser@casperlabs.io>"]
 edition = "2021"
 description = "A client library and binary for interacting with the Casper network"
@@ -20,50 +20,42 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-async-trait = "0.1.52"
+async-trait = "0.1.59"
 base16 = "0.2.1"
-base64 = "0.13.0"
+base64 = "0.13.1"
 casper-hashing = "*"
-casper-types = { version = "*", features = ["datasize"] }
-clap = { version = "3", features = ["cargo"] }
-clap_complete = "3"
+casper-types = { version = "*", features = ["std"] }
+clap = { version = "4", features = ["cargo", "deprecated"] }
+clap_complete = "4"
 derp = "0.0.14"
 ed25519-dalek = { version = "1", default-features = false }
-getrandom = "0.2.5"
-hex-buffer-serde = "0.3.0"
+getrandom = "0.2.8"
+hex-buffer-serde = "0.4.0"
 humantime = "2"
-itertools = "0.10.3"
-jsonrpc-lite = "0.5.0"
-k256 = { version = "0.7.2", features = ["arithmetic", "ecdsa", "sha256", "zeroize"] }
+itertools = "0.10.5"
+jsonrpc-lite = "0.6.0"
+k256 = { version = "0.7.3", features = ["arithmetic", "ecdsa", "sha256", "zeroize"] }
+num-traits = "0.2.15"
 once_cell = "1"
 pem = "1"
 rand = "0.8.5"
-reqwest = { version = "0.11.9", features = ["json"] }
+reqwest = { version = "0.11.13", features = ["json"] }
 schemars = "0.8"
 serde = { version = "1", default-features = false, features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
 signature = "1"
 tempfile = "3"
-thiserror = "1"
-tokio = { version = "1.17", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
-untrusted = "0.7.1"
+thiserror = "=1.0.34"
+tokio = { version = "1.23.0", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
+uint = "0.9.4"
+untrusted = "0.9.0"
 
 [build-dependencies]
 vergen = { version = "7", default-features = false, features = ["git"] }
 
-[dev-dependencies]
-anyhow = "1"
-futures = "0.3.21"
-hyper = "0.14.17"
-semver = "1"
-serde = "1"
-tower = "0.4.12"
-warp = "0.3.2"
-warp-json-rpc = "0.3.0"
-
 [patch.crates-io]
-casper-hashing = { git = "https://github.com/casper-network/casper-node", branch = "release-1.5.0" }
-casper-types = { git = "https://github.com/casper-network/casper-node", branch = "release-1.5.0" }
+casper-hashing = { git = "https://github.com/casper-network/casper-node", branch = "feat-fast-sync-v2" }
+casper-types = { git = "https://github.com/casper-network/casper-node", branch = "feat-fast-sync-v2" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]

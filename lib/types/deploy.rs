@@ -6,11 +6,10 @@ use serde::{Deserialize, Serialize};
 use casper_hashing::Digest;
 use casper_types::{
     bytesrepr::{self, ToBytes},
-    PublicKey, SecretKey, Signature, URef, U512,
+    crypto, PublicKey, SecretKey, Signature, URef, U512,
 };
 
 use crate::{
-    crypto,
     types::{ExecutableDeployItem, TimeDiff, Timestamp},
     Error, TransferTarget,
 };
@@ -253,7 +252,7 @@ impl Deploy {
     /// Adds a signature of this deploy's hash to its approvals.
     pub fn sign(&mut self, secret_key: &SecretKey) {
         let signer = PublicKey::from(secret_key);
-        let signature = crypto::sign(&self.hash.0, secret_key, &signer);
+        let signature = crypto::sign(self.hash.0, secret_key, &signer);
         let approval = Approval { signer, signature };
         self.approvals.push(approval);
     }

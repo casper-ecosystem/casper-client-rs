@@ -27,7 +27,6 @@ enum DisplayOrder {
 
 /// Handles providing the arg for and retrieval of the key.
 mod key {
-    use casper_client::AsymmetricKeyExt;
     use casper_types::{AsymmetricType, PublicKey};
 
     use super::*;
@@ -49,7 +48,7 @@ mod key {
         enter the path to the file as the --key argument. The file should be one of the two public \
         key files generated via the `keygen` subcommand; \"public_key_hex\" or \"public_key.pem\"";
 
-    pub(crate) fn arg(order: usize) -> Arg<'static> {
+    pub(crate) fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -61,7 +60,8 @@ mod key {
 
     pub(crate) fn get(matches: &ArgMatches) -> Result<String, CliError> {
         let value = matches
-            .value_of(ARG_NAME)
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME));
 
         // Try to read as a PublicKey PEM file first.
@@ -98,7 +98,7 @@ mod path {
     const ARG_VALUE_NAME: &str = "PATH/FROM/KEY";
     const ARG_HELP: &str = "The path from the key of the query";
 
-    pub(crate) fn arg(order: usize) -> Arg<'static> {
+    pub(crate) fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -109,7 +109,10 @@ mod path {
     }
 
     pub(crate) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -118,7 +121,7 @@ impl ClientCommand for QueryGlobalState {
     const NAME: &'static str = "query-global-state";
     const ABOUT: &'static str = "Retrieve a stored value from the network";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .alias(COMMAND_ALIAS)
             .about(Self::ABOUT)

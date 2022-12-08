@@ -16,7 +16,7 @@ impl ClientCommand for MakeTransfer {
         subsequently be signed by other parties using the 'sign-deploy' subcommand and then sent \
         to the network for execution using the 'send-deploy' subcommand";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
@@ -33,7 +33,8 @@ impl ClientCommand for MakeTransfer {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_arg_examples_and_exit_if_required(matches);
+        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
+        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
         let amount = transfer::amount::get(matches);
         let target_account = transfer::target_account::get(matches);

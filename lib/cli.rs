@@ -20,15 +20,16 @@
 //! * `maybe_block_id` - Must be a hex-encoded, 32-byte hash digest or a `u64` representing the
 //!   [`Block`] height or empty.  If empty, the latest `Block` known on the server will be used.
 
-mod cl_type;
 /// Deploy module.
 pub mod deploy;
 mod deploy_str_params;
 mod dictionary_item_str_params;
 mod error;
+mod json_args;
 mod parse;
 mod payment_str_params;
 mod session_str_params;
+mod simple_args;
 #[cfg(test)]
 mod tests;
 
@@ -37,7 +38,7 @@ use serde::Serialize;
 use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{AsymmetricType, PublicKey, URef};
+use casper_types::{crypto, AsymmetricType, PublicKey, URef};
 
 use crate::{
     rpcs::{
@@ -54,12 +55,16 @@ use crate::{
 };
 #[cfg(doc)]
 use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
-pub use cl_type::help;
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
 pub use error::CliError;
+use json_args::JsonArg;
+pub use json_args::{
+    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails,
+};
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
+pub use simple_args::help as simple_args_help;
 
 /// Creates a [`Deploy`] and sends it to the network for execution.
 ///
@@ -452,7 +457,7 @@ pub async fn get_account(
     let account_identifier =
         PublicKey::from_hex(public_key).map_err(|error| crate::Error::CryptoError {
             context: "public key in get_account",
-            error: crate::CryptoError::from(error),
+            error: crypto::ErrorExt::from(error),
         })?;
 
     crate::get_account(

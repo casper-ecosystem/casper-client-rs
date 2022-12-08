@@ -97,7 +97,7 @@ fn hash_era_end(
         let validator_hash = Digest::hash(validator_weight.validator().to_bytes()?);
         let weight_hash = Digest::hash(validator_weight.weight().to_bytes()?);
         descending_validator_weight_hashed_pairs
-            .push(Digest::hash_pair(&validator_hash, &weight_hash));
+            .push(Digest::hash_pair(validator_hash, weight_hash));
     }
     let hashed_next_era_validator_weights =
         Digest::hash_merkle_tree(descending_validator_weight_hashed_pairs);

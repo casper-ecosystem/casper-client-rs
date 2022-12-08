@@ -26,18 +26,13 @@ enum DisplayOrder {
 
 /// Handles providing the arg for and retrieval of the key.
 mod key {
-    use casper_client::AsymmetricKeyExt;
     use casper_types::AsymmetricType;
 
     use super::*;
 
     const ARG_VALUE_NAME: &str = "FORMATTED STRING or PATH";
 
-    pub(super) fn arg(
-        arg_name: &'static str,
-        arg_help: &'static str,
-        display_order: usize,
-    ) -> Arg<'static> {
+    pub(super) fn arg(arg_name: &'static str, arg_help: &'static str, display_order: usize) -> Arg {
         Arg::new(arg_name)
             .long(arg_name)
             .required(false)
@@ -47,7 +42,10 @@ mod key {
     }
 
     pub(super) fn get(arg_name: &'static str, matches: &ArgMatches) -> Result<String, CliError> {
-        let value = matches.value_of(arg_name).unwrap_or_default();
+        let value = matches
+            .get_one::<String>(arg_name)
+            .map(String::as_str)
+            .unwrap_or_default();
 
         // Try to read as a PublicKey PEM file first.
         if let Ok(public_key) = PublicKey::from_file(value) {
@@ -82,7 +80,7 @@ mod account_hash {
         "This must be a properly formatted account hash. The format for account hash is \
         \"account-hash-<HEX STRING>\".";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         key::arg(ARG_NAME, ARG_HELP, DisplayOrder::AccountHash as usize)
     }
 
@@ -99,7 +97,7 @@ mod contract_hash {
         "This must be a properly formatted contract hash. The format for contract hash is \
         \"hash-<HEX STRING>\".";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         key::arg(ARG_NAME, ARG_HELP, DisplayOrder::ContractHash as usize)
     }
 
@@ -116,17 +114,20 @@ mod dictionary_name {
     const ARG_VALUE_NAME: &str = "STRING";
     const ARG_HELP: &str = "The named key under which the dictionary seed URef is stored.";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required(false)
+            .required_unless_present_any([seed_uref::ARG_NAME, dictionary_address::ARG_NAME])
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::DictionaryName as usize)
     }
 
     pub(super) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -138,17 +139,20 @@ mod dictionary_item_key {
     const ARG_VALUE_NAME: &str = "STRING";
     const ARG_HELP: &str = "The dictionary item key formatted as a string.";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required(true)
+            .required_unless_present(dictionary_address::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::DictionaryItemKey as usize)
     }
 
     pub(super) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -161,7 +165,7 @@ mod seed_uref {
     const ARG_HELP: &str = "The dictionary's seed URef. This must be a properly formatted URef \
         \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\"";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -171,7 +175,10 @@ mod seed_uref {
     }
 
     pub(super) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -183,7 +190,7 @@ mod dictionary_address {
     const ARG_VALUE_NAME: &str = "FORMATTED STRING";
     const ARG_HELP: &str = "The dictionary item's unique key.";
 
-    pub(super) fn arg() -> Arg<'static> {
+    pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
@@ -193,7 +200,10 @@ mod dictionary_address {
     }
 
     pub(super) fn get(matches: &ArgMatches) -> &str {
-        matches.value_of(ARG_NAME).unwrap_or_default()
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -202,7 +212,7 @@ impl ClientCommand for GetDictionaryItem {
     const NAME: &'static str = "get-dictionary-item";
     const ABOUT: &'static str = "Retrieve a stored value from a dictionary";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
@@ -219,12 +229,8 @@ impl ClientCommand for GetDictionaryItem {
             .arg(contract_hash::arg())
             .arg(seed_uref::arg())
             .arg(dictionary_address::arg())
-            .arg(
-                dictionary_name::arg()
-                    .required_unless_present(seed_uref::ARG_NAME)
-                    .required_unless_present(dictionary_address::ARG_NAME),
-            )
-            .arg(dictionary_item_key::arg().required_unless_present(dictionary_address::ARG_NAME))
+            .arg(dictionary_name::arg())
+            .arg(dictionary_item_key::arg())
             .group(
                 ArgGroup::new("dictionary-identifier")
                     .arg(account_hash::ARG_NAME)

@@ -22,7 +22,7 @@ impl ClientCommand for GetStateRootHash {
     const NAME: &'static str = "get-state-root-hash";
     const ABOUT: &'static str = "Retrieve a state root hash at a given block";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)

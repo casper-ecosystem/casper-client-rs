@@ -13,7 +13,7 @@ impl ClientCommand for PutDeploy {
     const NAME: &'static str = "put-deploy";
     const ABOUT: &'static str = "Create a deploy and send it to the network for execution";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
@@ -25,7 +25,8 @@ impl ClientCommand for PutDeploy {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_arg_examples_and_exit_if_required(matches);
+        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
+        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
         let maybe_rpc_id = common::rpc_id::get(matches);
         let node_address = common::node_address::get(matches);

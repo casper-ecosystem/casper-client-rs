@@ -21,7 +21,7 @@ impl ClientCommand for ListRpcs {
     const NAME: &'static str = "list-rpcs";
     const ABOUT: &'static str = "List all currently supported RPCs";
 
-    fn build(display_order: usize) -> Command<'static> {
+    fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
