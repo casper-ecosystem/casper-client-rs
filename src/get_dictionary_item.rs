@@ -117,7 +117,7 @@ mod dictionary_name {
     pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required_unless_present_any(&[seed_uref::ARG_NAME, dictionary_address::ARG_NAME])
+            .required_unless_present_any([seed_uref::ARG_NAME, dictionary_address::ARG_NAME])
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::DictionaryName as usize)

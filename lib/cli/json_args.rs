@@ -293,7 +293,7 @@ fn write_json_to_bytesrepr(
                     actual: vec.len(),
                 });
             }
-            write_json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?
+            write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?
         }
         (&CLType::Tuple2(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
@@ -302,8 +302,8 @@ fn write_json_to_bytesrepr(
                     actual: vec.len(),
                 });
             }
-            write_json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?;
-            write_json_to_bytesrepr(&*inner_cl_types[1], &vec[1], output)?
+            write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?;
+            write_json_to_bytesrepr(&inner_cl_types[1], &vec[1], output)?
         }
         (&CLType::Tuple3(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
@@ -312,9 +312,9 @@ fn write_json_to_bytesrepr(
                     actual: vec.len(),
                 });
             }
-            write_json_to_bytesrepr(&*inner_cl_types[0], &vec[0], output)?;
-            write_json_to_bytesrepr(&*inner_cl_types[1], &vec[1], output)?;
-            write_json_to_bytesrepr(&*inner_cl_types[2], &vec[2], output)?
+            write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?;
+            write_json_to_bytesrepr(&inner_cl_types[1], &vec[1], output)?;
+            write_json_to_bytesrepr(&inner_cl_types[2], &vec[2], output)?
         }
         _ => return Err(ErrorDetails::IncompatibleType),
     };
