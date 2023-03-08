@@ -412,7 +412,7 @@ pub(super) mod arg_simple {
             .required(false)
             .multiple(true)
             .value_name(ARG_VALUE_NAME)
-            .help(&*ARG_HELP)
+            .help(&ARG_HELP)
             .display_order(order)
     }
 }

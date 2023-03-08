@@ -898,7 +898,7 @@ mod make_deploy {
             .unwrap_or_else(|err| panic!("Failed to create temp dir with error: {}", err));
         let file_path = temp_dir.path().join("test_deploy.json");
         let contents = "contents of test file";
-        fs::write(file_path.clone(), &contents)
+        fs::write(file_path.clone(), contents)
             .unwrap_or_else(|err| panic!("Failed to create temp file with error: {}", err));
 
         assert!(matches!(
@@ -1189,7 +1189,7 @@ mod make_transfer {
             .unwrap_or_else(|err| panic!("Failed to create temp dir with error: {}", err));
         let file_path = temp_dir.path().join("test_deploy.json");
         let contents = "contents of test file";
-        fs::write(file_path.clone(), &contents)
+        fs::write(file_path.clone(), contents)
             .unwrap_or_else(|err| panic!("Failed to create temp file with error: {}", err));
 
         assert!(matches!(

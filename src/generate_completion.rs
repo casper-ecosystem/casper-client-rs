@@ -34,7 +34,7 @@ mod output_file {
             .long(ARG_NAME)
             .short(ARG_NAME_SHORT)
             .required(false)
-            .default_value(&*ARG_DEFAULT)
+            .default_value(&ARG_DEFAULT)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::OutputFile as usize)
