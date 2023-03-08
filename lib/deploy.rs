@@ -123,7 +123,7 @@ impl<'a> OutputKind<'a> {
                 if path.exists() && !overwrite_if_exists {
                     return Err(Error::FileAlreadyExists(path));
                 }
-                let file = File::create(&tmp_path).map_err(|error| Error::IoError {
+                let file = File::create(tmp_path).map_err(|error| Error::IoError {
                     context: format!("failed to create {}", tmp_path.display()),
                     error,
                 })?;

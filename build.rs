@@ -30,7 +30,7 @@ fn main() {
             .include_item("casper_session_params_t")
             .generate()
             .expect("Unable to generate bindings")
-            .write_to_file(&output_file);
+            .write_to_file(output_file);
     }
 
     let mut config = Config::default();
