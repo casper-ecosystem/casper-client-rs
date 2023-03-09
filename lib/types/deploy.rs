@@ -217,7 +217,7 @@ impl Deploy {
         account: Option<PublicKey>,
     ) -> Deploy {
         let serialized_body = serialize_body(&payment, &session);
-        let body_hash = Digest::hash(&serialized_body);
+        let body_hash = Digest::hash(serialized_body);
 
         let account = account.unwrap_or_else(|| PublicKey::from(secret_key));
 
@@ -235,7 +235,7 @@ impl Deploy {
         let serialized_header = header
             .to_bytes()
             .unwrap_or_else(|error| panic!("should serialize deploy header: {}", error));
-        let hash = DeployHash(Digest::hash(&serialized_header));
+        let hash = DeployHash(Digest::hash(serialized_header));
 
         let mut deploy = Deploy {
             hash,

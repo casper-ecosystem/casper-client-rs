@@ -150,20 +150,20 @@ fn write_json_to_bytesrepr(
             let value = PublicKey::from_hex(string)?;
             value.write_bytes(output)?
         }
-        (&CLType::Option(ref _inner_cl_type), Value::Null) => {
+        (CLType::Option(ref _inner_cl_type), Value::Null) => {
             output.push(OPTION_NONE_TAG);
         }
-        (&CLType::Option(ref inner_cl_type), _) => {
+        (CLType::Option(ref inner_cl_type), _) => {
             output.push(OPTION_SOME_TAG);
             write_json_to_bytesrepr(inner_cl_type, json_value, output)?
         }
-        (&CLType::List(ref inner_cl_type), Value::Array(vec)) => {
+        (CLType::List(ref inner_cl_type), Value::Array(vec)) => {
             (vec.len() as u32).write_bytes(output)?;
             for item in vec {
                 write_json_to_bytesrepr(inner_cl_type, item, output)?;
             }
         }
-        (&CLType::List(ref inner_cl_type), Value::String(string)) => {
+        (CLType::List(ref inner_cl_type), Value::String(string)) => {
             // Support passing a `Vec<u8>` as a hex-encoded string.
             if **inner_cl_type != CLType::U8 {
                 return Err(ErrorDetails::IncompatibleType);
@@ -201,7 +201,7 @@ fn write_json_to_bytesrepr(
                 output.push(byte);
             }
         }
-        (&CLType::Result { ref ok, ref err }, Value::Object(map)) => {
+        (CLType::Result { ref ok, ref err }, Value::Object(map)) => {
             if map.len() != 1 {
                 return Err(ErrorDetails::ResultObjectHasInvalidNumberOfFields);
             }
@@ -218,7 +218,7 @@ fn write_json_to_bytesrepr(
             }
         }
         (
-            &CLType::Map {
+            CLType::Map {
                 key: ref key_type,
                 value: ref value_type,
             },
@@ -260,7 +260,7 @@ fn write_json_to_bytesrepr(
             }
         }
         (
-            &CLType::Map {
+            CLType::Map {
                 key: ref key_type,
                 value: ref value_type,
             },
@@ -286,7 +286,7 @@ fn write_json_to_bytesrepr(
                 write_json_to_bytesrepr(value_type, value, output)?;
             }
         }
-        (&CLType::Tuple1(ref inner_cl_types), Value::Array(vec)) => {
+        (CLType::Tuple1(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
                 return Err(ErrorDetails::TupleEntryCountMismatch {
                     expected: inner_cl_types.len(),
@@ -295,7 +295,7 @@ fn write_json_to_bytesrepr(
             }
             write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?
         }
-        (&CLType::Tuple2(ref inner_cl_types), Value::Array(vec)) => {
+        (CLType::Tuple2(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
                 return Err(ErrorDetails::TupleEntryCountMismatch {
                     expected: inner_cl_types.len(),
@@ -305,7 +305,7 @@ fn write_json_to_bytesrepr(
             write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?;
             write_json_to_bytesrepr(&inner_cl_types[1], &vec[1], output)?
         }
-        (&CLType::Tuple3(ref inner_cl_types), Value::Array(vec)) => {
+        (CLType::Tuple3(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
                 return Err(ErrorDetails::TupleEntryCountMismatch {
                     expected: inner_cl_types.len(),

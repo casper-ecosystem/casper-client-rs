@@ -21,7 +21,7 @@ use crate::{
 /// No validation of the proofs is performed in this function.
 pub fn validate_hashes(block: &Block) -> Result<(), ValidateResponseError> {
     let serialized_header = block.header.to_bytes()?;
-    let actual_block_header_hash = BlockHash::new(Digest::hash(&serialized_header));
+    let actual_block_header_hash = BlockHash::new(Digest::hash(serialized_header));
     if block.hash != actual_block_header_hash {
         return Err(ValidateResponseError::BlockHashMismatch {
             block: Box::new(block.clone()),
@@ -30,7 +30,7 @@ pub fn validate_hashes(block: &Block) -> Result<(), ValidateResponseError> {
     }
 
     let serialized_body = block.body.to_bytes()?;
-    let actual_block_body_hash = Digest::hash(&serialized_body);
+    let actual_block_body_hash = Digest::hash(serialized_body);
     if block.header.body_hash != actual_block_body_hash {
         return Err(ValidateResponseError::BodyHashMismatch {
             block: Box::new(block.clone()),

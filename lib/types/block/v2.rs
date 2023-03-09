@@ -149,7 +149,7 @@ fn hash_body(
     }: &BlockBody,
 ) -> Result<Digest, ValidateResponseError> {
     let proposer_digest =
-        Digest::hash_pair(Digest::hash(&proposer.to_bytes()?), Digest::SENTINEL_RFOLD);
+        Digest::hash_pair(Digest::hash(proposer.to_bytes()?), Digest::SENTINEL_RFOLD);
 
     let transfer_hashes_digest = Digest::hash_pair(
         Digest::hash_merkle_tree(transfer_hashes.iter().map(DeployHash::inner)),
