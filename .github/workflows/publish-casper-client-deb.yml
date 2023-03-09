@@ -7,7 +7,7 @@ on:
       - "v*.*.*"
 
 jobs:
-  build_deb:
+  publish-deb:
     strategy:
       matrix:
         include:
