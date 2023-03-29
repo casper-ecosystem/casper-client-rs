@@ -24,18 +24,21 @@ impl ClientCommand for SendDeploy {
                 DisplayOrder::NodeAddress as usize,
             ))
             .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
+            .arg(creation_common::speculative_exec::arg())
             .arg(creation_common::input::arg())
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
         let maybe_rpc_id = common::rpc_id::get(matches);
         let node_address = common::node_address::get(matches);
+        let maybe_block_identifier = creation_common::speculative_exec::get(matches);
         let verbosity_level = common::verbose::get(matches);
         let input_path = creation_common::input::get(matches);
 
         casper_client::cli::send_deploy_file(
             maybe_rpc_id,
             node_address,
+            maybe_block_identifier,
             verbosity_level,
             input_path,
         )

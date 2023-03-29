@@ -73,6 +73,7 @@ pub use simple_args::help as simple_args_help;
 pub async fn put_deploy(
     maybe_rpc_id: &str,
     node_address: &str,
+    maybe_block_identifier: &str,
     verbosity_level: u64,
     deploy_params: DeployStrParams<'_>,
     session_params: SessionStrParams<'_>,
@@ -81,9 +82,16 @@ pub async fn put_deploy(
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let deploy = deploy::with_payment_and_session(deploy_params, payment_params, session_params)?;
-    crate::put_deploy(rpc_id, node_address, verbosity, deploy)
-        .await
-        .map_err(CliError::from)
+    let block_identifier = parse::block_identifier(maybe_block_identifier)?;
+    if block_identifier.is_some() {
+        crate::speculative_exec(rpc_id, node_address, block_identifier, verbosity, deploy)
+            .await
+            .map_err(CliError::from)
+    } else {
+        crate::put_deploy(rpc_id, node_address, verbosity, deploy)
+            .await
+            .map_err(CliError::from)
+    }
 }
 
 /// Creates a [`Deploy`] and outputs it to a file or stdout.
@@ -131,15 +139,23 @@ pub fn sign_deploy_file(
 pub async fn send_deploy_file(
     maybe_rpc_id: &str,
     node_address: &str,
+    maybe_block_identifier: &str,
     verbosity_level: u64,
     input_path: &str,
 ) -> Result<SuccessResponse<PutDeployResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
+    let block_identifier = parse::block_identifier(maybe_block_identifier)?;
     let verbosity = parse::verbosity(verbosity_level);
     let deploy = crate::read_deploy_file(input_path)?;
-    crate::put_deploy(rpc_id, node_address, verbosity, deploy)
-        .await
-        .map_err(CliError::from)
+    if block_identifier.is_some() {
+        crate::speculative_exec(rpc_id, node_address, block_identifier, verbosity, deploy)
+            .await
+            .map_err(CliError::from)
+    } else {
+        crate::put_deploy(rpc_id, node_address, verbosity, deploy)
+            .await
+            .map_err(CliError::from)
+    }
 }
 
 /// Transfers funds between purses.
@@ -156,6 +172,7 @@ pub async fn send_deploy_file(
 pub async fn transfer(
     maybe_rpc_id: &str,
     node_address: &str,
+    maybe_block_identifier: &str,
     verbosity_level: u64,
     amount: &str,
     target_account: &str,
@@ -173,9 +190,16 @@ pub async fn transfer(
         deploy_params,
         payment_params,
     )?;
-    crate::put_deploy(rpc_id, node_address, verbosity, deploy)
-        .await
-        .map_err(CliError::from)
+    let block_identifier = parse::block_identifier(maybe_block_identifier)?;
+    if block_identifier.is_some() {
+        crate::speculative_exec(rpc_id, node_address, block_identifier, verbosity, deploy)
+            .await
+            .map_err(CliError::from)
+    } else {
+        crate::put_deploy(rpc_id, node_address, verbosity, deploy)
+            .await
+            .map_err(CliError::from)
+    }
 }
 
 /// Creates a transfer [`Deploy`] and outputs it to a file or stdout.

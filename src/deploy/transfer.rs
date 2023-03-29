@@ -107,6 +107,7 @@ impl ClientCommand for Transfer {
             .display_order(display_order)
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
             .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
+            .arg(creation_common::speculative_exec::arg())
             .arg(amount::arg())
             .arg(target_account::arg())
             .arg(transfer_id::arg());
@@ -127,6 +128,7 @@ impl ClientCommand for Transfer {
         let verbosity_level = common::verbose::get(matches);
 
         let secret_key = common::secret_key::get(matches);
+        let maybe_block_identifier = creation_common::speculative_exec::get(matches);
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
@@ -137,6 +139,7 @@ impl ClientCommand for Transfer {
         casper_client::cli::transfer(
             maybe_rpc_id,
             node_address,
+            maybe_block_identifier,
             verbosity_level,
             amount,
             target_account,

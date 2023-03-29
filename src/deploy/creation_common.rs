@@ -14,6 +14,7 @@ pub(super) enum DisplayOrder {
     ShowSimpleArgExamples,
     ShowJsonArgExamples,
     Verbose,
+    BlockIdentifier,
     NodeAddress,
     RpcId,
     SecretKey,
@@ -233,6 +234,33 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
         );
     }
     unreachable!("clap arg groups and parsing should prevent this")
+}
+
+/// Handles providing the arg for speculative execution.
+pub(super) mod speculative_exec {
+    use super::*;
+
+    const ARG_NAME: &str = "speculative_exec";
+    const ARG_VALUE_NAME: &str = "HEX STRING OR INTEGER";
+    const ARG_HELP: &str =
+        "The endpoint to perform the speculative execution, identified by a BlockIdentifier, \
+        which is either a cryptographic hash or a u64.";
+
+    pub(in crate::deploy) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::BlockIdentifier as usize)
+    }
+
+    pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
 }
 
 /// Handles providing the arg for and retrieval of the timestamp.

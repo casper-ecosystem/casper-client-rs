@@ -91,3 +91,10 @@ pub(crate) mod query_global_state {
         QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD,
     };
 }
+
+pub(crate) mod speculative_exec {
+    pub use crate::rpcs::v1_4_5::speculative_exec::SpeculativeExecResult;
+    pub(crate) use crate::rpcs::v1_4_5::speculative_exec::{
+        SpeculativeExecParams, SPECULATIVE_EXEC_METHOD,
+    };
+}
