@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::ProtocolVersion;
+use casper_types::{ExecutionResult, ProtocolVersion};
 
 use crate::rpcs::common::BlockIdentifier;
 
-use crate::types::{Deploy, DeployHash};
+use crate::types::{BlockHash, Deploy};
 
 pub(crate) const SPECULATIVE_EXEC_METHOD: &str = "speculative_exec";
 
@@ -24,12 +24,14 @@ impl SpeculativeExecParams {
     }
 }
 
-/// The `result` field of a successful JSON-RPC response to an `speculative_exec` request.
+/// The `result` field of a successful JSON-RPC response to a `speculative_exec` request.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct SpeculativeExecResult {
     /// The JSON-RPC server version.
     pub api_version: ProtocolVersion,
-    /// The deploy hash.
-    pub deploy_hash: DeployHash,
+    /// Hash of the block on top of which the deploy was executed.
+    pub block_hash: BlockHash,
+    /// Result of the execution.
+    pub execution_result: ExecutionResult,
 }

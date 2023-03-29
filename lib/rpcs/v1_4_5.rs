@@ -15,4 +15,3 @@ pub(crate) mod get_validator_changes;
 pub(crate) mod list_rpcs;
 pub(crate) mod put_deploy;
 pub(crate) mod query_global_state;
-pub(crate) mod speculative_exec;

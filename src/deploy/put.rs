@@ -34,7 +34,7 @@ impl ClientCommand for PutDeploy {
         let verbosity_level = common::verbose::get(matches);
 
         let secret_key = common::secret_key::get(matches);
-        let maybe_block_identifier = creation_common::speculative_exec::get(matches);
+        let maybe_speculative_exec = creation_common::speculative_exec::get(matches);
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
@@ -43,22 +43,41 @@ impl ClientCommand for PutDeploy {
         let session_str_params = creation_common::session_str_params(matches);
         let payment_str_params = creation_common::payment_str_params(matches);
 
-        casper_client::cli::put_deploy(
-            maybe_rpc_id,
-            node_address,
-            maybe_block_identifier,
-            verbosity_level,
-            DeployStrParams {
-                secret_key,
-                timestamp,
-                ttl,
-                chain_name,
-                session_account: &session_account,
-            },
-            session_str_params,
-            payment_str_params,
-        )
-        .await
-        .map(Success::from)
+        if let Some(speculative_exec) = maybe_speculative_exec {
+            casper_client::cli::speculative_put_deploy(
+                speculative_exec,
+                maybe_rpc_id,
+                node_address,
+                verbosity_level,
+                DeployStrParams {
+                    secret_key,
+                    timestamp,
+                    ttl,
+                    chain_name,
+                    session_account: &session_account,
+                },
+                session_str_params,
+                payment_str_params,
+            )
+            .await
+            .map(Success::from)
+        } else {
+            casper_client::cli::put_deploy(
+                maybe_rpc_id,
+                node_address,
+                verbosity_level,
+                DeployStrParams {
+                    secret_key,
+                    timestamp,
+                    ttl,
+                    chain_name,
+                    session_account: &session_account,
+                },
+                session_str_params,
+                payment_str_params,
+            )
+            .await
+            .map(Success::from)
+        }
     }
 }

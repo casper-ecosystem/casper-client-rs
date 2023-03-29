@@ -14,9 +14,9 @@ pub(super) enum DisplayOrder {
     ShowSimpleArgExamples,
     ShowJsonArgExamples,
     Verbose,
-    BlockIdentifier,
     NodeAddress,
     RpcId,
+    SpeculativeExec,
     SecretKey,
     Input,
     Output,
@@ -240,26 +240,32 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
 pub(super) mod speculative_exec {
     use super::*;
 
-    const ARG_NAME: &str = "speculative_exec";
+    const ARG_NAME: &str = "speculative-exec";
     const ARG_VALUE_NAME: &str = "HEX STRING OR INTEGER";
     const ARG_HELP: &str =
-        "The endpoint to perform the speculative execution, identified by a BlockIdentifier, \
-        which is either a cryptographic hash or a u64.";
+        "If the receiving node supports this, execution of the deploy will only be attempted on \
+        that single node. Full validation of the deploy is not performed, and successful execution \
+        at the given global state is no guarantee that the deploy will be able to be successfully \
+        executed if put to the network, nor should execution costs be expected to be identical. \
+        Optionally provide the hex-encoded block hash or height of the block to specify the global \
+        state on which to execute";
+    const DEFAULT_MISSING_VALUE: &str = "0";
 
     pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
             .value_name(ARG_VALUE_NAME)
+            .num_args(0..=1)
+            .default_missing_value(DEFAULT_MISSING_VALUE)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::BlockIdentifier as usize)
+            .display_order(DisplayOrder::SpeculativeExec as usize)
     }
 
-    pub(in crate::deploy) fn get(matches: &ArgMatches) -> &str {
+    pub(in crate::deploy) fn get(matches: &ArgMatches) -> Option<&str> {
         matches
             .get_one::<String>(ARG_NAME)
             .map(String::as_str)
-            .unwrap_or_default()
     }
 }
 

@@ -70,7 +70,7 @@ use rpcs::{
         GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
         GetEraInfoResult, GetNodeStatusResult, GetPeersResult, GetStateRootHashResult,
         GetValidatorChangesResult, ListRpcsResult, PutDeployResult, QueryBalanceResult,
-        QueryGlobalStateResult,
+        QueryGlobalStateResult, SpeculativeExecResult,
     },
     v1_5_0::{
         get_account::{GetAccountParams, GET_ACCOUNT_METHOD},
@@ -101,22 +101,21 @@ use types::{Deploy, DeployHash, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
 
-/// Puts a [`SpeculativeExec`] to the network for execution.
-///
+/// Puts a [`Deploy`] to a single node for speculative execution on that node only.///
 /// Sends a JSON-RPC `speculative_exec` request to the specified node.
 ///
 /// For details of the parameters, see [the module docs](crate#common-parameters).
 pub async fn speculative_exec(
     rpc_id: JsonRpcId,
     node_address: &str,
-    maybe_block_identifier: Option<BlockIdentifier>,
+    block_identifier: Option<BlockIdentifier>,
     verbosity: Verbosity,
     deploy: Deploy,
-) -> Result<SuccessResponse<PutDeployResult>, Error> {
+) -> Result<SuccessResponse<SpeculativeExecResult>, Error> {
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(
             SPECULATIVE_EXEC_METHOD,
-            Some(SpeculativeExecParams::new(maybe_block_identifier, deploy)),
+            Some(SpeculativeExecParams::new(block_identifier, deploy)),
         )
         .await
 }
