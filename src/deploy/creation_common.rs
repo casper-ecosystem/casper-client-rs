@@ -263,9 +263,7 @@ pub(super) mod speculative_exec {
     }
 
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> Option<&str> {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
