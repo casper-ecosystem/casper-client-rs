@@ -25,7 +25,7 @@ mod validation;
 use std::{convert::TryInto, fs, io::Cursor};
 
 use jsonrpc_lite::JsonRpc;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use casper_execution_engine::core::engine_state::ExecutableDeployItem;
 use casper_hashing::Digest;
@@ -33,7 +33,8 @@ use casper_node::{
     rpcs::state::{DictionaryIdentifier, GlobalStateIdentifier},
     types::{BlockHash, Deploy},
 };
-use casper_types::Key;
+use casper_node::rpcs::chain::{BlockIdentifier, EraSummary};
+use casper_types::{Key, ProtocolVersion};
 
 pub use cl_type::help;
 pub use deploy::ListDeploysResult;
@@ -468,6 +469,32 @@ pub async fn get_era_info_by_switch_block(
 ) -> Result<JsonRpc> {
     RpcCall::new(maybe_rpc_id, node_address, verbosity_level)
         .get_era_info_by_switch_block(maybe_block_id)
+        .await
+}
+
+/// Retrieves era information under the stable EraSummary casper_types::Key.
+///
+/// * `maybe_rpc_id` is the JSON-RPC identifier, applied to the request and returned in the
+///   response. If it can be parsed as an `i64` it will be used as a JSON integer. If empty, a
+///   random `i64` will be assigned. Otherwise the provided string will be used verbatim.
+/// * `node_address` is the hostname or IP and port of the node on which the HTTP service is
+///   running, e.g. `"http://127.0.0.1:7777"`.
+/// * When `verbosity_level` is `1`, the JSON-RPC request will be printed to `stdout` with long
+///   string fields (e.g. hex-formatted raw Wasm bytes) shortened to a string indicating the char
+///   count of the field.  When `verbosity_level` is greater than `1`, the request will be printed
+///   to `stdout` with no abbreviation of long fields.  When `verbosity_level` is `0`, the request
+///   will not be printed to `stdout`.
+/// * `maybe_block_id` must be a hex-encoded, 32-byte hash digest or a `u64` representing the
+///   `Block` height or empty. If empty, era information from the latest block will be returned if
+///   available.
+pub async fn get_era_summary(
+    maybe_rpc_id: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    maybe_block_id: &str,
+) -> Result<JsonRpc> {
+    RpcCall::new(maybe_rpc_id, node_address, verbosity_level)
+        .get_era_summary(maybe_block_id)
         .await
 }
 
@@ -1193,6 +1220,29 @@ impl<'a> TryInto<GlobalStateIdentifier> for GlobalStateStrParams<'a> {
         }
     }
 }
+
+/// Params for "chain_get_era_summary" RPC response.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct GetEraSummaryParams {
+    /// The block identifier.
+    pub block_identifier: BlockIdentifier,
+}
+
+/// Result for "chain_get_era_summary" RPC response.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct GetEraSummaryResult {
+    /// The RPC API version.
+    pub api_version: ProtocolVersion,
+    /// The era summary.
+    pub era_summary: EraSummary,
+}
+
+
+/// "chain_get_era_summary" RPC
+pub struct GetEraSummary {}
+
 
 /// When `verbosity_level` is `1`, the value will be printed to `stdout` with long string fields
 /// (e.g. hex-formatted raw Wasm bytes) shortened to a string indicating the char count of the
