@@ -12,7 +12,6 @@ const PUBLIC_KEY_IS_REQUIRED: bool = true;
 
 /// This struct defines the order in which the args are shown for this subcommand's help message.
 enum DisplayOrder {
-    Verbose,
     PublicKey,
 }
 
@@ -27,7 +26,6 @@ impl ClientCommand for AccountAddress {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
-            .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
             .arg(common::public_key::arg(
                 DisplayOrder::PublicKey as usize,
                 PUBLIC_KEY_IS_REQUIRED,
@@ -37,7 +35,7 @@ impl ClientCommand for AccountAddress {
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
         let hex_public_key = common::public_key::get(matches, PUBLIC_KEY_IS_REQUIRED)?;
         let public_key = PublicKey::from_hex(&hex_public_key).map_err(|error| {
-            eprintln!("Can't parse {} as a public key: {}", hex_public_key, error);
+            eprintln!("Can't parse {} as a public key: {:?}", hex_public_key, error);
             CliError::FailedToParsePublicKey {
                 context: "account-address".to_string(),
                 error,
