@@ -35,7 +35,7 @@ impl ClientCommand for AccountAddress {
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
         let hex_public_key = common::public_key::get(matches, PUBLIC_KEY_IS_REQUIRED)?;
         let public_key = PublicKey::from_hex(&hex_public_key).map_err(|error| {
-            eprintln!("Can't parse {} as a public key: {:?}", hex_public_key, error);
+            eprintln!("Can't parse {} as a public key: {}", hex_public_key, error);
             CliError::FailedToParsePublicKey {
                 context: "account-address".to_string(),
                 error,
