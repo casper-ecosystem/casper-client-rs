@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use jsonrpc_lite::{Id, JsonRpc, Params};
 use rand::Rng;
 use reqwest::Client;
-use serde::{Serialize, Serializer};
+use serde::Serialize;
 use serde_json::{json, Map, Value};
 
 use casper_execution_engine::core::engine_state::ExecutableDeployItem;
@@ -30,7 +30,13 @@ use casper_node::{
 };
 use casper_types::{AsymmetricType, Key, PublicKey, URef};
 
-use crate::{deploy::{DeployExt, DeployParams, SendDeploy, Transfer}, error::{Error, Result}, validation, DictionaryItemStrParams, GlobalStateStrParams, GetEraSummary, GetEraSummaryParams};
+use crate::{
+    deploy::{DeployExt, DeployParams, SendDeploy, Transfer},
+    error::{Error, Result},
+    validation, DictionaryItemStrParams, GetEraSummary, GetEraSummaryParams, GlobalStateStrParams,
+};
+
+pub(crate) const GET_ERA_SUMMARY_METHOD: &str = "chain_get_era_summary";
 
 /// Struct representing a single JSON-RPC call to the casper node.
 #[derive(Debug)]
@@ -184,10 +190,7 @@ impl RpcCall {
         Ok(response)
     }
 
-    pub(crate) async fn get_era_summary(
-        self,
-        maybe_block_identifier: &str,
-    ) -> Result<JsonRpc> {
+    pub(crate) async fn get_era_summary(self, maybe_block_identifier: &str) -> Result<JsonRpc> {
         let response = match Self::block_identifier(maybe_block_identifier)? {
             None => GetEraSummary::request(self).await,
             Some(block_identifier) => {
@@ -197,8 +200,6 @@ impl RpcCall {
         }?;
         Ok(response)
     }
-
-
 
     pub(crate) async fn get_auction_info(self, maybe_block_identifier: &str) -> Result<JsonRpc> {
         let response = match Self::block_identifier(maybe_block_identifier)? {
@@ -492,7 +493,7 @@ impl RpcClient for GetValidatorChanges {
 }
 
 impl RpcClient for GetEraSummary {
-    const RPC_METHOD: &'static str = "chain_get_era_summary";
+    const RPC_METHOD: &'static str = GET_ERA_SUMMARY_METHOD;
 }
 
 pub(crate) trait IntoJsonMap: Serialize {

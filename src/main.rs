@@ -10,11 +10,11 @@ mod get_auction_info;
 mod get_balance;
 mod get_dictionary_item;
 mod get_era_info_by_switch_block;
+mod get_era_summary;
 mod get_state_hash;
 mod get_validator_changes;
 mod keygen;
 mod query_global_state;
-mod get_era_summary;
 
 use std::process;
 

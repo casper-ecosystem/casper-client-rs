@@ -2,21 +2,16 @@ use std::str;
 
 use async_trait::async_trait;
 use clap::{App, ArgMatches, SubCommand};
-use serde::{Serialize, Deserialize};
 
 use casper_client::{Error, GetEraSummary};
-use casper_types::ProtocolVersion;
 
 use crate::{command::ClientCommand, common, Success};
-
-
-
 
 enum DisplayOrder {
     Verbose,
     NodeAddress,
     RpcId,
-    BlockIdentifier
+    BlockIdentifier,
 }
 
 #[async_trait]
@@ -44,26 +39,8 @@ impl<'a, 'b> ClientCommand<'a, 'b> for GetEraSummary {
         let verbosity_level = common::verbose::get(matches);
         let maybe_block_id = common::block_identifier::get(matches);
 
-        casper_client::get_era_summary(
-            maybe_rpc_id,
-            node_address,
-            verbosity_level,
-            maybe_block_id,
-        )
+        casper_client::get_era_summary(maybe_rpc_id, node_address, verbosity_level, maybe_block_id)
             .await
             .map(Success::from)
     }
-
-
-
-
 }
-
-
-
-
-
-
-
-
-

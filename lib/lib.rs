@@ -29,11 +29,11 @@ use serde::{Deserialize, Serialize};
 
 use casper_execution_engine::core::engine_state::ExecutableDeployItem;
 use casper_hashing::Digest;
+use casper_node::rpcs::chain::{BlockIdentifier, EraSummary};
 use casper_node::{
     rpcs::state::{DictionaryIdentifier, GlobalStateIdentifier},
     types::{BlockHash, Deploy},
 };
-use casper_node::rpcs::chain::{BlockIdentifier, EraSummary};
 use casper_types::{Key, ProtocolVersion};
 
 pub use cl_type::help;
@@ -1239,10 +1239,8 @@ pub struct GetEraSummaryResult {
     pub era_summary: EraSummary,
 }
 
-
 /// "chain_get_era_summary" RPC
 pub struct GetEraSummary {}
-
 
 /// When `verbosity_level` is `1`, the value will be printed to `stdout` with long string fields
 /// (e.g. hex-formatted raw Wasm bytes) shortened to a string indicating the char count of the

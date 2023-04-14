@@ -236,6 +236,12 @@ impl MockServerHandle {
             .await
             .map(|_| ())
     }
+
+    async fn get_era_summary(&self, maybe_block_id: &str) -> Result<(), Error> {
+        casper_client::get_era_summary("1", &self.url(), 0, maybe_block_id)
+            .await
+            .map(|_| ())
+    }
 }
 
 impl Drop for MockServerHandle {
@@ -854,6 +860,35 @@ mod get_validator_changes {
             server_handle.get_validator_changes().await,
             Ok(())
         ))
+    }
+}
+
+mod get_era_summary {
+    use super::*;
+
+    use casper_client::GetEraSummaryParams;
+
+    const METHOD: &str = "chain_get_era_summary";
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn should_succeed_without_params() {
+        let server_handle = MockServerHandle::spawn_without_params(METHOD);
+        assert!(matches!(server_handle.get_era_summary("").await, Ok(())))
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn should_success_with_valid_block_hash() {
+        let server_handle = MockServerHandle::spawn::<GetEraSummaryParams>(METHOD);
+        assert!(matches!(
+            server_handle.get_era_summary(VALID_STATE_ROOT_HASH).await,
+            Ok(())
+        ))
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn should_succeed_with_valid_block_height() {
+        let server_handle = MockServerHandle::spawn::<GetEraSummaryParams>(METHOD);
+        assert!(matches!(server_handle.get_era_summary("1").await, Ok(())))
     }
 }
 
