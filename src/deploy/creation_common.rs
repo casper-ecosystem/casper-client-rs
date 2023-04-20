@@ -284,6 +284,7 @@ pub(super) mod dependencies {
             .display_order(DisplayOrder::Dependencies as usize)
     }
 
+    #[allow(clippy::iter_overeager_cloned)]
     pub(in crate::deploy) fn get<'a>(matches: &'a ArgMatches) -> Vec<&'a str> {
         matches
             .values_of(ARG_NAME)
@@ -373,6 +374,7 @@ pub(super) mod arg_simple {
                 .requires(super::session::ARG_NAME)
         }
 
+        #[allow(clippy::iter_overeager_cloned)]
         pub fn get<'a>(matches: &'a ArgMatches) -> Vec<&'a str> {
             matches
                 .values_of(ARG_NAME)
@@ -393,6 +395,7 @@ pub(super) mod arg_simple {
                 .requires(super::payment::ARG_NAME)
         }
 
+        #[allow(clippy::iter_overeager_cloned)]
         pub fn get<'a>(matches: &'a ArgMatches) -> Vec<&'a str> {
             matches
                 .values_of(ARG_NAME)
@@ -409,7 +412,7 @@ pub(super) mod arg_simple {
             .required(false)
             .multiple(true)
             .value_name(ARG_VALUE_NAME)
-            .help(&*ARG_HELP)
+            .help(&ARG_HELP)
             .display_order(order)
     }
 }
