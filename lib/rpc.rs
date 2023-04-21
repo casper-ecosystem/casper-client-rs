@@ -33,8 +33,10 @@ use casper_types::{AsymmetricType, Key, PublicKey, URef};
 use crate::{
     deploy::{DeployExt, DeployParams, SendDeploy, Transfer},
     error::{Error, Result},
-    validation, DictionaryItemStrParams, GlobalStateStrParams,
+    validation, DictionaryItemStrParams, GetEraSummary, GetEraSummaryParams, GlobalStateStrParams,
 };
+
+pub(crate) const GET_ERA_SUMMARY_METHOD: &str = "chain_get_era_summary";
 
 /// Struct representing a single JSON-RPC call to the casper node.
 #[derive(Debug)]
@@ -185,6 +187,17 @@ impl RpcCall {
             }
         }?;
         validation::validate_get_era_info_response(&response)?;
+        Ok(response)
+    }
+
+    pub(crate) async fn get_era_summary(self, maybe_block_identifier: &str) -> Result<JsonRpc> {
+        let response = match Self::block_identifier(maybe_block_identifier)? {
+            None => GetEraSummary::request(self).await,
+            Some(block_identifier) => {
+                let params = GetEraSummaryParams { block_identifier };
+                GetEraSummary::request_with_map_params(self, params).await
+            }
+        }?;
         Ok(response)
     }
 
@@ -479,6 +492,10 @@ impl RpcClient for GetValidatorChanges {
     const RPC_METHOD: &'static str = Self::METHOD;
 }
 
+impl RpcClient for GetEraSummary {
+    const RPC_METHOD: &'static str = GET_ERA_SUMMARY_METHOD;
+}
+
 pub(crate) trait IntoJsonMap: Serialize {
     fn into_json_map(self) -> Map<String, Value>
     where
@@ -504,3 +521,4 @@ impl IntoJsonMap for GetAuctionInfoParams {}
 impl IntoJsonMap for GetAccountInfoParams {}
 impl IntoJsonMap for GetDictionaryItemParams {}
 impl IntoJsonMap for QueryGlobalStateParams {}
+impl IntoJsonMap for GetEraSummaryParams {}

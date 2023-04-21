@@ -10,6 +10,7 @@ mod get_auction_info;
 mod get_balance;
 mod get_dictionary_item;
 mod get_era_info_by_switch_block;
+mod get_era_summary;
 mod get_state_hash;
 mod get_validator_changes;
 mod keygen;
@@ -20,7 +21,7 @@ use std::process;
 use clap::{crate_version, App};
 use once_cell::sync::Lazy;
 
-use casper_client::Error;
+use casper_client::{Error, GetEraSummary};
 use casper_node::rpcs::{
     account::PutDeploy,
     chain::{GetBlock, GetBlockTransfers, GetEraInfoBySwitchBlock, GetStateRootHash},
@@ -69,6 +70,7 @@ enum DisplayOrder {
     GetBalance,
     GetAccountInfo,
     GetEraInfo,
+    GetEraSummary,
     GetAuctionInfo,
     GetValidatorChanges,
     Keygen,
@@ -117,6 +119,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         .subcommand(
             QueryGlobalState::build(DisplayOrder::QueryGlobalState as usize).alias("query-state"),
         )
+        .subcommand(GetEraSummary::build(DisplayOrder::GetEraSummary as usize))
 }
 
 #[tokio::main]
@@ -155,7 +158,7 @@ async fn main() {
             (GetDictionaryItem::run(matches).await, matches)
         }
         (QueryGlobalState::NAME, Some(matches)) => (QueryGlobalState::run(matches).await, matches),
-
+        (GetEraSummary::NAME, Some(matches)) => (GetEraSummary::run(matches).await, matches),
         _ => {
             let _ = cli().print_long_help();
             println!();
