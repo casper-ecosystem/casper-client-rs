@@ -249,7 +249,7 @@ pub(super) mod speculative_exec {
         executed if put to the network, nor should execution costs be expected to be identical. \
         Optionally provide the hex-encoded block hash or height of the block to specify the global \
         state on which to execute";
-    const DEFAULT_MISSING_VALUE: &str = "0";
+    const DEFAULT_MISSING_VALUE: &str = "NO_VALUE";
 
     pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -262,8 +262,20 @@ pub(super) mod speculative_exec {
             .display_order(DisplayOrder::SpeculativeExec as usize)
     }
 
+    // get: The command line posibilities are encoded by a combination of option and &str
+    // None represents no --speculative-exec argument at all
+    // Some("") represents a --speculative-exec with no/empty argument
+    // Some(block_identifier) represents "--speculative-exec block_identifier"
     pub(in crate::deploy) fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.get_one::<String>(ARG_NAME).map(String::as_str)
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(|maybe_block_identifier| {
+                if maybe_block_identifier == DEFAULT_MISSING_VALUE {
+                    ""
+                } else {
+                    maybe_block_identifier.as_str()
+                }
+            })
     }
 }
 

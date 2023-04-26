@@ -86,12 +86,12 @@ pub async fn put_deploy(
         .map_err(CliError::from)
 }
 
-/// Speculatively creates a [`Deploy`] and sends it to the network for execution.
+/// Creates a [`Deploy`] and sends it to the specified node for speculative execution.
 ///
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters) or the docs
 /// of the individual parameter types.
 pub async fn speculative_put_deploy(
-    maybe_speculative_exec: &str,
+    maybe_block_id: &str,
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
@@ -102,7 +102,7 @@ pub async fn speculative_put_deploy(
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let deploy = deploy::with_payment_and_session(deploy_params, payment_params, session_params)?;
-    let speculative_exec = parse::block_identifier(maybe_speculative_exec)?;
+    let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
         .await
         .map_err(CliError::from)
@@ -163,18 +163,18 @@ pub async fn send_deploy_file(
         .map_err(CliError::from)
 }
 
-/// speculatively eads a previously-saved [`Deploy`] from a file and sends it to the network for execution.
-///
+/// Reads a previously-saved [`Deploy`] from a file and sends it to the specified node for
+/// speculative execution.
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).
 pub async fn speculative_send_deploy_file(
-    maybe_speculative_exec: &str,
+    maybe_block_id: &str,
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
     input_path: &str,
 ) -> Result<SuccessResponse<SpeculativeExecResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
-    let speculative_exec = parse::block_identifier(maybe_speculative_exec)?;
+    let speculative_exec = parse::block_identifier(maybe_block_id)?;
     let verbosity = parse::verbosity(verbosity_level);
     let deploy = crate::read_deploy_file(input_path)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
@@ -218,7 +218,8 @@ pub async fn transfer(
         .map_err(CliError::from)
 }
 
-/// Speculatively transfers funds between purses.
+/// Creates a [`Deploy`] to transfer funds between purses, and sends it to the specified node for
+/// speculative execution.
 ///
 /// * `amount` is a string to be parsed as a `U512` specifying the amount to be transferred.
 /// * `target_account` is the [`AccountHash`], [`URef`] or [`PublicKey`] of the account to which the
@@ -230,7 +231,7 @@ pub async fn transfer(
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
 #[allow(clippy::too_many_arguments)]
 pub async fn speculative_transfer(
-    maybe_speculative_exec: &str,
+    maybe_block_id: &str,
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
@@ -250,7 +251,7 @@ pub async fn speculative_transfer(
         deploy_params,
         payment_params,
     )?;
-    let speculative_exec = parse::block_identifier(maybe_speculative_exec)?;
+    let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
         .await
         .map_err(CliError::from)
