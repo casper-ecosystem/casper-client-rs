@@ -101,7 +101,8 @@ use types::{Deploy, DeployHash, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
 
-/// Puts a [`Deploy`] to a single node for speculative execution on that node only.///
+/// Puts a [`Deploy`] to a single node for speculative execution on that node only.
+///
 /// Sends a JSON-RPC `speculative_exec` request to the specified node.
 ///
 /// For details of the parameters, see [the module docs](crate#common-parameters).
