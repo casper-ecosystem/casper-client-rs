@@ -4,6 +4,7 @@ pub(crate) mod get_chainspec;
 pub(crate) mod get_deploy;
 pub(crate) mod get_node_status;
 pub(crate) mod query_balance;
+pub(crate) mod speculative_exec;
 
 // The following RPCs are all unchanged from v1.4.5, so we just re-export them.
 
