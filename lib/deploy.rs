@@ -9,11 +9,11 @@ use std::{
 use casper_execution_engine::core::engine_state::ExecutableDeployItem;
 use casper_node::{
     rpcs::{account::PutDeploy, chain::GetBlockResult, info::GetDeploy, RpcWithParams},
-    types::{Deploy, DeployHash, TimeDiff, Timestamp},
+    types::{Deploy, DeployHash},
 };
 use casper_types::{
     account::AccountHash, AsymmetricType, ProtocolVersion, PublicKey, RuntimeArgs, SecretKey,
-    UIntParseError, URef, U512,
+    TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
 
 use crate::{
@@ -339,7 +339,7 @@ impl DeployExt for Deploy {
 mod tests {
     use std::convert::TryInto;
 
-    use casper_node::{crypto::AsymmetricKeyExt, types::ExcessiveSizeDeployError};
+    use casper_node::types::ExcessiveSizeDeployError;
 
     use super::*;
     use crate::{DeployStrParams, PaymentStrParams, SessionStrParams};

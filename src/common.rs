@@ -198,7 +198,6 @@ pub mod block_identifier {
 /// Internal module to handle providing the arg for and retrieval of the public key or session
 /// account.
 mod sealed_public_key {
-    use casper_node::crypto::AsymmetricKeyExt;
     use casper_types::AsymmetricType;
 
     use super::*;

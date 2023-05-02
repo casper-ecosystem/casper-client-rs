@@ -4,9 +4,10 @@ use humantime::{DurationError, TimestampError};
 use jsonrpc_lite::JsonRpc;
 use thiserror::Error;
 
-use casper_node::{crypto::Error as CryptoError, types::ExcessiveSizeDeployError};
+use casper_node::types::ExcessiveSizeDeployError;
 use casper_types::{
-    bytesrepr::Error as ToBytesError, CLValueError, UIntParseError, URefFromStrError,
+    bytesrepr::Error as ToBytesError, crypto::ErrorExt as CryptoError, CLValueError,
+    UIntParseError, URefFromStrError,
 };
 
 use crate::validation::ValidateResponseError;

@@ -25,7 +25,6 @@ enum DisplayOrder {
 
 /// Handles providing the arg for and retrieval of the key.
 mod key {
-    use casper_node::crypto::AsymmetricKeyExt;
     use casper_types::AsymmetricType;
 
     use super::*;

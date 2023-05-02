@@ -13,16 +13,14 @@ use casper_client::{
     DeployStrParams, DictionaryItemStrParams, Error, GlobalStateStrParams, PaymentStrParams,
     SessionStrParams,
 };
-use casper_node::{
-    crypto::Error as CryptoError,
-    rpcs::{
-        account::{PutDeploy, PutDeployParams},
-        chain::{GetStateRootHash, GetStateRootHashParams},
-        info::{GetDeploy, GetDeployParams},
-        state::{GetBalance, GetBalanceParams, GetDictionaryItem, GetDictionaryItemParams},
-        RpcWithOptionalParams, RpcWithParams,
-    },
+use casper_node::rpcs::{
+    account::{PutDeploy, PutDeployParams},
+    chain::{GetStateRootHash, GetStateRootHashParams},
+    info::{GetDeploy, GetDeployParams},
+    state::{GetBalance, GetBalanceParams, GetDictionaryItem, GetDictionaryItemParams},
+    RpcWithOptionalParams, RpcWithParams,
 };
+use casper_types::crypto::ErrorExt as CryptoError;
 
 const VALID_PURSE_UREF: &str =
     "uref-0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007";
@@ -593,7 +591,9 @@ mod get_item {
                 .await,
             Err(Error::CryptoError {
                 context: "state_root_hash",
-                error: CryptoError::FromHex(base16::DecodeError::InvalidLength { length: 25 })
+                error: CryptoError::CryptoError(casper_types::crypto::Error::FromHex(
+                    base16::DecodeError::InvalidLength { length: 25 }
+                ))
             })
         ));
     }
@@ -618,13 +618,16 @@ mod get_item {
                 .await,
             Err(Error::CryptoError {
                 context: "state_root_hash",
-                error: CryptoError::FromHex(base16::DecodeError::InvalidLength { length: 25 })
+                error: CryptoError::CryptoError(casper_types::crypto::Error::FromHex(
+                    base16::DecodeError::InvalidLength { length: 25 }
+                ))
             })
         ));
     }
 }
 
 mod get_dictionary_item {
+
     use super::*;
 
     #[tokio::test(flavor = "multi_thread")]
@@ -720,7 +723,9 @@ mod get_dictionary_item {
                 .await,
             Err(Error::CryptoError {
                 context: "state_root_hash",
-                error: CryptoError::FromHex(base16::DecodeError::InvalidLength { length: _ })
+                error: CryptoError::CryptoError(casper_types::crypto::Error::FromHex(
+                    base16::DecodeError::InvalidLength { length: _ }
+                ))
             })
         ));
     }
@@ -768,7 +773,9 @@ mod query_global_state {
                 .await,
             Err(Error::CryptoError {
                 context: "global_state_identifier",
-                error: CryptoError::FromHex(base16::DecodeError::InvalidLength { length: _ })
+                error: CryptoError::CryptoError(casper_types::crypto::Error::FromHex(
+                    base16::DecodeError::InvalidLength { length: _ }
+                ))
             })
         ));
     }
@@ -803,7 +810,9 @@ mod query_global_state {
                 .await,
             Err(Error::CryptoError {
                 context: "global_state_identifier",
-                error: CryptoError::FromHex(base16::DecodeError::InvalidLength { length: _ }),
+                error: CryptoError::CryptoError(casper_types::crypto::Error::FromHex(
+                    base16::DecodeError::InvalidLength { length: _ }
+                ))
             })
         ));
     }
@@ -1371,7 +1380,7 @@ mod put_deploy {
 
 mod rate_limit {
     use super::*;
-    use casper_node::types::Timestamp;
+    use casper_types::Timestamp;
 
     #[tokio::test(flavor = "multi_thread")]
     async fn client_should_should_be_rate_limited_to_approx_1_qps() {
