@@ -16,7 +16,7 @@ use casper_node::{
         json_compatibility, Block, BlockHeader, BlockValidationError, JsonBlock, JsonBlockHeader,
     },
 };
-use casper_types::{bytesrepr, Key, ProtocolVersion, StoredValue, U512};
+use casper_types::{bytesrepr, Key, StoredValue, U512};
 
 const GET_ITEM_RESULT_BALANCE_VALUE: &str = "balance_value";
 const GET_ITEM_RESULT_STORED_VALUE: &str = "stored_value";
@@ -100,11 +100,6 @@ pub(crate) fn validate_get_era_info_response(
                 .map_err(|_| ValidateResponseError::ValidateResponseFailedToParse)?;
             let proofs: Vec<TrieMerkleProof<Key, StoredValue>> =
                 bytesrepr::deserialize(proof_bytes)?;
-            let key = if result.api_version < ProtocolVersion::from_parts(1u32, 4u32, 14u32) {
-                Key::EraSummary
-            } else {
-                Key::EraInfo(era_id)
-            };
             let path = &[];
 
             let proof_value = match stored_value {
@@ -114,8 +109,15 @@ pub(crate) fn validate_get_era_info_response(
                 _ => return Err(ValidateResponseError::ValidateResponseFailedToParse),
             };
 
-            core::validate_query_proof(&state_root_hash, &proofs, &key, path, &proof_value)
-                .map_err(Into::into)
+            match core::validate_query_proof(&state_root_hash, &proofs, &Key::EraSummary, path, &proof_value) {
+                Ok(_) => {Ok(())}
+                Err(_) => {
+                    let key = Key::EraInfo(era_id);
+                    core::validate_query_proof(&state_root_hash, &proofs, &key, path, &proof_value)
+                        .map_err(Into::into)
+                }
+            }
+
         }
         None => Ok(()),
     }
