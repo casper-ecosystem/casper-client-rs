@@ -2,8 +2,7 @@
 
 use std::{fs, path::Path};
 
-use casper_node::crypto::AsymmetricKeyExt;
-use casper_types::{AsymmetricType, PublicKey, SecretKey};
+use casper_types::{crypto::SecretKey, AsymmetricType, PublicKey};
 
 use crate::error::{Error, Result};
 

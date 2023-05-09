@@ -1551,7 +1551,7 @@ mod param_tests {
 
         #[test]
         fn should_fail_to_convert_with_bad_dependencies() {
-            use casper_node::crypto::Error as CryptoError;
+            use casper_types::crypto::ErrorExt as CryptoError;
             let mut params = test_value();
             params.dependencies = vec!["invalid dep"];
             let result: StdResult<DeployParams, Error> = params.try_into();
@@ -1559,7 +1559,9 @@ mod param_tests {
                 result,
                 Err(Error::CryptoError {
                     context: "dependencies",
-                    error: CryptoError::FromHex(base16::DecodeError::InvalidLength { length: 11 })
+                    error: CryptoError::CryptoError(casper_types::crypto::Error::FromHex(
+                        base16::DecodeError::InvalidLength { length: 11 }
+                    ))
                 })
             ));
         }

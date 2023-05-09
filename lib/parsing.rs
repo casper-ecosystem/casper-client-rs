@@ -7,13 +7,10 @@ use serde::{self, Deserialize};
 
 use casper_execution_engine::core::engine_state::executable_deploy_item::ExecutableDeployItem;
 use casper_hashing::Digest;
-use casper_node::{
-    crypto::AsymmetricKeyExt,
-    types::{DeployHash, TimeDiff, Timestamp},
-};
+use casper_node::types::DeployHash;
 use casper_types::{
     bytesrepr, AsymmetricType, CLType, CLValue, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs,
-    SecretKey, UIntParseError, U512,
+    SecretKey, TimeDiff, Timestamp, UIntParseError, U512,
 };
 
 use crate::{

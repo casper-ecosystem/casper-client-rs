@@ -100,7 +100,6 @@ pub(crate) fn validate_get_era_info_response(
                 .map_err(|_| ValidateResponseError::ValidateResponseFailedToParse)?;
             let proofs: Vec<TrieMerkleProof<Key, StoredValue>> =
                 bytesrepr::deserialize(proof_bytes)?;
-            let key = Key::EraInfo(era_id);
             let path = &[];
 
             let proof_value = match stored_value {
@@ -110,8 +109,20 @@ pub(crate) fn validate_get_era_info_response(
                 _ => return Err(ValidateResponseError::ValidateResponseFailedToParse),
             };
 
-            core::validate_query_proof(&state_root_hash, &proofs, &key, path, &proof_value)
-                .map_err(Into::into)
+            match core::validate_query_proof(
+                &state_root_hash,
+                &proofs,
+                &Key::EraSummary,
+                path,
+                &proof_value,
+            ) {
+                Ok(_) => Ok(()),
+                Err(_) => {
+                    let key = Key::EraInfo(era_id);
+                    core::validate_query_proof(&state_root_hash, &proofs, &key, path, &proof_value)
+                        .map_err(Into::into)
+                }
+            }
         }
         None => Ok(()),
     }

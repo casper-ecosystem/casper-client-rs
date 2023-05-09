@@ -10,7 +10,6 @@ use serde_json::{json, Map, Value};
 use casper_execution_engine::core::engine_state::ExecutableDeployItem;
 use casper_hashing::Digest;
 use casper_node::{
-    crypto,
     rpcs::{
         account::{PutDeploy, PutDeployParams},
         chain::{
@@ -28,7 +27,7 @@ use casper_node::{
     },
     types::{BlockHash, Deploy, DeployHash},
 };
-use casper_types::{AsymmetricType, Key, PublicKey, URef};
+use casper_types::{crypto, AsymmetricType, Key, PublicKey, URef};
 
 use crate::{
     deploy::{DeployExt, DeployParams, SendDeploy, Transfer},
@@ -414,7 +413,7 @@ pub fn map_hashing_error(hashing_error: casper_hashing::Error) -> impl Fn(&'stat
     move |context: &'static str| match &hashing_error {
         casper_hashing::Error::Base16DecodeError(decode_error) => Error::CryptoError {
             context,
-            error: crypto::Error::FromHex(decode_error.clone()),
+            error: crypto::Error::FromHex(decode_error.clone()).into(),
         },
         casper_hashing::Error::IncorrectDigestLength(length) => Error::InvalidArgument {
             context,
