@@ -43,6 +43,16 @@ All notable changes to this project will be documented in this file.  The format
 
 
 
+## [1.6.0]
+
+### Add
+* Added a new subcommand `get-era-summary` which optionally takes a block identifier and returns an era summary from a Casper network.
+
+### Changed
+* Update dependencies.
+
+
+
 ## [1.5.1] - 2023-03-08
 
 ### Changed
