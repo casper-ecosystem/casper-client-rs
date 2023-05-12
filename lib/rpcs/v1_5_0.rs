@@ -2,6 +2,7 @@
 
 pub(crate) mod get_chainspec;
 pub(crate) mod get_deploy;
+pub(crate) mod get_era_summary;
 pub(crate) mod get_node_status;
 pub(crate) mod query_balance;
 pub(crate) mod speculative_exec;

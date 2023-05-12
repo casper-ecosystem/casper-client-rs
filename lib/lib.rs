@@ -68,9 +68,9 @@ use rpcs::{
     results::{
         GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
         GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
-        GetEraInfoResult, GetNodeStatusResult, GetPeersResult, GetStateRootHashResult,
-        GetValidatorChangesResult, ListRpcsResult, PutDeployResult, QueryBalanceResult,
-        QueryGlobalStateResult, SpeculativeExecResult,
+        GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
+        GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
+        QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
     },
     v1_5_0::{
         get_account::{GetAccountParams, GET_ACCOUNT_METHOD},
@@ -82,6 +82,7 @@ use rpcs::{
         get_deploy::{GetDeployParams, GET_DEPLOY_METHOD},
         get_dictionary_item::{GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD},
         get_era_info::{GetEraInfoParams, GET_ERA_INFO_METHOD},
+        get_era_summary::{GetEraSummaryParams, GET_ERA_SUMMARY_METHOD},
         get_node_status::GET_NODE_STATUS_METHOD,
         get_peers::GET_PEERS_METHOD,
         get_state_root_hash::{GetStateRootHashParams, GET_STATE_ROOT_HASH_METHOD},
@@ -101,6 +102,22 @@ use types::{Deploy, DeployHash, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
 
+/// Puts a [`Deploy`] to the network for execution.
+///
+/// Sends a JSON-RPC `account_put_deploy` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn put_deploy(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    deploy: Deploy,
+) -> Result<SuccessResponse<PutDeployResult>, Error> {
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(PUT_DEPLOY_METHOD, Some(PutDeployParams::new(deploy)))
+        .await
+}
+
 /// Puts a [`Deploy`] to a single node for speculative execution on that node only.
 ///
 /// Sends a JSON-RPC `speculative_exec` request to the specified node.
@@ -118,22 +135,6 @@ pub async fn speculative_exec(
             SPECULATIVE_EXEC_METHOD,
             Some(SpeculativeExecParams::new(block_identifier, deploy)),
         )
-        .await
-}
-
-/// Puts a [`Deploy`] to the network for execution.
-///
-/// Sends a JSON-RPC `account_put_deploy` request to the specified node.
-///
-/// For details of the parameters, see [the module docs](crate#common-parameters).
-pub async fn put_deploy(
-    rpc_id: JsonRpcId,
-    node_address: &str,
-    verbosity: Verbosity,
-    deploy: Deploy,
-) -> Result<SuccessResponse<PutDeployResult>, Error> {
-    JsonRpcCall::new(rpc_id, node_address, verbosity)
-        .send_request(PUT_DEPLOY_METHOD, Some(PutDeployParams::new(deploy)))
         .await
 }
 
@@ -262,19 +263,18 @@ pub async fn get_state_root_hash(
 
 /// Retrieves era information from the network at a given [`Block`].
 ///
-/// Sends a JSON-RPC `chain_get_era_info_by_switch_block` request to the specified node.
+/// Sends a JSON-RPC `chain_get_era_summary` request to the specified node.
 ///
-/// For details of the parameters, see [the module docs](crate#common-parameters).  Note that if the
-/// specified block is not a switch block then the response will have no era info.
-pub async fn get_era_info(
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn get_era_summary(
     rpc_id: JsonRpcId,
     node_address: &str,
     verbosity: Verbosity,
     maybe_block_identifier: Option<BlockIdentifier>,
-) -> Result<SuccessResponse<GetEraInfoResult>, Error> {
-    let params = maybe_block_identifier.map(GetEraInfoParams::new);
+) -> Result<SuccessResponse<GetEraSummaryResult>, Error> {
+    let params = maybe_block_identifier.map(GetEraSummaryParams::new);
     JsonRpcCall::new(rpc_id, node_address, verbosity)
-        .send_request(GET_ERA_INFO_METHOD, params)
+        .send_request(GET_ERA_SUMMARY_METHOD, params)
         .await
 }
 
@@ -515,4 +515,26 @@ fn read_deploy<R: Read>(input: R) -> Result<Deploy, Error> {
         })?;
     deploy.is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)?;
     Ok(deploy)
+}
+
+/// Retrieves era information from the network at a given switch [`Block`].
+///
+/// Sends a JSON-RPC `chain_get_era_info_by_switch_block` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).  Note that if the
+/// specified block is not a switch block then the response will have no era info.
+#[deprecated(
+    since = "2.0.0",
+    note = "prefer 'get_era_summary' as it doesn't require a switch block"
+)]
+pub async fn get_era_info(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    maybe_block_identifier: Option<BlockIdentifier>,
+) -> Result<SuccessResponse<GetEraInfoResult>, Error> {
+    let params = maybe_block_identifier.map(GetEraInfoParams::new);
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(GET_ERA_INFO_METHOD, params)
+        .await
 }

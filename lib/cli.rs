@@ -45,9 +45,9 @@ use crate::{
         results::{
             GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
             GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
-            GetEraInfoResult, GetNodeStatusResult, GetPeersResult, GetStateRootHashResult,
-            GetValidatorChangesResult, ListRpcsResult, PutDeployResult, QueryBalanceResult,
-            QueryGlobalStateResult, SpeculativeExecResult,
+            GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
+            GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
+            QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
         },
         DictionaryItemIdentifier,
     },
@@ -359,16 +359,16 @@ pub async fn get_state_root_hash(
 /// Retrieves era information from the network at a given [`Block`].
 ///
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).
-pub async fn get_era_info(
+pub async fn get_era_summary(
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
     maybe_block_id: &str,
-) -> Result<SuccessResponse<GetEraInfoResult>, CliError> {
+) -> Result<SuccessResponse<GetEraSummaryResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let maybe_block_id = parse::block_identifier(maybe_block_id)?;
-    crate::get_era_info(rpc_id, node_address, verbosity, maybe_block_id)
+    crate::get_era_summary(rpc_id, node_address, verbosity, maybe_block_id)
         .await
         .map_err(CliError::from)
 }
@@ -654,4 +654,26 @@ pub fn json_pretty_print<T: ?Sized + Serialize>(
 ) -> Result<(), CliError> {
     let verbosity = parse::verbosity(verbosity_level);
     crate::json_pretty_print(value, verbosity).map_err(CliError::from)
+}
+
+/// Retrieves era information from the network at a given switch [`Block`].
+///
+/// For details of the parameters, see [the module docs](crate::cli#common-parameters).
+#[deprecated(
+    since = "2.0.0",
+    note = "prefer 'get_era_summary' as it doesn't require a switch block"
+)]
+pub async fn get_era_info(
+    maybe_rpc_id: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    maybe_block_id: &str,
+) -> Result<SuccessResponse<GetEraInfoResult>, CliError> {
+    let rpc_id = parse::rpc_id(maybe_rpc_id);
+    let verbosity = parse::verbosity(verbosity_level);
+    let maybe_block_id = parse::block_identifier(maybe_block_id)?;
+    #[allow(deprecated)]
+    crate::get_era_info(rpc_id, node_address, verbosity, maybe_block_id)
+        .await
+        .map_err(CliError::from)
 }

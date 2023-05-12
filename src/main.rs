@@ -10,6 +10,7 @@ mod get_balance;
 mod get_chainspec;
 mod get_dictionary_item;
 mod get_era_info;
+mod get_era_summary;
 mod get_node_status;
 mod get_peers;
 mod get_state_root_hash;
@@ -39,6 +40,7 @@ use get_auction_info::GetAuctionInfo;
 use get_chainspec::GetChainspec;
 use get_dictionary_item::GetDictionaryItem;
 use get_era_info::GetEraInfo;
+use get_era_summary::GetEraSummary;
 use get_node_status::GetNodeStatus;
 use get_peers::GetPeers;
 use get_state_root_hash::GetStateRootHash;
@@ -78,6 +80,7 @@ enum DisplayOrder {
     GetBlockTransfers,
     ListDeploys,
     GetStateRootHash,
+    GetEraSummary,
     GetEraInfo,
     QueryGlobalState,
     QueryBalance,
@@ -114,6 +117,7 @@ fn cli() -> Command {
         .subcommand(GetStateRootHash::build(
             DisplayOrder::GetStateRootHash as usize,
         ))
+        .subcommand(GetEraSummary::build(DisplayOrder::GetEraSummary as usize))
         .subcommand(GetEraInfo::build(DisplayOrder::GetEraInfo as usize))
         .subcommand(QueryGlobalState::build(
             DisplayOrder::QueryGlobalState as usize,
@@ -160,6 +164,7 @@ async fn main() {
         GetBlockTransfers::NAME => GetBlockTransfers::run(matches).await,
         ListDeploys::NAME => ListDeploys::run(matches).await,
         GetStateRootHash::NAME => GetStateRootHash::run(matches).await,
+        GetEraSummary::NAME => GetEraSummary::run(matches).await,
         GetEraInfo::NAME => GetEraInfo::run(matches).await,
         QueryGlobalState::NAME => QueryGlobalState::run(matches).await,
         QueryBalance::NAME => QueryBalance::run(matches).await,
