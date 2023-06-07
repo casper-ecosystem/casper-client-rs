@@ -302,11 +302,12 @@ pub async fn get_deploy(
     node_address: &str,
     verbosity_level: u64,
     deploy_hash: &str,
+    finalized_approvals: bool,
 ) -> Result<SuccessResponse<GetDeployResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let deploy_hash = parse::deploy_hash(deploy_hash)?;
-    crate::get_deploy(rpc_id, node_address, verbosity, deploy_hash, false)
+    crate::get_deploy(rpc_id, node_address, verbosity, deploy_hash, finalized_approvals)
         .await
         .map_err(CliError::from)
 }
