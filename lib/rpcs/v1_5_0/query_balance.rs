@@ -1,22 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{account::AccountHash, ProtocolVersion, PublicKey, URef, U512};
+use casper_types::{ProtocolVersion, U512};
 
-use crate::rpcs::common::GlobalStateIdentifier;
+use crate::rpcs::common::{GlobalStateIdentifier, PurseIdentifier};
 
 pub(crate) const QUERY_BALANCE_METHOD: &str = "query_balance";
-
-/// Identifier of a purse.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
-pub enum PurseIdentifier {
-    /// The main purse of the account identified by this public key.
-    MainPurseUnderPublicKey(PublicKey),
-    /// The main purse of the account identified by this account hash.
-    MainPurseUnderAccountHash(AccountHash),
-    /// The purse identified by this URef.
-    PurseUref(URef),
-}
 
 /// Params for "query_balance" RPC request.
 #[derive(Serialize, Deserialize, Debug)]

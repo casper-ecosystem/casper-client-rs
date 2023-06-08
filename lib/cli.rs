@@ -38,7 +38,7 @@ use serde::Serialize;
 use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{crypto, AsymmetricType, PublicKey, URef};
+use casper_types::URef;
 
 use crate::{
     rpcs::{
@@ -528,23 +528,19 @@ pub async fn get_account(
     node_address: &str,
     verbosity_level: u64,
     maybe_block_id: &str,
-    public_key: &str,
+    purse_id: &str,
 ) -> Result<SuccessResponse<GetAccountResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let maybe_block_id = parse::block_identifier(maybe_block_id)?;
-    let account_identifier =
-        PublicKey::from_hex(public_key).map_err(|error| crate::Error::CryptoError {
-            context: "public key in get_account",
-            error: crypto::ErrorExt::from(error),
-        })?;
+    let purse_identifier = parse::purse_identifier(purse_id)?;
 
     crate::get_account(
         rpc_id,
         node_address,
         verbosity,
         maybe_block_id,
-        account_identifier,
+        purse_identifier,
     )
     .await
     .map_err(CliError::from)

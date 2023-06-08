@@ -57,14 +57,14 @@ use serde::Serialize;
 use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::Transfer;
-use casper_types::{Key, PublicKey, SecretKey, URef};
+use casper_types::{Key, SecretKey, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
 pub use output_kind::OutputKind;
 use rpcs::{
-    common::{BlockIdentifier, GlobalStateIdentifier},
+    common::{BlockIdentifier, GlobalStateIdentifier, PurseIdentifier},
     results::{
         GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
         GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
@@ -89,7 +89,7 @@ use rpcs::{
         get_validator_changes::GET_VALIDATOR_CHANGES_METHOD,
         list_rpcs::LIST_RPCS_METHOD,
         put_deploy::{PutDeployParams, PUT_DEPLOY_METHOD},
-        query_balance::{PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD},
+        query_balance::{QueryBalanceParams, QUERY_BALANCE_METHOD},
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
     },
@@ -370,9 +370,9 @@ pub async fn get_account(
     node_address: &str,
     verbosity: Verbosity,
     maybe_block_identifier: Option<BlockIdentifier>,
-    account_identifier: PublicKey,
+    purse_identifier: PurseIdentifier,
 ) -> Result<SuccessResponse<GetAccountResult>, Error> {
-    let params = GetAccountParams::new(account_identifier, maybe_block_identifier);
+    let params = GetAccountParams::new(purse_identifier, maybe_block_identifier);
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(GET_ACCOUNT_METHOD, Some(params))
         .await

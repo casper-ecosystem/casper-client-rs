@@ -1,5 +1,6 @@
 //! The JSON-RPC request and response types at v1.5.0 of casper-node.
 
+pub(crate) mod get_account;
 pub(crate) mod get_chainspec;
 pub(crate) mod get_deploy;
 pub(crate) mod get_era_summary;
@@ -8,11 +9,6 @@ pub(crate) mod query_balance;
 pub(crate) mod speculative_exec;
 
 // The following RPCs are all unchanged from v1.4.5, so we just re-export them.
-
-pub(crate) mod get_account {
-    pub use crate::rpcs::v1_4_5::get_account::GetAccountResult;
-    pub(crate) use crate::rpcs::v1_4_5::get_account::{GetAccountParams, GET_ACCOUNT_METHOD};
-}
 
 pub(crate) mod get_auction_info {
     pub use crate::rpcs::v1_4_5::get_auction_info::GetAuctionInfoResult;
