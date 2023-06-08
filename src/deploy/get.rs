@@ -1,7 +1,7 @@
 use std::str;
 
 use async_trait::async_trait;
-use clap::{Arg, ArgMatches, Command};
+use clap::{Arg, ArgMatches, Command, ArgAction};
 
 use casper_client::cli::CliError;
 
@@ -47,13 +47,17 @@ mod finalized_approvals {
     use super::*;
 
     const ARG_NAME: &str = "get-finalized-approvals";
+    const ARG_SHORT: char = 'a';
     const ARG_VALUE_NAME: &str = "BOOLEAN";
     const ARG_HELP: &str = "An optional flag specifying whether the finalized approvals are retrieved";
 
     pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
             .required(false)
             .value_name(ARG_VALUE_NAME)
+            .action(ArgAction::SetTrue)
             .help(ARG_HELP)
             .display_order(DisplayOrder::FinalizedApprovals as usize)
     }
