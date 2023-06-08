@@ -1,7 +1,7 @@
 use std::str;
 
 use async_trait::async_trait;
-use clap::{Arg, ArgMatches, Command, ArgAction};
+use clap::{Arg, ArgAction, ArgMatches, Command};
 
 use casper_client::cli::CliError;
 
@@ -15,7 +15,7 @@ enum DisplayOrder {
     NodeAddress,
     RpcId,
     DeployHash,
-    FinalizedApprovals
+    FinalizedApprovals,
 }
 
 /// Handles providing the arg for and retrieval of the deploy hash.
@@ -49,7 +49,8 @@ mod finalized_approvals {
     const ARG_NAME: &str = "get-finalized-approvals";
     const ARG_SHORT: char = 'a';
     const ARG_VALUE_NAME: &str = "BOOLEAN";
-    const ARG_HELP: &str = "An optional flag specifying whether the finalized approvals are retrieved";
+    const ARG_HELP: &str =
+        "An optional flag specifying whether the finalized approvals are retrieved";
 
     pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -68,7 +69,6 @@ mod finalized_approvals {
             .copied()
             .unwrap_or_default()
     }
-
 }
 
 #[async_trait]
@@ -96,8 +96,14 @@ impl ClientCommand for GetDeploy {
         let deploy_hash = deploy_hash::get(matches);
         let finalized_approvals = finalized_approvals::get(matches);
 
-        casper_client::cli::get_deploy(maybe_rpc_id, node_address, verbosity_level, deploy_hash, finalized_approvals)
-            .await
-            .map(Success::from)
+        casper_client::cli::get_deploy(
+            maybe_rpc_id,
+            node_address,
+            verbosity_level,
+            deploy_hash,
+            finalized_approvals,
+        )
+        .await
+        .map(Success::from)
     }
 }
