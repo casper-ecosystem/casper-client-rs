@@ -307,9 +307,15 @@ pub async fn get_deploy(
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let deploy_hash = parse::deploy_hash(deploy_hash)?;
-    crate::get_deploy(rpc_id, node_address, verbosity, deploy_hash, finalized_approvals)
-        .await
-        .map_err(CliError::from)
+    crate::get_deploy(
+        rpc_id,
+        node_address,
+        verbosity,
+        deploy_hash,
+        finalized_approvals,
+    )
+    .await
+    .map_err(CliError::from)
 }
 
 /// Retrieves a [`Block`] from the network.
