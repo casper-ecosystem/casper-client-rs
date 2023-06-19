@@ -26,7 +26,7 @@ impl ClientCommand for MakeDeploy {
             ))
             .display_order(display_order);
         let subcommand = creation_common::apply_common_session_options(subcommand);
-        let subcommand = creation_common::apply_common_payment_options(subcommand);
+        let subcommand = creation_common::apply_common_payment_options(subcommand, None);
         creation_common::apply_common_creation_options(subcommand, false)
     }
 

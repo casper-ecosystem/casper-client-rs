@@ -111,7 +111,7 @@ impl ClientCommand for Transfer {
             .arg(amount::arg())
             .arg(target_account::arg())
             .arg(transfer_id::arg());
-        let subcommand = creation_common::apply_common_payment_options(subcommand);
+        let subcommand = creation_common::apply_common_payment_options(subcommand, Some("2500000000"));
         creation_common::apply_common_creation_options(subcommand, true)
     }
 

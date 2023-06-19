@@ -598,7 +598,7 @@ pub(super) mod standard_payment_amount {
         The value is the 'amount' arg of the standard-payment contract. This arg is incompatible \
         with all other --payment-xxx args";
 
-    pub(in crate::deploy) fn arg() -> Arg {
+    pub(in crate::deploy) fn arg(maybe_default_value: Option<&str>) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -606,6 +606,7 @@ pub(super) mod standard_payment_amount {
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::StandardPayment as usize)
+            .default_value(maybe_default_value.unwrap())
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
@@ -680,9 +681,9 @@ pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
         )
 }
 
-pub(crate) fn apply_common_payment_options(subcommand: Command) -> Command {
+pub(crate) fn apply_common_payment_options(subcommand: Command, default_amount: Option<&str>) -> Command {
     subcommand
-        .arg(standard_payment_amount::arg())
+        .arg(standard_payment_amount::arg(default_amount))
         .arg(payment_path::arg())
         .arg(payment_package_hash::arg())
         .arg(payment_package_name::arg())
@@ -711,7 +712,7 @@ pub(crate) fn apply_common_payment_options(subcommand: Command) -> Command {
                 .arg(payment_name::ARG_NAME)
                 .arg(show_simple_arg_examples::ARG_NAME)
                 .arg(show_json_args_examples::ARG_NAME)
-                .required(true),
+                .required(default_amount.is_some()),
         )
 }
 
