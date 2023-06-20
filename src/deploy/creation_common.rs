@@ -681,7 +681,10 @@ pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
         )
 }
 
-pub(crate) fn apply_common_payment_options(subcommand: Command, default_amount: Option<&'static str>) -> Command {
+pub(crate) fn apply_common_payment_options(
+    subcommand: Command,
+    default_amount: Option<&'static str>,
+) -> Command {
     subcommand
         .arg(standard_payment_amount::arg(default_amount))
         .arg(payment_path::arg())
