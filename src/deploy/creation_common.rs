@@ -598,7 +598,7 @@ pub(super) mod standard_payment_amount {
         The value is the 'amount' arg of the standard-payment contract. This arg is incompatible \
         with all other --payment-xxx args";
 
-    pub(in crate::deploy) fn arg(maybe_default_value: Option<&'static str>) -> Arg {
+    pub(in crate::deploy) fn arg(default_value: Option<&'static str>) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
@@ -606,7 +606,7 @@ pub(super) mod standard_payment_amount {
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::StandardPayment as usize)
-            .default_value(maybe_default_value)
+            .default_value(default_value)
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
