@@ -2,8 +2,9 @@
 name: publish-casper-client-rs
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   publish:
