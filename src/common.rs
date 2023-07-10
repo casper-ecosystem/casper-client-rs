@@ -9,6 +9,7 @@ pub const ARG_PATH: &str = "PATH";
 pub const ARG_HEX_STRING: &str = "HEX STRING";
 pub const ARG_STRING: &str = "STRING";
 pub const ARG_INTEGER: &str = "INTEGER";
+pub const DEFAULT_TRANSFER_PAYMENT_AMOUNT: &str = "2500000000";
 
 /// Handles the arg for whether verbose output is required or not.
 pub mod verbose {
