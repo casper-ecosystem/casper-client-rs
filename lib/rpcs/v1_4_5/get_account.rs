@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{ProtocolVersion, PublicKey};
+use casper_types::{account::Account, ProtocolVersion, PublicKey};
 
-use crate::{rpcs::common::BlockIdentifier, types::Account};
+use crate::rpcs::common::BlockIdentifier;
 
 pub(crate) const GET_ACCOUNT_METHOD: &str = "state_get_account_info";
 

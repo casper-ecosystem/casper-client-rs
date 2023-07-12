@@ -4,15 +4,14 @@ use humantime::{DurationError, TimestampError};
 use thiserror::Error;
 
 #[cfg(doc)]
-use casper_types::{account::AccountHash, Key, NamedArg, PublicKey, RuntimeArgs, URef};
+use casper_types::{
+    account::AccountHash, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff, Timestamp, URef,
+};
 use casper_types::{CLValueError, KeyFromStrError, UIntParseError, URefFromStrError};
 
 use crate::cli::JsonArgsError;
 #[cfg(doc)]
-use crate::{
-    rpcs::{DictionaryItemIdentifier, GlobalStateIdentifier},
-    types::{TimeDiff, Timestamp},
-};
+use crate::rpcs::{DictionaryItemIdentifier, GlobalStateIdentifier};
 
 /// Error that can be returned by the `cli` API.
 #[derive(Error, Debug)]
@@ -101,7 +100,7 @@ pub enum CliError {
         /// filenames, etc.
         context: &'static str,
         /// The actual error raised.
-        error: casper_hashing::Error,
+        error: casper_types::DigestError,
     },
 
     /// Failed to create a [`GlobalStateIdentifier`].

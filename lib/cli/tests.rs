@@ -1,9 +1,6 @@
-use casper_types::SecretKey;
+use casper_types::{DeployExcessiveSizeError, ExecutableDeployItem, SecretKey};
 
-use crate::{
-    types::{ExecutableDeployItem, MAX_SERIALIZED_SIZE_OF_DEPLOY},
-    Error, OutputKind,
-};
+use crate::{Error, OutputKind, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 
 use super::*;
 
@@ -150,10 +147,10 @@ fn should_fail_to_create_large_deploy() {
     );
 
     match deploy::with_payment_and_session(deploy_params, payment_params, session_params) {
-        Err(CliError::Core(Error::DeploySizeTooLarge {
+        Err(CliError::Core(Error::DeploySize(DeployExcessiveSizeError {
             max_deploy_size,
             actual_deploy_size,
-        })) => {
+        }))) => {
             assert_eq!(max_deploy_size, MAX_SERIALIZED_SIZE_OF_DEPLOY);
             assert!(actual_deploy_size > MAX_SERIALIZED_SIZE_OF_DEPLOY as usize);
         }

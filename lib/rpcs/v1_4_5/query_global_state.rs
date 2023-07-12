@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{Key, ProtocolVersion};
+use casper_types::{BlockHeader, Key, ProtocolVersion, StoredValue};
 
 pub use crate::rpcs::common::GlobalStateIdentifier;
-use crate::types::{BlockHeader, StoredValue};
 #[cfg(doc)]
 use crate::BlockIdentifier;
 

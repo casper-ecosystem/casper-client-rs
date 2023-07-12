@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{ProtocolVersion, Transfer};
+use casper_types::{BlockHash, ProtocolVersion, Transfer};
 
-use crate::{rpcs::common::BlockIdentifier, types::BlockHash};
+use crate::rpcs::common::BlockIdentifier;
 
 pub(crate) const GET_BLOCK_TRANSFERS_METHOD: &str = "chain_get_block_transfers";
 

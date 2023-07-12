@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use casper_hashing::Digest;
-use casper_types::{EraId, ProtocolVersion, PublicKey};
+use casper_types::{BlockHash, Digest, EraId, ProtocolVersion, PublicKey, TimeDiff, Timestamp};
 
 use super::get_peers::PeerEntry;
-use crate::types::{BlockHash, TimeDiff, Timestamp};
 
 pub(crate) const GET_NODE_STATUS_METHOD: &str = "info_get_status";
 

@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::ProtocolVersion;
+use casper_types::{Deploy, DeployHash, ProtocolVersion};
 
-use crate::types::{Deploy, DeployHash, ExecutionResult};
+use crate::types::DeployExecutionInfo;
 
 pub(crate) const GET_DEPLOY_METHOD: &str = "info_get_deploy";
 
@@ -31,5 +31,5 @@ pub struct GetDeployResult {
     /// The deploy.
     pub deploy: Deploy,
     /// The map of block hash to execution result.
-    pub execution_results: Vec<ExecutionResult>,
+    pub execution_info: Option<DeployExecutionInfo>,
 }

@@ -35,10 +35,9 @@ mod tests;
 
 use serde::Serialize;
 
-use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{crypto, AsymmetricType, PublicKey, URef};
+use casper_types::{crypto, AsymmetricType, Digest, PublicKey, URef};
 
 use crate::{
     rpcs::{

@@ -23,8 +23,7 @@ doc = false
 async-trait = "0.1.59"
 base16 = "0.2.1"
 base64 = "0.13.1"
-casper-hashing = "2.0.0"
-casper-types = { version = "3.0.0", features = ["std"] }
+casper-types = { version = "3.0.0", features = ["std", "json-schema"] }
 clap = { version = "4", features = ["cargo", "deprecated", "wrap_help"] }
 clap_complete = "4"
 derp = "0.0.14"
@@ -42,6 +41,7 @@ rand = "0.8.5"
 reqwest = { version = "0.11.13", features = ["json"] }
 schemars = "0.8"
 serde = { version = "1", default-features = false, features = ["derive"] }
+serde-map-to-array = "1.1.0"
 serde_json = { version = "1", features = ["preserve_order"] }
 signature = "1"
 tempfile = "3"
@@ -54,8 +54,7 @@ untrusted = "0.9.0"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-casper-hashing = { git = "https://github.com/casper-network/casper-node", branch = "release-1.5.0-rc.1" }
-casper-types = { git = "https://github.com/casper-network/casper-node", branch = "release-1.5.0-rc.1" }
+casper-types = { git = "https://github.com/Fraser999/casper-node", branch = "2124-use-execution-journal" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]

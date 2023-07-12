@@ -1,9 +1,10 @@
 #[cfg(doc)]
-use casper_types::{account::AccountHash, HashAddr};
+use casper_types::{
+    account::{Account, AccountHash},
+    Contract, HashAddr,
+};
 use casper_types::{Key, URef};
 
-#[cfg(doc)]
-use crate::types::{Account, Contract};
 use crate::{cli::CliError, rpcs::DictionaryItemIdentifier};
 
 /// Various ways of uniquely identifying a dictionary item.

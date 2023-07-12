@@ -41,7 +41,6 @@ mod json_rpc;
 pub mod keygen;
 mod output_kind;
 pub mod rpcs;
-mod transfer_target;
 pub mod types;
 mod validation;
 mod verbosity;
@@ -54,10 +53,9 @@ use std::{
 
 use serde::Serialize;
 
-use casper_hashing::Digest;
 #[cfg(doc)]
-use casper_types::Transfer;
-use casper_types::{Key, PublicKey, SecretKey, URef};
+use casper_types::{account::Account, Block, StoredValue, Transfer};
+use casper_types::{Deploy, DeployHash, Digest, Key, PublicKey, SecretKey, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
@@ -72,7 +70,7 @@ use rpcs::{
         GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
         QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
     },
-    v1_5_0::{
+    v2_0_0::{
         get_account::{GetAccountParams, GET_ACCOUNT_METHOD},
         get_auction_info::{GetAuctionInfoParams, GET_AUCTION_INFO_METHOD},
         get_balance::{GetBalanceParams, GET_BALANCE_METHOD},
@@ -95,12 +93,14 @@ use rpcs::{
     },
     DictionaryItemIdentifier,
 };
-pub use transfer_target::TransferTarget;
-#[cfg(doc)]
-use types::{Account, Block, StoredValue};
-use types::{Deploy, DeployHash, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
+
+/// The maximum permissible size in bytes of a Deploy when serialized via `ToBytes`.
+///
+/// Note: this should be kept in sync with the value of `[deploys.max_deploy_size]` in the
+/// production chainspec.
+pub const MAX_SERIALIZED_SIZE_OF_DEPLOY: u32 = 1_024 * 1_024;
 
 /// Puts a [`Deploy`] to the network for execution.
 ///

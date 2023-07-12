@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use casper_hashing::Digest;
-use casper_types::{account::AccountHash, HashAddr, Key, ProtocolVersion, URef};
-
 #[cfg(doc)]
-use crate::types::{Account, Contract};
-use crate::{types::StoredValue, Error};
+use casper_types::{account::Account, Contract};
+use casper_types::{
+    account::AccountHash, Digest, HashAddr, Key, ProtocolVersion, StoredValue, URef,
+};
+
+use crate::Error;
 
 pub(crate) const GET_DICTIONARY_ITEM_METHOD: &str = "state_get_dictionary_item";
 

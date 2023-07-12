@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_hashing::Digest;
-use casper_types::{ProtocolVersion, URef, U512};
+use casper_types::{Digest, ProtocolVersion, URef, U512};
 
 pub(crate) const GET_BALANCE_METHOD: &str = "state_get_balance";
 

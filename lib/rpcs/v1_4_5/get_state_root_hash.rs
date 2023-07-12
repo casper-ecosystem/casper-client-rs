@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_hashing::Digest;
-use casper_types::ProtocolVersion;
+use casper_types::{Digest, ProtocolVersion};
 
 use crate::rpcs::common::BlockIdentifier;
 

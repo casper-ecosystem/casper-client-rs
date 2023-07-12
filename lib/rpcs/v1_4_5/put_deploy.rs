@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::ProtocolVersion;
-
-use crate::types::{Deploy, DeployHash};
+use casper_types::{Deploy, DeployHash, ProtocolVersion};
 
 pub(crate) const PUT_DEPLOY_METHOD: &str = "account_put_deploy";
 

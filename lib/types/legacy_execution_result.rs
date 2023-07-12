@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use super::BlockHash;
+use casper_types::BlockHash;
 
 /// The execution result of a single deploy.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct ExecutionResult {
+pub struct LegacyExecutionResult {
     /// The block hash.
     pub block_hash: BlockHash,
     /// Execution result.
-    pub result: casper_types::ExecutionResult,
+    pub result: casper_types::execution::ExecutionResultV1,
 }
