@@ -2,13 +2,15 @@
 name: publish-casper-client-rs
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   publish:
+
     runs-on: ubuntu-latest
-    needs: [publish-deb, publish-rpm]
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

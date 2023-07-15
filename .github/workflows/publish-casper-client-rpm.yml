@@ -1,10 +1,11 @@
 ---
 name: publish-casper-client-rpm
 
+# Need to re-enable rpm once we debug issues.
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "disabled_for_now*.*.*"
 
 jobs:
   publish-rpm:
