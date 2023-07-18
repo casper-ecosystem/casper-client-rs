@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{execution::VersionedExecutionResult, BlockHash};
+use casper_types::{execution::ExecutionResult, BlockHash};
 
 /// The block hash and height in which a given deploy was executed, along with the execution result
 /// if known.
@@ -12,5 +12,5 @@ pub struct DeployExecutionInfo {
     /// The block height in which the deploy was executed.
     pub block_height: u64,
     /// The execution result if known.
-    pub execution_result: Option<VersionedExecutionResult>,
+    pub execution_result: Option<ExecutionResult>,
 }

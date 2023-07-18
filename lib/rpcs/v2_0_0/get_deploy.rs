@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{execution::VersionedExecutionResult, BlockHash, Deploy, ProtocolVersion};
+use casper_types::{execution::ExecutionResult, BlockHash, Deploy, ProtocolVersion};
 
 pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_METHOD};
 
@@ -11,7 +11,7 @@ pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_MET
 pub struct DeployExecutionInfo {
     pub(crate) block_hash: BlockHash,
     pub(crate) block_height: u64,
-    pub(crate) execution_result: Option<VersionedExecutionResult>,
+    pub(crate) execution_result: Option<ExecutionResult>,
 }
 
 /// The `result` field of a successful JSON-RPC response to an `info_get_deploy` request.
