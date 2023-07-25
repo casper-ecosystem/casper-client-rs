@@ -39,7 +39,9 @@
 pub mod cli;
 mod error;
 mod json_rpc;
+#[cfg(not(any(feature = "sdk")))]
 pub mod keygen;
+#[cfg(not(any(feature = "sdk")))]
 mod output_kind;
 pub mod rpcs;
 pub mod types;
