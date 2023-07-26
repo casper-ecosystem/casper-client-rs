@@ -83,10 +83,10 @@ const SAMPLE_DEPLOY: &str = r#"{
   ]
 }"#;
 
-pub fn deploy_params_without_account() -> DeployStrParams<'static>{
-    DeployStrParams{
+pub fn deploy_params_without_account() -> DeployStrParams<'static> {
+    DeployStrParams {
         secret_key: "",
-        ttl:"10s",
+        ttl: "10s",
         chain_name: "casper-test-chain-name-1",
         ..Default::default()
     }
@@ -307,7 +307,10 @@ fn should_create_unsigned_deploy() {
             .unwrap();
 
     assert!(deploy.approvals().is_empty());
-    assert_eq!(*deploy.account(), PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap());
+    assert_eq!(
+        *deploy.account(),
+        PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap()
+    );
 }
 
 #[test]
@@ -342,7 +345,8 @@ fn should_create_unsigned_transfer() {
         deploy_params_without_secret_key(),
         PaymentStrParams::with_amount("100"),
         true,
-    ).unwrap();
+    )
+    .unwrap();
     assert!(transfer_deploy.approvals().is_empty());
 }
 
