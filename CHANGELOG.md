@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.  The format
 
 ### Changed
 * Update to match change to node RPC `info_get_deploy`.
+* Improve multisig support for `make-deploy`, and `make-transfer` subcommands.
 
 ### Removed
 * Remove following public types which are now available in `casper_types`:
