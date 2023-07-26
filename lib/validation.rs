@@ -76,6 +76,12 @@ pub(crate) fn validate_get_block_result(
     _maybe_block_identifier: Option<BlockIdentifier>,
     _result: &GetBlockResult,
 ) -> Result<(), ValidateResponseError> {
+    // TODO: There will likely be a further change made in `casper-types` which will allow the
+    //       `JsonBlock` type to be removed in favour of the actual `Block` type.  `Block` provides
+    //       a public `verify()` method which will be suitable for usage here, meaning the
+    //       commented code below can be removed. In case this doesn't happen, the code below
+    //       should be reinstated.
+    //
     // let block = if let Some(block) = result.block.as_ref() {
     //     block
     // } else {
