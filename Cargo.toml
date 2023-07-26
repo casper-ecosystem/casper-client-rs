@@ -28,11 +28,14 @@ async-trait = "0.1.59"
 base16 = "0.2.1"
 base64 = "0.13.1"
 casper-types = { version = "3.0.0", git = "https://github.com/casper-network/casper-node.git", branch = "rustSDK", default-features = false, features = [
-    "datasize",
+    "std",
+    "json-schema",
 ] }
-clap = { version = "4", features = ["cargo", "deprecated"], optional = true }
-clap_complete = { version = "4" }
+clap = { version = "4", features = ["cargo", "deprecated"] }
+clap_complete = "4"
 derp = "0.0.14"
+# This does not wasm compile without std, features = ["js"] can be removed if consumer crate uses that feature, let's keep it for dev purpose
+# getrandom = { version = "0.2.10" }
 getrandom = { version = "0.2.10", features = ["js"] }
 hex-buffer-serde = "0.4.0"
 humantime = "2"
@@ -49,25 +52,19 @@ once_cell = { version = "1" }
 pem = "1"
 rand = "0.8.5"
 reqwest = { version = "0.11.13", features = ["json"] }
-schemars = { version = "0.8" }
+schemars = { version = "0.8.12" }
 serde = { version = "1", default-features = false, features = ["derive"] }
 serde-map-to-array = "1.1.0"
 serde_json = { version = "1", features = ["preserve_order"] }
 signature = "1"
 tempfile = "3"
 thiserror = "=1.0.34"
-tokio = { version = "1.23.0", features = [
-    "macros",
-    "rt",
-    "sync",
-    "time",
-], optional = true }
+tokio = { version = "1.23.0", features = ["macros", "rt", "sync", "time"] }
 uint = "0.9.4"
 untrusted = "0.9.0"
 
 [features]
-default = ["tokio", "clap", "casper-types/std", "casper-types/json-schema"]
-sdk = []
+sdk = ["casper-types/sdk"]
 
 [build-dependencies]
 vergen = { version = "7", default-features = false, features = ["git"] }
