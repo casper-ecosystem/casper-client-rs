@@ -28,7 +28,7 @@ async-trait = "0.1.59"
 base16 = "0.2.1"
 base64 = "0.13.1"
 casper-types = { version = "3.0.0", features = ["std", "json-schema"] }
-clap = { version = "4", features = ["cargo", "deprecated"], optional = true }
+clap = { version = "4", features = ["cargo", "deprecated", "wrap_help"], optional = true }
 clap_complete = "4"
 derp = "0.0.14"
 ed25519-dalek = { version = "1", default-features = false }

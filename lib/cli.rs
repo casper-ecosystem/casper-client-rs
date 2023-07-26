@@ -79,7 +79,8 @@ pub async fn put_deploy(
 ) -> Result<SuccessResponse<PutDeployResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy = deploy::with_payment_and_session(deploy_params, payment_params, session_params)?;
+    let deploy =
+        deploy::with_payment_and_session(deploy_params, payment_params, session_params, false)?;
     crate::put_deploy(rpc_id, node_address, verbosity, deploy)
         .await
         .map_err(CliError::from)
@@ -100,7 +101,8 @@ pub async fn speculative_put_deploy(
 ) -> Result<SuccessResponse<SpeculativeExecResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy = deploy::with_payment_and_session(deploy_params, payment_params, session_params)?;
+    let deploy =
+        deploy::with_payment_and_session(deploy_params, payment_params, session_params, false)?;
     let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
         .await
@@ -123,7 +125,8 @@ pub fn make_deploy(
     force: bool,
 ) -> Result<(), CliError> {
     let output = parse::output_kind(maybe_output_path, force);
-    let deploy = deploy::with_payment_and_session(deploy_params, payment_params, session_params)?;
+    let deploy =
+        deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)?;
     crate::output_deploy(output, &deploy).map_err(CliError::from)
 }
 
@@ -211,6 +214,7 @@ pub async fn transfer(
         transfer_id,
         deploy_params,
         payment_params,
+        false,
     )?;
     crate::put_deploy(rpc_id, node_address, verbosity, deploy)
         .await
@@ -249,6 +253,7 @@ pub async fn speculative_transfer(
         transfer_id,
         deploy_params,
         payment_params,
+        false,
     )?;
     let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
@@ -282,6 +287,7 @@ pub fn make_transfer(
         transfer_id,
         deploy_params,
         payment_params,
+        true,
     )?;
     crate::output_deploy(output, &deploy).map_err(CliError::from)
 }
