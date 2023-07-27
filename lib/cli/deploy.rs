@@ -1,10 +1,10 @@
-use casper_types::{
-    account::AccountHash, AsymmetricType, Deploy, DeployBuilder, PublicKey, TransferTarget,
-    UIntParseError, URef, U512,
-};
+use casper_types::{account::AccountHash, AsymmetricType, PublicKey, UIntParseError, URef, U512};
 
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
-use crate::MAX_SERIALIZED_SIZE_OF_DEPLOY;
+use crate::{
+    types::{Deploy, DeployBuilder, MAX_SERIALIZED_SIZE_OF_DEPLOY},
+    TransferTarget,
+};
 
 /// Creates new Deploy with specified payment and session data.
 pub fn with_payment_and_session(

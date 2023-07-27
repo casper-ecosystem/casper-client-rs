@@ -1,8 +1,9 @@
-use casper_types::DeployBuilderError::DeployMissingSessionAccount;
-use casper_types::{DeployExcessiveSizeError, ExecutableDeployItem, SecretKey};
+use casper_types::SecretKey;
 
-use crate::Error::DeployBuild;
-use crate::{Error, OutputKind, MAX_SERIALIZED_SIZE_OF_DEPLOY};
+use crate::{
+    types::{ExecutableDeployItem, MAX_SERIALIZED_SIZE_OF_DEPLOY},
+    Error, OutputKind,
+};
 
 use super::*;
 
@@ -83,10 +84,10 @@ const SAMPLE_DEPLOY: &str = r#"{
   ]
 }"#;
 
-pub fn deploy_params_without_account() -> DeployStrParams<'static>{
-    DeployStrParams{
+pub fn deploy_params_without_account() -> DeployStrParams<'static> {
+    DeployStrParams {
         secret_key: "",
-        ttl:"10s",
+        ttl: "10s",
         chain_name: "casper-test-chain-name-1",
         ..Default::default()
     }
@@ -167,10 +168,10 @@ fn should_fail_to_create_large_deploy() {
     );
 
     match deploy::with_payment_and_session(deploy_params, payment_params, session_params, false) {
-        Err(CliError::Core(Error::DeploySize(DeployExcessiveSizeError {
+        Err(CliError::Core(Error::DeploySizeTooLarge {
             max_deploy_size,
             actual_deploy_size,
-        }))) => {
+        })) => {
             assert_eq!(max_deploy_size, MAX_SERIALIZED_SIZE_OF_DEPLOY);
             assert!(actual_deploy_size > MAX_SERIALIZED_SIZE_OF_DEPLOY as usize);
         }
@@ -307,7 +308,10 @@ fn should_create_unsigned_deploy() {
             .unwrap();
 
     assert!(deploy.approvals().is_empty());
-    assert_eq!(*deploy.account(), PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap());
+    assert_eq!(
+        *deploy.header().account(),
+        PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap()
+    );
 }
 
 #[test]
@@ -323,7 +327,7 @@ fn should_fail_to_create_deploy_with_no_session_account() {
     assert!(deploy.is_err());
     assert!(matches!(
         deploy.unwrap_err(),
-        CliError::Core(DeployBuild(DeployMissingSessionAccount))
+        CliError::Core(Error::DeployMissingSessionAccount)
     ));
 }
 
@@ -342,7 +346,8 @@ fn should_create_unsigned_transfer() {
         deploy_params_without_secret_key(),
         PaymentStrParams::with_amount("100"),
         true,
-    ).unwrap();
+    )
+    .unwrap();
     assert!(transfer_deploy.approvals().is_empty());
 }
 
@@ -365,6 +370,6 @@ fn should_fail_to_create_transfer_without_account() {
     assert!(transfer_deploy.is_err());
     assert!(matches!(
         transfer_deploy.unwrap_err(),
-        CliError::Core(DeployBuild(DeployMissingSessionAccount))
+        CliError::Core(Error::DeployMissingSessionAccount)
     ));
 }

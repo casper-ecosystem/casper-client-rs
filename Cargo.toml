@@ -27,7 +27,7 @@ async-trait = "0.1.59"
 base16 = "0.2.1"
 base64 = "0.13.1"
 casper-hashing = "2.0.0"
-casper-types = { version = "3.0.0", features = ["std"] }
+casper-types = { version = "3.0.0", features = ["std", "json-schema"] }
 clap = { version = "4", features = ["cargo", "deprecated", "wrap_help"] }
 clap_complete = "4"
 derp = "0.0.14"
@@ -60,7 +60,7 @@ tokio = { version = "1.23.0", features = [
     "rt-multi-thread",
     "sync",
     "time",
-], optional = true }
+]}
 uint = "0.9.4"
 untrusted = "0.9.0"
 

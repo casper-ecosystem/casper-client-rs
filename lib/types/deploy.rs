@@ -197,6 +197,44 @@ pub struct Deploy {
     approvals: Vec<Approval>,
 }
 
+/// Used when constructing a `Deploy`.
+#[derive(Debug)]
+pub enum AccountAndSecretKey<'a> {
+    /// Provides both the account and the secret key (not necessarily for the same account) used to
+    /// sign the `Deploy`.
+    Both {
+        /// The public key of the account.
+        account: PublicKey,
+        /// The secret key used to sign the `Deploy`.
+        secret_key: &'a SecretKey,
+    },
+    /// The public key of the account.  The `Deploy` will be created unsigned as no secret key is
+    /// provided.
+    Account(PublicKey),
+    /// The account will be derived from the provided secret key, and the `Deploy` will be signed by
+    /// the same secret key.
+    SecretKey(&'a SecretKey),
+}
+
+impl<'a> AccountAndSecretKey<'a> {
+    fn account(&self) -> PublicKey {
+        match self {
+            AccountAndSecretKey::Both { account, .. } | AccountAndSecretKey::Account(account) => {
+                account.clone()
+            }
+            AccountAndSecretKey::SecretKey(secret_key) => PublicKey::from(*secret_key),
+        }
+    }
+
+    fn secret_key(&self) -> Option<&SecretKey> {
+        match self {
+            AccountAndSecretKey::Both { secret_key, .. }
+            | AccountAndSecretKey::SecretKey(secret_key) => Some(secret_key),
+            AccountAndSecretKey::Account(_) => None,
+        }
+    }
+}
+
 impl Deploy {
     /// The default time-to-live for `Deploy`s, i.e. 30 minutes.
     pub const DEFAULT_TTL: TimeDiff = TimeDiff::from_millis(30 * 60 * 1_000);
@@ -213,13 +251,12 @@ impl Deploy {
         chain_name: String,
         payment: ExecutableDeployItem,
         session: ExecutableDeployItem,
-        secret_key: &SecretKey,
-        account: Option<PublicKey>,
+        account_and_secret_key: AccountAndSecretKey,
     ) -> Deploy {
         let serialized_body = serialize_body(&payment, &session);
         let body_hash = Digest::hash(serialized_body);
 
-        let account = account.unwrap_or_else(|| PublicKey::from(secret_key));
+        let account = account_and_secret_key.account();
 
         // Remove duplicates.
         let dependencies = dependencies.into_iter().unique().collect();
@@ -245,7 +282,9 @@ impl Deploy {
             approvals: vec![],
         };
 
-        deploy.sign(secret_key);
+        if let Some(secret_key) = account_and_secret_key.secret_key() {
+            deploy.sign(secret_key);
+        }
         deploy
     }
 
@@ -329,6 +368,7 @@ fn serialize_body(payment: &ExecutableDeployItem, session: &ExecutableDeployItem
 /// A builder for constructing a [`Deploy`].
 pub struct DeployBuilder<'a> {
     account: Option<PublicKey>,
+    secret_key: Option<&'a SecretKey>,
     timestamp: Timestamp,
     ttl: TimeDiff,
     gas_price: u64,
@@ -336,7 +376,6 @@ pub struct DeployBuilder<'a> {
     chain_name: String,
     payment: Option<ExecutableDeployItem>,
     session: ExecutableDeployItem,
-    secret_key: &'a SecretKey,
 }
 
 impl<'a> DeployBuilder<'a> {
@@ -344,16 +383,16 @@ impl<'a> DeployBuilder<'a> {
     ///
     /// # Note
     ///
-    /// Before calling [`build`](Self::build), you must ensure that payment code is provided by
-    /// either calling [`with_standard_payment`](Self::with_standard_payment) or
-    /// [`with_payment`](Self::with_payment).
-    pub fn new<C: Into<String>>(
-        chain_name: C,
-        session: ExecutableDeployItem,
-        secret_key: &'a SecretKey,
-    ) -> Self {
+    /// Before calling [`build`](Self::build), you must ensure
+    ///   * that an account is provided by either calling [`with_account`](Self::with_account) or
+    ///     [`with_secret_key`](Self::with_secret_key)
+    ///   * that payment code is provided by either calling
+    ///     [`with_standard_payment`](Self::with_standard_payment) or
+    ///     [`with_payment`](Self::with_payment)
+    pub fn new<C: Into<String>>(chain_name: C, session: ExecutableDeployItem) -> Self {
         DeployBuilder {
             account: None,
+            secret_key: None,
             timestamp: Timestamp::now(),
             ttl: Deploy::DEFAULT_TTL,
             gas_price: Deploy::DEFAULT_GAS_PRICE,
@@ -361,7 +400,6 @@ impl<'a> DeployBuilder<'a> {
             chain_name: chain_name.into(),
             payment: None,
             session,
-            secret_key,
         }
     }
 
@@ -371,20 +409,40 @@ impl<'a> DeployBuilder<'a> {
     ///
     /// # Note
     ///
-    /// Before calling [`build`](Self::build), you must ensure that payment code is provided by
-    /// either calling [`with_standard_payment`](Self::with_standard_payment) or
-    /// [`with_payment`](Self::with_payment).
+    /// Before calling [`build`](Self::build), you must ensure
+    ///   * that an account is provided by either calling [`with_account`](Self::with_account) or
+    ///     [`with_secret_key`](Self::with_secret_key)
+    ///   * that payment code is provided by either calling
+    ///     [`with_standard_payment`](Self::with_standard_payment) or
+    ///     [`with_payment`](Self::with_payment)
     pub fn new_transfer<C: Into<String>, A: Into<U512>>(
         chain_name: C,
         amount: A,
         maybe_source: Option<URef>,
         target: TransferTarget,
         maybe_transfer_id: Option<u64>,
-        secret_key: &'a SecretKey,
     ) -> Self {
         let session =
             ExecutableDeployItem::new_transfer(amount, maybe_source, target, maybe_transfer_id);
-        DeployBuilder::new(chain_name, session, secret_key)
+        DeployBuilder::new(chain_name, session)
+    }
+
+    /// Sets the `account` in the `Deploy`.
+    ///
+    /// If not provided, the public key derived from the secret key used in the `DeployBuilder` will
+    /// be used as the `account` in the `Deploy`.
+    pub fn with_account(mut self, account: PublicKey) -> Self {
+        self.account = Some(account);
+        self
+    }
+
+    /// Sets the secret key used to sign the `Deploy` on calling [`build`](Self::build).
+    ///
+    /// If not provided, the `Deploy` can still be built, but will be unsigned and will be invalid
+    /// until subsequently signed.
+    pub fn with_secret_key(mut self, secret_key: &'a SecretKey) -> Self {
+        self.secret_key = Some(secret_key);
+        self
     }
 
     /// Sets the `payment` in the `Deploy` to a standard payment with the given amount.
@@ -396,15 +454,6 @@ impl<'a> DeployBuilder<'a> {
     /// Sets the `payment` in the `Deploy`.
     pub fn with_payment(mut self, payment: ExecutableDeployItem) -> Self {
         self.payment = Some(payment);
-        self
-    }
-
-    /// Sets the `account` in the `Deploy`.
-    ///
-    /// If not provided, the public key derived from the secret key used in the `DeployBuilder` will
-    /// be used as the `account` in the `Deploy`.
-    pub fn with_account(mut self, account: PublicKey) -> Self {
-        self.account = Some(account);
         self
     }
 
@@ -429,6 +478,16 @@ impl<'a> DeployBuilder<'a> {
     /// [`with_standard_payment`](Self::with_standard_payment) nor
     /// [`with_payment`](Self::with_payment) were previously called.
     pub fn build(self) -> Result<Deploy, Error> {
+        let account_and_secret_key = match (self.account, self.secret_key) {
+            (Some(account), Some(secret_key)) => AccountAndSecretKey::Both {
+                account,
+                secret_key,
+            },
+            (Some(account), None) => AccountAndSecretKey::Account(account),
+            (None, Some(secret_key)) => AccountAndSecretKey::SecretKey(secret_key),
+            (None, None) => return Err(Error::DeployMissingSessionAccount),
+        };
+
         let payment = self.payment.ok_or(Error::DeployMissingPaymentCode)?;
         let deploy = Deploy::new(
             self.timestamp,
@@ -438,8 +497,7 @@ impl<'a> DeployBuilder<'a> {
             self.chain_name,
             payment,
             self.session,
-            self.secret_key,
-            self.account,
+            account_and_secret_key,
         );
         Ok(deploy)
     }
