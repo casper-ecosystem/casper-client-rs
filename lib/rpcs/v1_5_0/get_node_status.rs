@@ -3,11 +3,9 @@ pub use crate::rpcs::v1_4_5::get_node_status::{ActivationPoint, MinimalBlockInfo
 
 use serde::{Deserialize, Serialize};
 
-use casper_hashing::Digest;
-use casper_types::{ProtocolVersion, PublicKey};
+use casper_types::{BlockHash, Digest, ProtocolVersion, PublicKey, TimeDiff, Timestamp};
 
 use super::get_peers::PeerEntry;
-use crate::types::{BlockHash, TimeDiff, Timestamp};
 
 /// The state of the reactor.
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
@@ -39,7 +37,7 @@ pub struct AvailableBlockRange {
 /// The status of syncing an individual block.
 #[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct BlockSyncStatus {
+pub struct BlockSyncStatus {
     /// The block hash.
     block_hash: BlockHash,
     /// The height of the block, if known.

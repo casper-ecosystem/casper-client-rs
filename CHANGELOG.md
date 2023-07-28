@@ -11,6 +11,36 @@ All notable changes to this project will be documented in this file.  The format
 
 
 
+## Unreleased
+
+### Added
+* Add module to support node 2.0.0 RPCs.
+
+### Changed
+* Update to match change to node RPC `info_get_deploy`.
+
+### Removed
+* Remove following public types which are now available in `casper_types`:
+  * `Account` and its related types `ActionThresholds` and `AssociatedKey`
+  * `Bid`
+  * `BidderAndBid`
+  * `Block` and its related types `BlockBody`, `BlockHash`, `BlockHashAndHeight` and `BlockHeader`
+  * `ChainspecRawBytes`
+  * `Contract`
+  * `ContractPackage` and its related types `ContractPackageStatus`, `ContractVersion`, `DisabledVersion` and `Group`
+  * `Delegator`
+  * `Deploy` and its related types `Approval`, `DeployBuilder`, `DeployHash` and `DeployHeader`
+  * `EraEnd` and its related types `EraReport`, `Reward` and `ValidatorWeight`
+  * `ExecutableDeployItem`
+  * `NamedKey`
+  * `Proof`
+  * `StoredValue`
+  * `TimeDiff`
+  * `Timestamp`
+  * `TransferTarget`
+
+
+
 ## [2.0.0] - 2023-06-28
 
 ### Added

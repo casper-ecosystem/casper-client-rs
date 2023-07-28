@@ -1,31 +1,32 @@
 //! Types associated with reporting auction state.
 
-mod bid;
-mod delegator;
 mod era_validators;
 mod validator_weight;
 
-use std::fmt::{self, Display, Formatter};
+use std::{
+    collections::BTreeMap,
+    fmt::{self, Display, Formatter},
+};
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use serde_map_to_array::{BTreeMapToArray, KeyValueLabels};
 
-use casper_hashing::Digest;
+use casper_types::{system::auction::Bid, Digest, PublicKey};
 
-pub use bid::{Bid, BidderAndBid};
-pub use delegator::Delegator;
 pub use era_validators::EraValidators;
 pub use validator_weight::ValidatorWeight;
 
 /// The state associated with the auction system contract as at the given block height and
 /// corresponding state root hash.
-#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct AuctionState {
     state_root_hash: Digest,
     block_height: u64,
     era_validators: Vec<EraValidators>,
-    bids: Vec<BidderAndBid>,
+    #[serde(with = "BTreeMapToArray::<PublicKey, Bid, BidLabels>")]
+    bids: BTreeMap<PublicKey, Bid>,
 }
 
 impl AuctionState {
@@ -45,7 +46,7 @@ impl AuctionState {
     }
 
     /// Returns the bids for the applicable era.
-    pub fn bids(&self) -> impl Iterator<Item = &BidderAndBid> {
+    pub fn bids(&self) -> impl Iterator<Item = (&PublicKey, &Bid)> {
         self.bids.iter()
     }
 }
@@ -59,7 +60,14 @@ impl Display for AuctionState {
             self.state_root_hash,
             self.block_height,
             self.era_validators().format(", "),
-            self.bids().format(", "),
+            self.bids.values().format(", "),
         )
     }
+}
+
+struct BidLabels;
+
+impl KeyValueLabels for BidLabels {
+    const KEY: &'static str = "public_key";
+    const VALUE: &'static str = "bid";
 }

@@ -1,12 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use casper_hashing::Digest;
-use casper_types::{EraId, ProtocolVersion};
+use casper_types::{BlockHash, Digest, EraId, ProtocolVersion, StoredValue};
 
-use crate::{
-    rpcs::common::BlockIdentifier,
-    types::{BlockHash, StoredValue},
-};
+use crate::rpcs::common::BlockIdentifier;
 
 pub(crate) const GET_ERA_INFO_METHOD: &str = "chain_get_era_info_by_switch_block";
 

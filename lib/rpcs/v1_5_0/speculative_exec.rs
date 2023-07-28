@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{ExecutionResult, ProtocolVersion};
+use casper_types::{BlockHash, Deploy, ProtocolVersion};
 
 use crate::rpcs::common::BlockIdentifier;
 
-use crate::types::{BlockHash, Deploy};
+use crate::types::LegacyExecutionResult;
 
 pub(crate) const SPECULATIVE_EXEC_METHOD: &str = "speculative_exec";
 
@@ -33,5 +33,5 @@ pub struct SpeculativeExecResult {
     /// Hash of the block on top of which the deploy was executed.
     pub block_hash: BlockHash,
     /// Result of the execution.
-    pub execution_result: ExecutionResult,
+    pub execution_result: LegacyExecutionResult,
 }

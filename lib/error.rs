@@ -4,30 +4,20 @@ use thiserror::Error;
 
 use casper_types::{bytesrepr::Error as ToBytesError, crypto, Key};
 #[cfg(doc)]
-use casper_types::{CLValue, URef};
+use casper_types::{CLValue, Deploy, DeployBuilder, TimeDiff, Timestamp, URef};
 
-#[cfg(doc)]
-use crate::types::{Deploy, DeployBuilder, TimeDiff, Timestamp};
 use crate::{validation::ValidateResponseError, JsonRpcId};
 
 /// Errors that may be returned by `casper_client` functions.
 #[derive(Error, Debug)]
 pub enum Error {
     /// [`Deploy`] size too large.
-    #[error("deploy size of {actual_deploy_size} bytes exceeds limit of {max_deploy_size}")]
-    DeploySizeTooLarge {
-        /// The maximum permitted serialized deploy size, in bytes.
-        max_deploy_size: u32,
-        /// The serialized size of the deploy provided, in bytes.
-        actual_deploy_size: usize,
-    },
+    #[error(transparent)]
+    DeploySize(#[from] casper_types::DeployExcessiveSizeError),
 
-    /// Failed to build [`Deploy`] due to missing payment code.
-    ///
-    /// Call [`DeployBuilder::with_standard_payment`] or [`DeployBuilder::with_payment`] before
-    /// calling [`DeployBuilder::build`].
-    #[error("deploy requires payment code - use `with_payment` or `with_standard_payment`")]
-    DeployMissingPaymentCode,
+    /// Failed to build [`Deploy`].
+    #[error(transparent)]
+    DeployBuild(#[from] casper_types::DeployBuilderError),
 
     /// Invalid [`Key`] variant.
     #[error("expected {} but got {}", .expected_variant, .actual)]

@@ -6,15 +6,14 @@ use std::{convert::TryInto, fs, io, path::Path, str::FromStr};
 use rand::Rng;
 use serde::{self, Deserialize};
 
-use casper_hashing::Digest;
 use casper_types::{
-    account::AccountHash, bytesrepr, crypto, AsymmetricType, CLValue, HashAddr, Key, NamedArg,
-    PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
+    account::AccountHash, bytesrepr, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
+    Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey,
+    TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
-    types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
     BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
 };
 

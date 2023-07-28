@@ -5,10 +5,10 @@ use clap::{ArgMatches, Command};
 use serde::{Deserialize, Serialize};
 
 use casper_client::cli::CliError;
-use casper_types::ProtocolVersion;
+use casper_types::{DeployHash, ProtocolVersion};
 
 use crate::{command::ClientCommand, common, Success};
-use casper_client::{rpcs::results::GetBlockResult, types::DeployHash};
+use casper_client::rpcs::results::GetBlockResult;
 
 /// This struct defines the order in which the args are shown for this subcommand.
 enum DisplayOrder {
@@ -36,10 +36,10 @@ impl From<GetBlockResult> for ListDeploysResult {
             deploy_hashes: get_block_result
                 .block
                 .as_ref()
-                .map(|block| block.body().deploy_hashes().cloned().collect()),
+                .map(|block| block.body.deploy_hashes.clone()),
             transfer_hashes: get_block_result
                 .block
-                .map(|ref block| block.body().transfer_hashes().cloned().collect()),
+                .map(|ref block| block.body.transfer_hashes.clone()),
         }
     }
 }

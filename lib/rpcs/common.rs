@@ -1,12 +1,10 @@
 //! Common types associated with sending and receiving JSON-RPCs.
 
-#[cfg(doc)]
-use crate::types::Block;
-use crate::types::BlockHash;
-
 use serde::{Deserialize, Serialize};
 
-use casper_hashing::Digest;
+#[cfg(doc)]
+use casper_types::Block;
+use casper_types::{BlockHash, Digest};
 
 /// Enum of possible ways to identify a [`Block`].
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
