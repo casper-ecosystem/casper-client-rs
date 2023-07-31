@@ -17,6 +17,14 @@ pub fn with_payment_and_session(
     let session = parse::session_executable_deploy_item(session_params)?;
     let maybe_secret_key = if allow_unsigned_deploy && deploy_params.secret_key.is_empty() {
         None
+    } else if deploy_params.secret_key.is_empty() && !allow_unsigned_deploy {
+        return Err(CliError::InvalidArgument {
+            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
+            error: format!(
+                "allow_unsigned_deploy was {}, but no secret key was provided",
+                allow_unsigned_deploy
+            ),
+        });
     } else {
         Some(parse::secret_key_from_file(deploy_params.secret_key)?)
     };
@@ -31,6 +39,7 @@ pub fn with_payment_and_session(
         .with_ttl(ttl);
 
     if let Some(secret_key) = &maybe_secret_key {
+        println!("secret key: {:?}", secret_key);
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }
     if let Some(account) = maybe_session_account {
@@ -57,6 +66,14 @@ pub fn new_transfer(
     let chain_name = deploy_params.chain_name.to_string();
     let maybe_secret_key = if allow_unsigned_deploy && deploy_params.secret_key.is_empty() {
         None
+    } else if deploy_params.secret_key.is_empty() && !allow_unsigned_deploy {
+        return Err(CliError::InvalidArgument {
+            context: "new_transfer (secret_key, allow_unsigned_deploy)",
+            error: format!(
+                "allow_unsigned_deploy was {}, but no secret key was provided",
+                allow_unsigned_deploy
+            ),
+        });
     } else {
         Some(parse::secret_key_from_file(deploy_params.secret_key)?)
     };

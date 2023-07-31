@@ -95,7 +95,6 @@ pub fn deploy_params_without_account() -> DeployStrParams<'static> {
 
 pub fn deploy_params_without_secret_key() -> DeployStrParams<'static> {
     DeployStrParams {
-        secret_key: "",
         ttl: "10s",
         chain_name: "casper-test-chain-name-1",
         session_account: SAMPLE_ACCOUNT,
@@ -371,5 +370,53 @@ fn should_fail_to_create_transfer_without_account() {
     assert!(matches!(
         transfer_deploy.unwrap_err(),
         CliError::Core(Error::DeployMissingSessionAccount)
+    ));
+}
+
+#[test]
+fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned_deploy() {
+    let deploy_params = deploy_params_without_secret_key();
+    let payment_params =
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+
+    let transfer_deploy = deploy::new_transfer(
+        "10000",
+        None,
+        "bad public key.",
+        "1",
+        deploy_params,
+        payment_params,
+        false,
+    );
+
+    assert!(transfer_deploy.is_err());
+    assert!(matches!(
+        transfer_deploy.unwrap_err(),
+        CliError::InvalidArgument {
+            context: "new_transfer (secret_key, allow_unsigned_deploy)",
+            error: _
+        }
+    ));
+}
+
+#[test]
+fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_while_not_allowing_unsigned_deploy(
+) {
+    let deploy_params = deploy_params_without_secret_key();
+    let payment_params =
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+    let session_params =
+        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+
+    let transfer_deploy =
+        deploy::with_payment_and_session(deploy_params, payment_params, session_params, false);
+
+    assert!(transfer_deploy.is_err());
+    assert!(matches!(
+        transfer_deploy.unwrap_err(),
+        CliError::InvalidArgument {
+            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
+            error: _
+        }
     ));
 }
