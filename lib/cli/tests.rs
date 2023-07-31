@@ -357,6 +357,7 @@ fn should_fail_to_create_transfer_without_account() {
     // with public key.
     let secret_key = SecretKey::generate_ed25519().unwrap();
     let public_key = PublicKey::from(&secret_key).to_hex();
+
     let transfer_deploy = deploy::new_transfer(
         "10000",
         None,
@@ -379,10 +380,14 @@ fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned
     let payment_params =
         PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
 
+    // with public key.
+    let secret_key = SecretKey::generate_ed25519().unwrap();
+    let public_key = PublicKey::from(&secret_key).to_hex();
+
     let transfer_deploy = deploy::new_transfer(
         "10000",
         None,
-        "bad public key.",
+        &public_key,
         "1",
         deploy_params,
         payment_params,
