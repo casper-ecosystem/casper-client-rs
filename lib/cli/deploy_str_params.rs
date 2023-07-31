@@ -4,7 +4,7 @@ pub struct DeployStrParams<'a> {
     /// Path to secret key file.
     ///
     /// If `secret_key` is empty, the new deploy will not be signed and will need to be signed (e.g.
-    /// via [`sign_deploy_file`]) at least once in order to be made valid.
+    /// via [`sign_deploy_file`](super::sign_deploy_file)) at least once in order to be made valid.
     pub secret_key: &'a str,
     /// RFC3339-like formatted timestamp. e.g. `2018-02-16T00:31:37Z`.
     ///
