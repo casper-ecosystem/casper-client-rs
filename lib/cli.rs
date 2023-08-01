@@ -134,6 +134,7 @@ pub fn make_deploy(
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+#[cfg(not(any(feature = "sdk")))]
 pub fn sign_deploy_file(
     input_path: &str,
     secret_key_path: &str,

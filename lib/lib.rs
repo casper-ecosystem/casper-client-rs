@@ -35,7 +35,6 @@
     unused_qualifications
 )]
 
-#[cfg(not(any(feature = "sdk")))]
 pub mod cli;
 mod error;
 mod json_rpc;

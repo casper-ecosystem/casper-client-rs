@@ -1,10 +1,11 @@
+use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
+use crate::MAX_SERIALIZED_SIZE_OF_DEPLOY;
+#[cfg(feature = "sdk")]
+use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash, AsymmetricType, Deploy, DeployBuilder, PublicKey, TransferTarget,
     UIntParseError, URef, U512,
 };
-
-use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
-use crate::MAX_SERIALIZED_SIZE_OF_DEPLOY;
 
 /// Creates new Deploy with specified payment and session data.
 pub fn with_payment_and_session(
@@ -14,7 +15,13 @@ pub fn with_payment_and_session(
 ) -> Result<Deploy, CliError> {
     let chain_name = deploy_params.chain_name.to_string();
     let session = parse::session_executable_deploy_item(session_params)?;
+
+    #[cfg(feature = "sdk")]
+    let secret_key = SecretKey::generate_ed25519().unwrap();
+
+    #[cfg(not(any(feature = "sdk")))]
     let secret_key = parse::secret_key_from_file(deploy_params.secret_key)?;
+
     let payment = parse::payment_executable_deploy_item(payment_params)?;
     let timestamp = parse::timestamp(deploy_params.timestamp)?;
     let ttl = parse::ttl(deploy_params.ttl)?;
@@ -45,7 +52,13 @@ pub fn new_transfer(
     payment_params: PaymentStrParams,
 ) -> Result<Deploy, CliError> {
     let chain_name = deploy_params.chain_name.to_string();
+
+    #[cfg(feature = "sdk")]
+    let secret_key = SecretKey::generate_ed25519().unwrap();
+
+    #[cfg(not(any(feature = "sdk")))]
     let secret_key = parse::secret_key_from_file(deploy_params.secret_key)?;
+
     let payment = parse::payment_executable_deploy_item(payment_params)?;
 
     let amount = U512::from_dec_str(amount).map_err(|err| CliError::FailedToParseUint {

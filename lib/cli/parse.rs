@@ -8,9 +8,12 @@ use serde::{self, Deserialize};
 
 use casper_types::{
     account::AccountHash, bytesrepr, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
-    Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey,
-    TimeDiff, Timestamp, UIntParseError, URef, U512,
+    Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff,
+    Timestamp, UIntParseError, URef, U512,
 };
+
+#[cfg(not(any(feature = "sdk")))]
+use casper_types::SecretKey;
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
@@ -43,6 +46,7 @@ pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     }
 }
 
+#[cfg(not(any(feature = "sdk")))]
 pub(super) fn secret_key_from_file<P: AsRef<Path>>(
     secret_key_path: P,
 ) -> Result<SecretKey, CliError> {
