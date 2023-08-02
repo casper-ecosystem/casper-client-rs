@@ -27,14 +27,14 @@ impl ClientCommand for MakeDeploy {
             .display_order(display_order);
         let subcommand = creation_common::apply_common_session_options(subcommand);
         let subcommand = creation_common::apply_common_payment_options(subcommand, None);
-        creation_common::apply_common_creation_options(subcommand, false)
+        creation_common::apply_common_creation_options(subcommand, false, false)
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
         creation_common::show_simple_arg_examples_and_exit_if_required(matches);
         creation_common::show_json_args_examples_and_exit_if_required(matches);
 
-        let secret_key = common::secret_key::get(matches);
+        let secret_key = common::secret_key::get(matches).unwrap_or_default();
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
@@ -43,7 +43,7 @@ impl ClientCommand for MakeDeploy {
         let payment_str_params = creation_common::payment_str_params(matches);
 
         let maybe_output_path = creation_common::output::get(matches).unwrap_or_default();
-        let session_account = common::session_account::get(matches).unwrap_or_default();
+        let session_account = creation_common::session_account::get(matches).unwrap_or_default();
 
         let force = common::force::get(matches);
 

@@ -469,7 +469,7 @@ pub(super) fn session_executable_deploy_item(
         });
     }
 
-    let version = version(session_version).ok();
+    let version = version(session_version)?;
     if let Some(package_name) = name(session_package_name) {
         return Ok(ExecutableDeployItem::StoredVersionedContractByName {
             name: package_name,
@@ -572,7 +572,7 @@ pub(super) fn payment_executable_deploy_item(
         });
     }
 
-    let version = version(payment_version).ok();
+    let version = version(payment_version)?;
     if let Some(package_name) = name(payment_package_name) {
         return Ok(ExecutableDeployItem::StoredVersionedContractByName {
             name: package_name,
@@ -634,13 +634,17 @@ fn entry_point(value: &str) -> Option<String> {
     Some(value.to_string())
 }
 
-fn version(value: &str) -> Result<u32, CliError> {
-    value
+fn version(value: &str) -> Result<Option<u32>, CliError> {
+    if value.is_empty() {
+        return Ok(None);
+    }
+    let parsed = value
         .parse::<u32>()
         .map_err(|error| CliError::FailedToParseInt {
             context: "version",
             error,
-        })
+        })?;
+    Ok(Some(parsed))
 }
 
 pub(super) fn transfer_id(value: &str) -> Result<u64, CliError> {
@@ -779,7 +783,7 @@ mod tests {
     const PACKAGE_NAME: &str = "package_name";
     const PATH: &str = "./session.wasm";
     const ENTRY_POINT: &str = "entrypoint";
-    const VERSION: &str = "1.0.0";
+    const VERSION: &str = "3";
     const TRANSFER: bool = true;
 
     impl<'a> TryFrom<SessionStrParams<'a>> for ExecutableDeployItem {
@@ -1291,7 +1295,7 @@ mod tests {
         const PKG_NAME: &str = "pkg_name";
         const PKG_HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
         const ENTRYPOINT: &str = "entrypoint";
-        const VERSION: &str = "0.1.0";
+        const VERSION: &str = "4";
 
         fn args_simple() -> Vec<&'static str> {
             vec!["name_01:bool='false'", "name_02:u32='42'"]

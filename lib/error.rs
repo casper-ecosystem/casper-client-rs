@@ -22,6 +22,13 @@ pub enum Error {
         actual_deploy_size: usize,
     },
 
+    /// Failed to build [`Deploy`] due to missing session account.
+    ///
+    /// Call [`DeployBuilder::with_account`] or [`DeployBuilder::with_secret_key`] before
+    /// calling [`DeployBuilder::build`].
+    #[error("deploy requires session account - use `with_account` or `with_secret_key`")]
+    DeployMissingSessionAccount,
+
     /// Failed to build [`Deploy`] due to missing payment code.
     ///
     /// Call [`DeployBuilder::with_standard_payment`] or [`DeployBuilder::with_payment`] before

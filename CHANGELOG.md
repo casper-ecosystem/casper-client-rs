@@ -11,6 +11,13 @@ All notable changes to this project will be documented in this file.  The format
 
 
 
+## Unreleased
+
+### Added
+* Add support for crafting unsigned deploys and transfers by providing an account, but not seccret key, to the `make-deploy` and `make-transfer` subcommands.
+
+
+
 ## [2.0.0] - 2023-06-28
 
 ### Added
