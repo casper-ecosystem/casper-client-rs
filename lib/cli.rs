@@ -37,7 +37,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{crypto, AsymmetricType, Digest, PublicKey, URef};
+use casper_types::{crypto, AsymmetricType, Deploy, Digest, PublicKey, URef};
 
 use crate::{
     rpcs::{
@@ -121,10 +121,11 @@ pub fn make_deploy(
     session_params: SessionStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
     force: bool,
-) -> Result<(), CliError> {
+) -> Result<Deploy, CliError> {
     let output = parse::output_kind(maybe_output_path, force);
     let deploy = deploy::with_payment_and_session(deploy_params, payment_params, session_params)?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    Ok(deploy)
 }
 
 /// Reads a previously-saved [`Deploy`] from a file, cryptographically signs it, and outputs it to a
@@ -274,7 +275,7 @@ pub fn make_transfer(
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
     force: bool,
-) -> Result<(), CliError> {
+) -> Result<Deploy, CliError> {
     let output = parse::output_kind(maybe_output_path, force);
     let deploy = deploy::new_transfer(
         amount,
@@ -284,7 +285,8 @@ pub fn make_transfer(
         deploy_params,
         payment_params,
     )?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    Ok(deploy)
 }
 
 /// Retrieves a [`Deploy`] from the network.

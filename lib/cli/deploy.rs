@@ -65,7 +65,18 @@ pub fn new_transfer(
     let chain_name = deploy_params.chain_name.to_string();
 
     #[cfg(feature = "sdk")]
-    let secret_key = SecretKey::generate_ed25519().unwrap();
+    let secret_key: SecretKey = {
+        let secret_key_bytes: Vec<u8> = deploy_params.secret_key.as_bytes().to_owned();
+        match SecretKey::from_pem(secret_key_bytes) {
+            Ok(key) => key,
+            Err(error) => {
+                return Err(CliError::Core(crate::Error::CryptoError {
+                    context: "secret key",
+                    error,
+                }));
+            }
+        }
+    };
 
     #[cfg(not(any(feature = "sdk")))]
     let secret_key = parse::secret_key_from_file(deploy_params.secret_key)?;

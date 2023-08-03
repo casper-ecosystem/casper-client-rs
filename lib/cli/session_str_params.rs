@@ -29,7 +29,7 @@
 ///
 /// **Note** while multiple session args can be specified for a single session code instance, only
 /// one of `session_args_simple`, `session_args_json` or `session_args_complex` may be used.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct SessionStrParams<'a> {
     pub(super) session_hash: &'a str,
     pub(super) session_name: &'a str,
