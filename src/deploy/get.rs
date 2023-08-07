@@ -48,16 +48,16 @@ mod finalized_approvals {
 
     const ARG_NAME: &str = "get-finalized-approvals";
     const ARG_SHORT: char = 'a';
-    const ARG_VALUE_NAME: &str = "BOOLEAN";
     const ARG_HELP: &str =
-        "An optional flag specifying whether the finalized approvals are retrieved";
+        "If passed, the returned deploy approvals are the ones finalized in the block.\
+         Otherwise the approvals attached to the deploy when first received by the node \
+         will be returned";
 
     pub(super) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
             .required(false)
-            .value_name(ARG_VALUE_NAME)
             .action(ArgAction::SetTrue)
             .help(ARG_HELP)
             .display_order(DisplayOrder::FinalizedApprovals as usize)
