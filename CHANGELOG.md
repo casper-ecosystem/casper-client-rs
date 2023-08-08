@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.  The format
 ## Unreleased
 
 ### Added
+* Support passing `--session-arg` into `make-transfer` and `transfer` subcommands.
 * Add support for crafting unsigned deploys and transfers by providing an account, but not seccret key, to the `make-deploy` and `make-transfer` subcommands.
 
 
