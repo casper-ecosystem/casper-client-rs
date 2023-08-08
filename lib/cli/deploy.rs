@@ -109,11 +109,17 @@ pub fn new_transfer(
     let ttl = parse::ttl(deploy_params.ttl)?;
     let maybe_session_account = parse::session_account(deploy_params.session_account)?;
 
-    let mut deploy_builder =
-        DeployBuilder::new_transfer(chain_name, amount, source_purse, target, maybe_transfer_id, session)
-            .with_payment(payment)
-            .with_timestamp(timestamp)
-            .with_ttl(ttl);
+    let mut deploy_builder = DeployBuilder::new_transfer(
+        chain_name,
+        amount,
+        source_purse,
+        target,
+        maybe_transfer_id,
+        session,
+    )
+    .with_payment(payment)
+    .with_timestamp(timestamp)
+    .with_ttl(ttl);
     if let Some(secret_key) = &maybe_secret_key {
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }

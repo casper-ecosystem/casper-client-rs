@@ -258,7 +258,7 @@ pub async fn speculative_transfer(
         deploy_params,
         payment_params,
         false,
-        session_args
+        session_args,
     )?;
     let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)

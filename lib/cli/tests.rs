@@ -423,7 +423,7 @@ fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned
         deploy_params,
         payment_params,
         false,
-        Vec::new()
+        Vec::new(),
     );
 
     assert!(transfer_deploy.is_err());
