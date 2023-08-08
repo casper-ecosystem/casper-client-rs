@@ -225,6 +225,7 @@ fn should_create_transfer() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
     );
 
     assert!(transfer_deploy.is_ok());
@@ -244,6 +245,7 @@ fn should_create_transfer() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
     );
 
     assert!(transfer_deploy.is_ok());
@@ -262,6 +264,7 @@ fn should_create_transfer() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
     );
 
     assert!(transfer_deploy.is_ok());
@@ -281,6 +284,7 @@ fn should_fail_to_create_transfer_with_bad_args() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
     );
 
     println!("{:?}", transfer_deploy);
@@ -345,6 +349,7 @@ fn should_create_unsigned_transfer() {
         deploy_params_without_secret_key(),
         PaymentStrParams::with_amount("100"),
         true,
+        Vec::new(),
     )
     .unwrap();
     assert!(transfer_deploy.approvals().is_empty());
@@ -366,6 +371,7 @@ fn should_fail_to_create_transfer_without_account() {
         deploy_params_without_account(),
         PaymentStrParams::with_amount("100"),
         true,
+        Vec::new(),
     );
     assert!(transfer_deploy.is_err());
     assert!(matches!(
@@ -392,6 +398,7 @@ fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned
         deploy_params,
         payment_params,
         false,
+        Vec::new()
     );
 
     assert!(transfer_deploy.is_err());
