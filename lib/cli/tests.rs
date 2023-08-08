@@ -275,6 +275,31 @@ fn should_create_transfer() {
 }
 
 #[test]
+fn should_create_transfer_with_custom_args() {
+    use casper_types::{AsymmetricType, PublicKey};
+
+    // with public key.
+    let secret_key = SecretKey::generate_ed25519().unwrap();
+    let public_key = PublicKey::from(&secret_key).to_hex();
+    let transfer_deploy = deploy::new_transfer(
+        "10000",
+        None,
+        &public_key,
+        "1",
+        deploy_params(),
+        PaymentStrParams::with_amount("100"),
+        false,
+        vec!["targetAccountHex:public_key='012bac1d0ff9240ff0b7b06d555815640497861619ca12583ddef434885416e69b'"],
+    );
+
+    assert!(transfer_deploy.is_ok());
+    assert!(matches!(
+        transfer_deploy.unwrap().session(),
+        ExecutableDeployItem::Transfer { .. }
+    ));
+}
+
+#[test]
 fn should_fail_to_create_transfer_with_bad_args() {
     let transfer_deploy = deploy::new_transfer(
         "10000",

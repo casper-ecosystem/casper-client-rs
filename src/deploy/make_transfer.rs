@@ -74,7 +74,6 @@ impl ClientCommand for MakeTransfer {
             },
             payment_str_params,
             force,
-            // TODO: Fix
             str_params,
         )
         .map(|_| {
