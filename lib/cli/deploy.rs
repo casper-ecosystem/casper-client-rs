@@ -62,7 +62,7 @@ pub fn new_transfer(
     deploy_params: DeployStrParams,
     payment_params: PaymentStrParams,
     allow_unsigned_deploy: bool,
-    session_args: Option<RuntimeArgs>,
+    session_args: Vec<&str>,
 ) -> Result<Deploy, CliError> {
     let chain_name = deploy_params.chain_name.to_string();
     let maybe_secret_key = if allow_unsigned_deploy && deploy_params.secret_key.is_empty() {
@@ -79,6 +79,7 @@ pub fn new_transfer(
         Some(parse::secret_key_from_file(deploy_params.secret_key)?)
     };
     let payment = parse::payment_executable_deploy_item(payment_params)?;
+    let session = parse::arg_simple::get(&session_args)?;
 
     let amount = U512::from_dec_str(amount).map_err(|err| CliError::FailedToParseUint {
         context: "new_transfer amount",
@@ -109,7 +110,7 @@ pub fn new_transfer(
     let maybe_session_account = parse::session_account(deploy_params.session_account)?;
 
     let mut deploy_builder =
-        DeployBuilder::new_transfer(chain_name, amount, source_purse, target, maybe_transfer_id, session_args)
+        DeployBuilder::new_transfer(chain_name, amount, source_purse, target, maybe_transfer_id, Some(session))
             .with_payment(payment)
             .with_timestamp(timestamp)
             .with_ttl(ttl);

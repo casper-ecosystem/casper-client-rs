@@ -17,7 +17,6 @@ pub(super) mod amount {
     pub(in crate::deploy) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .short(ARG_SHORT)
             .required_unless_present(creation_common::show_simple_arg_examples::ARG_NAME)
             .required_unless_present(creation_common::show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
@@ -125,6 +124,7 @@ impl ClientCommand for Transfer {
         let target_account = target_account::get(matches);
         let transfer_id = transfer_id::get(matches);
 
+        let str_params = creation_common::arg_simple::session::get(matches);
         let maybe_rpc_id = common::rpc_id::get(matches);
         let node_address = common::node_address::get(matches);
         let verbosity_level = common::verbose::get(matches);
@@ -155,8 +155,7 @@ impl ClientCommand for Transfer {
                     session_account: &session_account,
                 },
                 payment_str_params,
-                // TODO: Fix
-                None
+                str_params,
             )
             .await
             .map(Success::from)
@@ -176,8 +175,7 @@ impl ClientCommand for Transfer {
                     session_account: &session_account,
                 },
                 payment_str_params,
-                // TODO: Fix
-                None
+                str_params,
             )
             .await
             .map(Success::from)

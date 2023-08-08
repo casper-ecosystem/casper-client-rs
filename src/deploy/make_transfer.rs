@@ -48,6 +48,7 @@ impl ClientCommand for MakeTransfer {
         let target_account = transfer::target_account::get(matches);
         let transfer_id = transfer::transfer_id::get(matches);
 
+        let str_params = creation_common::arg_simple::session::get(matches);
         let secret_key = common::secret_key::get(matches).unwrap_or_default();
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
@@ -74,7 +75,7 @@ impl ClientCommand for MakeTransfer {
             payment_str_params,
             force,
             // TODO: Fix
-            None,
+            str_params,
         )
         .map(|_| {
             Success::Output(if maybe_output_path.is_empty() {

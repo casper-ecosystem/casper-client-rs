@@ -85,7 +85,7 @@ pub(super) fn session_account(value: &str) -> Result<Option<PublicKey>, CliError
 }
 
 /// Handles providing the arg for and retrieval of simple session and payment args.
-mod arg_simple {
+pub mod arg_simple {
     use super::*;
 
     pub(crate) mod session {
@@ -112,7 +112,7 @@ mod arg_simple {
         }
     }
 
-    fn get(values: &[&str]) -> Result<RuntimeArgs, CliError> {
+    pub fn get(values: &[&str]) -> Result<RuntimeArgs, CliError> {
         let mut runtime_args = RuntimeArgs::new();
         for arg in values {
             simple_args::insert_arg(arg, &mut runtime_args)?;

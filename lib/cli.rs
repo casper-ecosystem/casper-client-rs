@@ -205,7 +205,7 @@ pub async fn transfer(
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    session_args: Option<RuntimeArgs>,
+    session_args: Vec<&str>,
 ) -> Result<SuccessResponse<PutDeployResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
@@ -246,7 +246,7 @@ pub async fn speculative_transfer(
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    session_args: Option<RuntimeArgs>,
+    session_args: Vec<&str>,
 ) -> Result<SuccessResponse<SpeculativeExecResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
@@ -283,7 +283,7 @@ pub fn make_transfer(
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
     force: bool,
-    session_args: Option<RuntimeArgs>,
+    session_args: Vec<&str>,
 ) -> Result<(), CliError> {
     let output = parse::output_kind(maybe_output_path, force);
     let deploy = deploy::new_transfer(
