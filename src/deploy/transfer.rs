@@ -156,6 +156,8 @@ impl ClientCommand for Transfer {
                     session_account: &session_account,
                 },
                 payment_str_params,
+                // TODO: Fix
+                None
             )
             .await
             .map(Success::from)
@@ -175,6 +177,8 @@ impl ClientCommand for Transfer {
                     session_account: &session_account,
                 },
                 payment_str_params,
+                // TODO: Fix
+                None
             )
             .await
             .map(Success::from)

@@ -38,7 +38,7 @@ use serde::Serialize;
 use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{crypto, AsymmetricType, PublicKey, URef};
+use casper_types::{crypto, AsymmetricType, PublicKey, URef, RuntimeArgs};
 
 use crate::{
     rpcs::{
@@ -205,6 +205,7 @@ pub async fn transfer(
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
+    session_args: Option<RuntimeArgs>,
 ) -> Result<SuccessResponse<PutDeployResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
@@ -216,6 +217,7 @@ pub async fn transfer(
         deploy_params,
         payment_params,
         false,
+        session_args,
     )?;
     crate::put_deploy(rpc_id, node_address, verbosity, deploy)
         .await
@@ -244,6 +246,7 @@ pub async fn speculative_transfer(
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
+    session_args: Option<RuntimeArgs>,
 ) -> Result<SuccessResponse<SpeculativeExecResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
@@ -255,6 +258,7 @@ pub async fn speculative_transfer(
         deploy_params,
         payment_params,
         false,
+        session_args
     )?;
     let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
@@ -279,6 +283,7 @@ pub fn make_transfer(
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
     force: bool,
+    session_args: Option<RuntimeArgs>,
 ) -> Result<(), CliError> {
     let output = parse::output_kind(maybe_output_path, force);
     let deploy = deploy::new_transfer(
@@ -289,6 +294,7 @@ pub fn make_transfer(
         deploy_params,
         payment_params,
         true,
+        session_args,
     )?;
     crate::output_deploy(output, &deploy).map_err(CliError::from)
 }

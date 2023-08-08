@@ -1,4 +1,4 @@
-use casper_types::{account::AccountHash, AsymmetricType, PublicKey, UIntParseError, URef, U512};
+use casper_types::{account::AccountHash, AsymmetricType, PublicKey, UIntParseError, URef, U512, RuntimeArgs};
 
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
 use crate::{
@@ -62,6 +62,7 @@ pub fn new_transfer(
     deploy_params: DeployStrParams,
     payment_params: PaymentStrParams,
     allow_unsigned_deploy: bool,
+    session_args: Option<RuntimeArgs>,
 ) -> Result<Deploy, CliError> {
     let chain_name = deploy_params.chain_name.to_string();
     let maybe_secret_key = if allow_unsigned_deploy && deploy_params.secret_key.is_empty() {
@@ -108,7 +109,7 @@ pub fn new_transfer(
     let maybe_session_account = parse::session_account(deploy_params.session_account)?;
 
     let mut deploy_builder =
-        DeployBuilder::new_transfer(chain_name, amount, source_purse, target, maybe_transfer_id)
+        DeployBuilder::new_transfer(chain_name, amount, source_purse, target, maybe_transfer_id, session_args)
             .with_payment(payment)
             .with_timestamp(timestamp)
             .with_ttl(ttl);

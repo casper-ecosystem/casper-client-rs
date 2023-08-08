@@ -68,6 +68,8 @@ impl ClientCommand for MakeTransfer {
             },
             payment_str_params,
             force,
+            // TODO: Fix
+            None,
         )
         .map(|_| {
             Success::Output(if maybe_output_path.is_empty() {
