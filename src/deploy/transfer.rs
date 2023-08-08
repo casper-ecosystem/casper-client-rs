@@ -11,7 +11,6 @@ pub(super) mod amount {
     use super::*;
 
     const ARG_NAME: &str = "amount";
-    const ARG_SHORT: char = 'a';
     const ARG_VALUE_NAME: &str = "512-BIT INTEGER";
     const ARG_HELP: &str = "The number of motes to transfer";
 

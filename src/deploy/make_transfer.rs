@@ -27,11 +27,16 @@ impl ClientCommand for MakeTransfer {
             .arg(common::force::arg(
                 creation_common::DisplayOrder::Force as usize,
                 true,
-            ));
+            ))
+            .arg(creation_common::arg_simple::session::arg())
+            .arg(creation_common::args_json::session::arg())
+            .arg(creation_common::args_complex::session::arg());
+
         let subcommand = creation_common::apply_common_payment_options(
             subcommand,
             Some(common::DEFAULT_TRANSFER_PAYMENT_AMOUNT),
         );
+
         creation_common::apply_common_creation_options(subcommand, false, false)
     }
 
