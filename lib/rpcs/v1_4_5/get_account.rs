@@ -1,22 +1,36 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use casper_types::{ProtocolVersion, PublicKey};
+use casper_types::account::AccountHash;
 
 use crate::{rpcs::common::BlockIdentifier, types::Account};
 
 pub(crate) const GET_ACCOUNT_METHOD: &str = "state_get_account_info";
 
+/// Identifier of an account.
+#[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
+#[serde(deny_unknown_fields, rename_all = "snake_case")]
+pub enum AccountIdentifier {
+    /// The public key of an account
+    PublicKey(PublicKey),
+    /// The account hash of an account
+    AccountHash(AccountHash),
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct GetAccountParams {
-    public_key: PublicKey,
+    ///The identifier of an Account.
+    account_identifier: AccountIdentifier,
+    /// The block identifier.
     block_identifier: Option<BlockIdentifier>,
 }
 
 impl GetAccountParams {
-    pub(crate) fn new(public_key: PublicKey, block_identifier: Option<BlockIdentifier>) -> Self {
+    pub(crate) fn new(account_identifier: AccountIdentifier, block_identifier: Option<BlockIdentifier>) -> Self {
         GetAccountParams {
-            public_key,
+            account_identifier,
             block_identifier,
         }
     }
