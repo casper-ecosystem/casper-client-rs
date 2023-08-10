@@ -11,6 +11,7 @@ pub(crate) mod speculative_exec;
 
 pub(crate) mod get_account {
     pub use crate::rpcs::v1_4_5::get_account::GetAccountResult;
+    pub use crate::rpcs::v1_4_5::get_account::AccountIdentifier;
     pub(crate) use crate::rpcs::v1_4_5::get_account::{GetAccountParams, GET_ACCOUNT_METHOD};
 }
 

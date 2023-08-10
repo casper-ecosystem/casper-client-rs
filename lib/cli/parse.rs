@@ -15,7 +15,7 @@ use casper_types::{
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
     types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
-    BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
+    BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity, AccountIdentifier
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
