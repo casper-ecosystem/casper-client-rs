@@ -73,7 +73,7 @@ use rpcs::{
         QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
     },
     v1_5_0::{
-        get_account::{GetAccountParams, GET_ACCOUNT_METHOD},
+        get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
         get_auction_info::{GetAuctionInfoParams, GET_AUCTION_INFO_METHOD},
         get_balance::{GetBalanceParams, GET_BALANCE_METHOD},
         get_block::{GetBlockParams, GET_BLOCK_METHOD},
@@ -370,7 +370,7 @@ pub async fn get_account(
     node_address: &str,
     verbosity: Verbosity,
     maybe_block_identifier: Option<BlockIdentifier>,
-    account_identifier: PublicKey,
+    account_identifier: AccountIdentifier,
 ) -> Result<SuccessResponse<GetAccountResult>, Error> {
     let params = GetAccountParams::new(account_identifier, maybe_block_identifier);
     JsonRpcCall::new(rpc_id, node_address, verbosity)
