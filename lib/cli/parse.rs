@@ -770,6 +770,32 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
         })?;
     Ok(PurseIdentifier::MainPurseUnderPublicKey(public_key))
 }
+pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
+    const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
+
+    if account_identifier.is_empty() {
+           return Err(CliError::InvalidArgument {
+            context: "account_identifier",
+            error: "cannot be empty string".to_string()});
+    }
+
+    if account_identifier.starts_with(ACCOUNT_HASH_PREFIX) {
+        let account_hash = AccountHash::from_formatted_str(account_identifier).map_err(|error| {
+            CliError::FailedToParseAccountHash {
+                context: "account_identifier",
+                error,
+            }
+        })?;
+        return Ok(AccountIdentifier::AccountHash(account_hash));
+    }
+
+    let public_key =
+        PublicKey::from_hex(account_identifier).map_err(|error| CliError::FailedToParsePublicKey {
+            context: "account_identifier".to_string(),
+            error,
+        })?;
+    return Ok(AccountIdentifier::PublicKey(public_key))
+}
 
 #[cfg(test)]
 mod tests {
