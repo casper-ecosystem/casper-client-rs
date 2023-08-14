@@ -54,7 +54,7 @@ untrusted = "0.9.0"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-casper-types = { git = "https://github.com/Fraser999/casper-node", branch = "2124-use-execution-journal" }
+casper-types = { git = "https://github.com/casper-network/casper-node", branch = "feat-2.0" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
