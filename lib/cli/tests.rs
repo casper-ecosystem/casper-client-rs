@@ -1,4 +1,4 @@
-use casper_types::SecretKey;
+use casper_types::{AsymmetricType, PublicKey, SecretKey};
 
 use crate::{
     types::{ExecutableDeployItem, MAX_SERIALIZED_SIZE_OF_DEPLOY},

@@ -770,6 +770,8 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
         })?;
     Ok(PurseIdentifier::MainPurseUnderPublicKey(public_key))
 }
+
+/// Add
 pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
@@ -794,7 +796,7 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
             context: "account_identifier".to_string(),
             error,
         })?;
-    return Ok(AccountIdentifier::PublicKey(public_key))
+    Ok(AccountIdentifier::PublicKey(public_key))
 }
 
 #[cfg(test)]
