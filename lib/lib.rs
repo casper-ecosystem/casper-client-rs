@@ -72,7 +72,6 @@ use rpcs::{
         GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
         QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
     },
-    v1_6_0::get_account::AccountIdentifier,
     v1_6_0::{
         get_account::{GetAccountParams, GET_ACCOUNT_METHOD},
         get_auction_info::{GetAuctionInfoParams, GET_AUCTION_INFO_METHOD},
@@ -94,6 +93,9 @@ use rpcs::{
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
     },
+    v1_6_0::{
+        get_account::AccountIdentifier,
+    },
     DictionaryItemIdentifier,
 };
 pub use transfer_target::TransferTarget;
@@ -102,6 +104,7 @@ use types::{Account, Block, StoredValue};
 use types::{Deploy, DeployHash, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
+
 
 /// Puts a [`Deploy`] to the network for execution.
 ///
