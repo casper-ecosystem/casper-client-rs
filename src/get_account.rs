@@ -9,7 +9,7 @@ use crate::{command::ClientCommand, common, Success};
 
 /// Legacy name of command.
 const COMMAND_ALIAS: &str = "get-account-info";
-const PUBLIC_KEY_IS_REQUIRED: bool = true;
+const ACCOUNT_IDENTIFIER_IS_REQUIRED: bool = true;
 
 pub struct GetAccount;
 
@@ -19,7 +19,7 @@ enum DisplayOrder {
     NodeAddress,
     RpcId,
     BlockIdentifier,
-    PublicKey,
+    AccountIdentifier,
 }
 
 #[async_trait]
@@ -41,9 +41,9 @@ impl ClientCommand for GetAccount {
                 DisplayOrder::BlockIdentifier as usize,
                 true,
             ))
-            .arg(common::public_key::arg(
-                DisplayOrder::PublicKey as usize,
-                PUBLIC_KEY_IS_REQUIRED,
+            .arg(common::account_identifier::arg(
+                DisplayOrder::AccountIdentifier as usize,
+                ACCOUNT_IDENTIFIER_IS_REQUIRED,
             ))
     }
 
@@ -52,14 +52,14 @@ impl ClientCommand for GetAccount {
         let node_address = common::node_address::get(matches);
         let verbosity_level = common::verbose::get(matches);
         let block_identifier = common::block_identifier::get(matches);
-        let public_key = common::public_key::get(matches, PUBLIC_KEY_IS_REQUIRED)?;
+        let account_idenfitier = common::account_identifier::get(matches)?;
 
         casper_client::cli::get_account(
             maybe_rpc_id,
             node_address,
             verbosity_level,
             block_identifier,
-            &public_key,
+            &account_idenfitier,
         )
         .await
         .map(Success::from)

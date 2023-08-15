@@ -21,8 +21,8 @@ pub enum AccountIdentifier {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct GetAccountParams {
-    ///The identifier of an Account.
-    account_identifier: AccountIdentifier,
+    ///The identifier of an Account. (named public key to match the JSON-RPC API)
+    public_key: AccountIdentifier,
     /// The block identifier.
     block_identifier: Option<BlockIdentifier>,
 }
@@ -30,7 +30,7 @@ pub(crate) struct GetAccountParams {
 impl GetAccountParams {
     pub(crate) fn new(account_identifier: AccountIdentifier, block_identifier: Option<BlockIdentifier>) -> Self {
         GetAccountParams {
-            account_identifier,
+            public_key: account_identifier,
             block_identifier,
         }
     }
