@@ -1,6 +1,5 @@
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
 use crate::MAX_SERIALIZED_SIZE_OF_DEPLOY;
-#[cfg(feature = "sdk")]
 use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash, AsymmetricType, Deploy, DeployBuilder, PublicKey, TransferTarget,
@@ -12,39 +11,30 @@ pub fn with_payment_and_session(
     deploy_params: DeployStrParams,
     payment_params: PaymentStrParams,
     session_params: SessionStrParams,
+    allow_unsigned_deploy: bool,
 ) -> Result<Deploy, CliError> {
     let chain_name = deploy_params.chain_name.to_string();
     let session = parse::session_executable_deploy_item(session_params)?;
-
-    #[cfg(feature = "sdk")]
-    let secret_key: SecretKey = {
-        match SecretKey::from_pem(deploy_params.secret_key) {
-            Ok(key) => key,
-            Err(error) => {
-                return Err(CliError::Core(crate::Error::CryptoError {
-                    context: "secret key",
-                    error,
-                }));
-            }
-        }
-    };
-
-    #[cfg(not(any(feature = "sdk")))]
-    let secret_key = parse::secret_key_from_file(deploy_params.secret_key)?;
-
     let payment = parse::payment_executable_deploy_item(payment_params)?;
     let timestamp = parse::timestamp(deploy_params.timestamp)?;
     let ttl = parse::ttl(deploy_params.ttl)?;
-    let session_account = parse::session_account(deploy_params.session_account)?;
+    let maybe_session_account = parse::session_account(deploy_params.session_account)?;
 
     let mut deploy_builder = DeployBuilder::new(chain_name, session)
-        .with_secret_key(&secret_key)
         .with_payment(payment)
         .with_timestamp(timestamp)
         .with_ttl(ttl);
-    if let Some(account) = session_account {
+
+    if let Some(secret_key) =
+        &get_maybe_secret_key(deploy_params.secret_key, allow_unsigned_deploy)?
+    {
+        println!("secret key: {:?}", secret_key);
+        deploy_builder = deploy_builder.with_secret_key(secret_key);
+    }
+    if let Some(account) = maybe_session_account {
         deploy_builder = deploy_builder.with_account(account);
     }
+
     let deploy = deploy_builder.build().map_err(crate::Error::from)?;
     deploy
         .is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)
@@ -60,27 +50,10 @@ pub fn new_transfer(
     transfer_id: &str,
     deploy_params: DeployStrParams,
     payment_params: PaymentStrParams,
+    allow_unsigned_deploy: bool,
 ) -> Result<Deploy, CliError> {
     let chain_name = deploy_params.chain_name.to_string();
-
-    #[cfg(feature = "sdk")]
-    let secret_key: SecretKey = {
-        match SecretKey::from_pem(deploy_params.secret_key) {
-            Ok(key) => key,
-            Err(error) => {
-                return Err(CliError::Core(crate::Error::CryptoError {
-                    context: "secret key",
-                    error,
-                }));
-            }
-        }
-    };
-
-    #[cfg(not(any(feature = "sdk")))]
-    let secret_key = parse::secret_key_from_file(deploy_params.secret_key)?;
-
     let payment = parse::payment_executable_deploy_item(payment_params)?;
-
     let amount = U512::from_dec_str(amount).map_err(|err| CliError::FailedToParseUint {
         context: "new_transfer amount",
         error: UIntParseError::FromDecStr(err),
@@ -107,15 +80,20 @@ pub fn new_transfer(
 
     let timestamp = parse::timestamp(deploy_params.timestamp)?;
     let ttl = parse::ttl(deploy_params.ttl)?;
-    let session_account = parse::session_account(deploy_params.session_account)?;
+    let maybe_session_account = parse::session_account(deploy_params.session_account)?;
 
     let mut deploy_builder =
         DeployBuilder::new_transfer(chain_name, amount, source_purse, target, maybe_transfer_id)
-            .with_secret_key(&secret_key)
             .with_payment(payment)
             .with_timestamp(timestamp)
             .with_ttl(ttl);
-    if let Some(account) = session_account {
+
+    if let Some(secret_key) =
+        &get_maybe_secret_key(deploy_params.secret_key, allow_unsigned_deploy)?
+    {
+        deploy_builder = deploy_builder.with_secret_key(secret_key);
+    }
+    if let Some(account) = maybe_session_account {
         deploy_builder = deploy_builder.with_account(account);
     }
     let deploy = deploy_builder.build().map_err(crate::Error::from)?;
@@ -123,4 +101,39 @@ pub fn new_transfer(
         .is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)
         .map_err(crate::Error::from)?;
     Ok(deploy)
+}
+
+fn get_maybe_secret_key(
+    secret_key: &str,
+    allow_unsigned_deploy: bool,
+) -> Result<Option<SecretKey>, CliError> {
+    if !secret_key.is_empty() {
+        #[cfg(feature = "sdk")]
+        {
+            let secret_key: SecretKey = match SecretKey::from_pem(secret_key) {
+                Ok(key) => key,
+                Err(error) => {
+                    return Err(CliError::Core(crate::Error::CryptoError {
+                        context: "secret key",
+                        error,
+                    }));
+                }
+            };
+            Ok(Some(secret_key))
+        }
+        #[cfg(not(feature = "sdk"))]
+        {
+            Ok(Some(parse::secret_key_from_file(secret_key)?))
+        }
+    } else if !allow_unsigned_deploy {
+        Err(CliError::InvalidArgument {
+            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
+            error: format!(
+                "allow_unsigned_deploy was {}, but no secret key was provided",
+                allow_unsigned_deploy
+            ),
+        })
+    } else {
+        Ok(None)
+    }
 }

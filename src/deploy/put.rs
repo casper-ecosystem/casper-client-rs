@@ -22,7 +22,7 @@ impl ClientCommand for PutDeploy {
             .arg(creation_common::speculative_exec::arg());
         let subcommand = creation_common::apply_common_session_options(subcommand);
         let subcommand = creation_common::apply_common_payment_options(subcommand, None);
-        creation_common::apply_common_creation_options(subcommand, true)
+        creation_common::apply_common_creation_options(subcommand, true, true)
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
@@ -33,12 +33,12 @@ impl ClientCommand for PutDeploy {
         let node_address = common::node_address::get(matches);
         let verbosity_level = common::verbose::get(matches);
 
-        let secret_key = common::secret_key::get(matches);
+        let secret_key = common::secret_key::get(matches).unwrap_or_default();
         let maybe_speculative_exec = creation_common::speculative_exec::get(matches);
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
-        let session_account = common::session_account::get(matches)?;
+        let session_account = creation_common::session_account::get(matches)?;
 
         let session_str_params = creation_common::session_str_params(matches);
         let payment_str_params = creation_common::payment_str_params(matches);

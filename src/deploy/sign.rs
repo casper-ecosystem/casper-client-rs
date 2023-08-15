@@ -20,7 +20,7 @@ impl ClientCommand for SignDeploy {
             .about(Self::ABOUT)
             .display_order(display_order)
             .arg(
-                common::secret_key::arg(creation_common::DisplayOrder::SecretKey as usize)
+                common::secret_key::arg(creation_common::DisplayOrder::SecretKey as usize, "")
                     .required(true),
             )
             .arg(creation_common::input::arg())
@@ -33,7 +33,7 @@ impl ClientCommand for SignDeploy {
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
         let input_path = creation_common::input::get(matches);
-        let secret_key = common::secret_key::get(matches);
+        let secret_key = common::secret_key::get(matches).unwrap_or_default();
         let maybe_output_path = creation_common::output::get(matches).unwrap_or_default();
         let force = common::force::get(matches);
         casper_client::cli::sign_deploy_file(input_path, secret_key, maybe_output_path, force).map(

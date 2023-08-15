@@ -42,8 +42,8 @@ pub(super) mod target_account {
     const ARG_SHORT: char = 't';
     const ARG_VALUE_NAME: &str = "FORMATTED STRING";
     const ARG_HELP: &str =
-        "Account hash, uref or hex-encoded public key of the account from which the main purse will be used as the \
-        target";
+        "Account hash, uref or hex-encoded public key of the account from which the main purse \
+         will be used as the target";
 
     // Conflicts with --target-purse, but that's handled via an `ArgGroup` in the subcommand. Don't
     // add a `conflicts_with()` to the arg or the `ArgGroup` fails to work correctly.
@@ -115,7 +115,7 @@ impl ClientCommand for Transfer {
             subcommand,
             Some(common::DEFAULT_TRANSFER_PAYMENT_AMOUNT),
         );
-        creation_common::apply_common_creation_options(subcommand, true)
+        creation_common::apply_common_creation_options(subcommand, true, true)
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
@@ -130,12 +130,12 @@ impl ClientCommand for Transfer {
         let node_address = common::node_address::get(matches);
         let verbosity_level = common::verbose::get(matches);
 
-        let secret_key = common::secret_key::get(matches);
+        let secret_key = common::secret_key::get(matches).unwrap_or_default();
         let maybe_speculative_exec = creation_common::speculative_exec::get(matches);
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
-        let session_account = common::session_account::get(matches)?;
+        let session_account = creation_common::session_account::get(matches)?;
 
         let payment_str_params = creation_common::payment_str_params(matches);
 

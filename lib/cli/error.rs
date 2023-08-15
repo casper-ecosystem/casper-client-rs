@@ -40,7 +40,7 @@ pub enum CliError {
         /// Contextual description of where this error occurred.
         context: &'static str,
         /// The actual error raised.
-        error: casper_types::account::FromStrError,
+        error: casper_types::addressable_entity::FromStrError,
     },
 
     /// Failed to parse a [`URef`] from a formatted string.
