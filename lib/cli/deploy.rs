@@ -18,8 +18,7 @@ pub fn with_payment_and_session(
 
     #[cfg(feature = "sdk")]
     let secret_key: SecretKey = {
-        let secret_key_bytes: Vec<u8> = deploy_params.secret_key.as_bytes().to_owned();
-        match SecretKey::from_pem(secret_key_bytes) {
+        match SecretKey::from_pem(deploy_params.secret_key) {
             Ok(key) => key,
             Err(error) => {
                 return Err(CliError::Core(crate::Error::CryptoError {
@@ -66,8 +65,7 @@ pub fn new_transfer(
 
     #[cfg(feature = "sdk")]
     let secret_key: SecretKey = {
-        let secret_key_bytes: Vec<u8> = deploy_params.secret_key.as_bytes().to_owned();
-        match SecretKey::from_pem(secret_key_bytes) {
+        match SecretKey::from_pem(deploy_params.secret_key) {
             Ok(key) => key,
             Err(error) => {
                 return Err(CliError::Core(crate::Error::CryptoError {

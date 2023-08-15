@@ -344,7 +344,7 @@ fn split_arg(arg: &str) -> Result<(&str, &str, &str), CliError> {
 }
 
 /// Insert a value built from a single arg into `runtime_args`.
-pub(super) fn insert_arg(arg: &str, runtime_args: &mut RuntimeArgs) -> Result<(), CliError> {
+pub fn insert_arg(arg: &str, runtime_args: &mut RuntimeArgs) -> Result<(), CliError> {
     let (name, initial_type, value) = split_arg(arg)?;
     let (simple_type, optional_status, trimmed_value) =
         get_simple_type_and_optional_status(initial_type, value)?;

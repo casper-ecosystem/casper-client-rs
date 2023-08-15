@@ -30,6 +30,8 @@ mod parse;
 mod payment_str_params;
 mod session_str_params;
 mod simple_args;
+pub use simple_args::insert_arg;
+
 #[cfg(test)]
 mod tests;
 
