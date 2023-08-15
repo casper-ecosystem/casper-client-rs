@@ -98,25 +98,22 @@ pub mod rpc_id {
 pub mod secret_key {
     use super::*;
 
-    const ARG_NAME: &str = "secret-key";
+    pub(crate) const ARG_NAME: &str = "secret-key";
     const ARG_SHORT: char = 'k';
-    const ARG_VALUE_NAME: &str = super::ARG_PATH;
+    const ARG_VALUE_NAME: &str = ARG_PATH;
     const ARG_HELP: &str = "Path to secret key file";
 
-    pub fn arg(order: usize) -> Arg {
+    pub fn arg(order: usize, extended_help: &str) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
             .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
+            .help(format!("{}{}", ARG_HELP, extended_help))
             .display_order(order)
     }
 
-    pub fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
+    pub fn get(matches: &ArgMatches) -> Option<&str> {
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -342,37 +339,5 @@ pub(super) mod purse_uref {
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
         matches.get_one::<String>(ARG_NAME).map(String::as_str)
-    }
-}
-
-/// Handles providing the arg for and retrieval of the session account arg when specifying an
-/// account for a Deploy.
-pub(super) mod session_account {
-    use super::*;
-
-    pub const ARG_NAME: &str = "session-account";
-    const ARG_VALUE_NAME: &str = "FORMATTED STRING or PATH";
-    const ARG_HELP: &str =
-        "The hex-encoded public key of the account context under which the session code will be
-        executed. This must be a properly formatted public key. The public key may instead be read
-        in from a file, in which case enter the path to the file as the --session-account
-        argument. The file should be one of the two public key files generated via the `keygen`
-        subcommand; \"public_key_hex\" or \"public_key.pem\"";
-
-    pub fn arg(order: usize) -> Arg {
-        Arg::new(ARG_NAME)
-            .long(ARG_NAME)
-            .required(false)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
-            .display_order(order)
-    }
-
-    pub fn get(matches: &ArgMatches) -> Result<String, CliError> {
-        let value = matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_default();
-        super::public_key::try_read_from_file(value)
     }
 }
