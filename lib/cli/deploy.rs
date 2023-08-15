@@ -24,7 +24,7 @@ pub fn with_payment_and_session(
         .with_payment(payment)
         .with_timestamp(timestamp)
         .with_ttl(ttl);
-    let maybe_secret_key = get_maybe_secret_key(&deploy_params.secret_key, allow_unsigned_deploy)?;
+    let maybe_secret_key = get_maybe_secret_key(deploy_params.secret_key, allow_unsigned_deploy)?;
     if let Some(secret_key) = &maybe_secret_key {
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }
@@ -85,7 +85,7 @@ pub fn new_transfer(
             .with_timestamp(timestamp)
             .with_ttl(ttl);
 
-    let maybe_secret_key = get_maybe_secret_key(&deploy_params.secret_key, allow_unsigned_deploy)?;
+    let maybe_secret_key = get_maybe_secret_key(deploy_params.secret_key, allow_unsigned_deploy)?;
     if let Some(secret_key) = &maybe_secret_key {
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }

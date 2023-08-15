@@ -17,7 +17,7 @@ use crate::cli::CliError;
 pub use error::{Error, ErrorDetails};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub(super) struct JsonArg {
+pub struct JsonArg {
     name: String,
     #[serde(rename = "type")]
     cl_type: CLType,

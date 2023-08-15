@@ -30,6 +30,7 @@ mod parse;
 mod payment_str_params;
 mod session_str_params;
 mod simple_args;
+#[cfg(feature = "sdk")]
 pub use simple_args::insert_arg;
 
 #[cfg(test)]
@@ -59,7 +60,7 @@ use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
 pub use error::CliError;
-use json_args::JsonArg;
+pub use json_args::JsonArg;
 pub use json_args::{
     help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails,
 };
