@@ -1,8 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use casper_types::{ProtocolVersion, PublicKey};
 use casper_types::account::AccountHash;
+use casper_types::{ProtocolVersion, PublicKey};
 
 use crate::{rpcs::common::BlockIdentifier, types::Account};
 
@@ -28,7 +28,10 @@ pub(crate) struct GetAccountParams {
 }
 
 impl GetAccountParams {
-    pub(crate) fn new(account_identifier: AccountIdentifier, block_identifier: Option<BlockIdentifier>) -> Self {
+    pub(crate) fn new(
+        account_identifier: AccountIdentifier,
+        block_identifier: Option<BlockIdentifier>,
+    ) -> Self {
         GetAccountParams {
             public_key: account_identifier,
             block_identifier,

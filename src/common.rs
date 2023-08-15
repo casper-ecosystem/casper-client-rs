@@ -316,7 +316,7 @@ pub(super) mod purse_identifier {
     }
 }
 
-pub(super) mod account_identifier{
+pub(super) mod account_identifier {
     use super::*;
 
     pub(super) const ARG_NAME: &str = "account-identifier";
@@ -347,7 +347,6 @@ pub(super) mod account_identifier{
             .unwrap_or_default();
         public_key::try_read_from_file(value)
     }
-
 }
 
 /// Handles providing the arg for and retrieval of the purse URef.

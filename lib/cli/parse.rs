@@ -15,7 +15,8 @@ use casper_types::{
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
     types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
-    BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity, AccountIdentifier
+    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind,
+    PurseIdentifier, Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -776,26 +777,29 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
     if account_identifier.is_empty() {
-           return Err(CliError::InvalidArgument {
+        return Err(CliError::InvalidArgument {
             context: "account_identifier",
-            error: "cannot be empty string".to_string()});
+            error: "cannot be empty string".to_string(),
+        });
     }
 
     if account_identifier.starts_with(ACCOUNT_HASH_PREFIX) {
-        let account_hash = AccountHash::from_formatted_str(account_identifier).map_err(|error| {
-            CliError::FailedToParseAccountHash {
-                context: "account_identifier",
-                error,
-            }
-        })?;
+        let account_hash =
+            AccountHash::from_formatted_str(account_identifier).map_err(|error| {
+                CliError::FailedToParseAccountHash {
+                    context: "account_identifier",
+                    error,
+                }
+            })?;
         return Ok(AccountIdentifier::AccountHash(account_hash));
     }
 
-    let public_key =
-        PublicKey::from_hex(account_identifier).map_err(|error| CliError::FailedToParsePublicKey {
+    let public_key = PublicKey::from_hex(account_identifier).map_err(|error| {
+        CliError::FailedToParsePublicKey {
             context: "account_identifier".to_string(),
             error,
-        })?;
+        }
+    })?;
     Ok(AccountIdentifier::PublicKey(public_key))
 }
 
