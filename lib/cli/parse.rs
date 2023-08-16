@@ -306,6 +306,25 @@ fn args_from_simple_or_json_or_complex(
     }
 }
 
+fn check_exactly_one_args_type_not_empty(
+    simple: &Vec<&str>,
+    json: &str,
+    complex: &str,
+) -> Result<(), CliError> {
+    let count = [!simple.is_empty(), !json.is_empty(), !complex.is_empty()]
+        .iter()
+        .filter(|&&x| x)
+        .count();
+
+    if count != 1 {
+        return Err(CliError::ConflictingArguments {
+            context: "parse_session_info args conflict (simple json complex)",
+            args: vec![simple.join(", "), json.to_owned(), complex.to_owned()],
+        });
+    }
+    Ok(())
+}
+
 /// Private macro for enforcing parameter validity.
 /// e.g. check_exactly_one_not_empty!(
 ///   (field1) requires[another_field],
@@ -432,25 +451,11 @@ pub(super) fn session_executable_deploy_item(
             requires[] requires_empty[session_entry_point, session_version]
     );
 
-    if [
-        !session_args_simple.is_empty(),
-        !session_args_json.is_empty(),
-        !session_args_complex.is_empty(),
-    ]
-    .iter()
-    .filter(|&&x| x)
-    .count()
-        != 1
-    {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_session_info",
-            args: vec![
-                "session_args".to_owned(),
-                "session_args_json".to_owned(),
-                "session_args_complex".to_owned(),
-            ],
-        });
-    }
+    check_exactly_one_args_type_not_empty(
+        session_args_simple,
+        session_args_json,
+        session_args_complex,
+    )?;
 
     let session_args = args_from_simple_or_json_or_complex(
         arg_simple::session::parse(session_args_simple)?,
@@ -545,15 +550,12 @@ pub(super) fn payment_executable_deploy_item(
             requires[payment_entry_point] requires_empty[],
         (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
     );
-    if !payment_args_simple.is_empty() && !payment_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_payment_info",
-            args: vec![
-                "payment_args_simple".to_owned(),
-                "payment_args_complex".to_owned(),
-            ],
-        });
-    }
+
+    check_exactly_one_args_type_not_empty(
+        payment_args_simple,
+        payment_args_json,
+        payment_args_complex,
+    )?;
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
