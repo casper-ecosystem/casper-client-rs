@@ -431,10 +431,24 @@ pub(super) fn session_executable_deploy_item(
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
     );
-    if !session_args_simple.is_empty() && !session_args_complex.is_empty() {
+
+    if [
+        !session_args_simple.is_empty(),
+        !session_args_json.is_empty(),
+        !session_args_complex.is_empty(),
+    ]
+    .iter()
+    .filter(|&&x| x)
+    .count()
+        != 1
+    {
         return Err(CliError::ConflictingArguments {
             context: "parse_session_info",
-            args: vec!["session_args".to_owned(), "session_args_complex".to_owned()],
+            args: vec![
+                "session_args".to_owned(),
+                "session_args_json".to_owned(),
+                "session_args_complex".to_owned(),
+            ],
         });
     }
 
