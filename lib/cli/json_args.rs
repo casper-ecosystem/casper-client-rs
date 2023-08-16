@@ -16,6 +16,7 @@ use casper_types::{
 use crate::cli::CliError;
 pub use error::{Error, ErrorDetails};
 
+/// Represents a JSON argument with a name, type, and value.
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct JsonArg {
     name: String,
