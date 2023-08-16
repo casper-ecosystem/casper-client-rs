@@ -316,7 +316,7 @@ fn check_exactly_one_args_type_not_empty(
         .filter(|&&x| x)
         .count();
 
-    if count != 1 {
+    if count > 1 {
         return Err(CliError::ConflictingArguments {
             context: "parse_session_info args conflict (simple json complex)",
             args: vec![simple.join(", "), json.to_owned(), complex.to_owned()],
