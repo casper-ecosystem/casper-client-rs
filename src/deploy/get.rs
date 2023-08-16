@@ -1,7 +1,7 @@
 use std::str;
 
 use async_trait::async_trait;
-use clap::{Arg, ArgMatches, Command};
+use clap::{Arg, ArgAction, ArgMatches, Command};
 
 use casper_client::cli::CliError;
 
@@ -15,6 +15,7 @@ enum DisplayOrder {
     NodeAddress,
     RpcId,
     DeployHash,
+    FinalizedApprovals,
 }
 
 /// Handles providing the arg for and retrieval of the deploy hash.
@@ -41,6 +42,35 @@ mod deploy_hash {
     }
 }
 
+/// Handles providing the arg for the retrieval of the finalized approvals.
+mod finalized_approvals {
+    use super::*;
+
+    const ARG_NAME: &str = "get-finalized-approvals";
+    const ARG_SHORT: char = 'a';
+    const ARG_HELP: &str =
+        "If passed, the returned deploy approvals are the ones finalized in the block.\
+         Otherwise the approvals attached to the deploy when first received by the node \
+         will be returned";
+
+    pub(super) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .required(false)
+            .action(ArgAction::SetTrue)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::FinalizedApprovals as usize)
+    }
+
+    pub(super) fn get(matches: &ArgMatches) -> bool {
+        matches
+            .get_one::<bool>(ARG_NAME)
+            .copied()
+            .unwrap_or_default()
+    }
+}
+
 #[async_trait]
 impl ClientCommand for GetDeploy {
     const NAME: &'static str = "get-deploy";
@@ -56,6 +86,7 @@ impl ClientCommand for GetDeploy {
             ))
             .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
             .arg(deploy_hash::arg())
+            .arg(finalized_approvals::arg())
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
@@ -63,9 +94,16 @@ impl ClientCommand for GetDeploy {
         let node_address = common::node_address::get(matches);
         let verbosity_level = common::verbose::get(matches);
         let deploy_hash = deploy_hash::get(matches);
+        let finalized_approvals = finalized_approvals::get(matches);
 
-        casper_client::cli::get_deploy(maybe_rpc_id, node_address, verbosity_level, deploy_hash)
-            .await
-            .map(Success::from)
+        casper_client::cli::get_deploy(
+            maybe_rpc_id,
+            node_address,
+            verbosity_level,
+            deploy_hash,
+            finalized_approvals,
+        )
+        .await
+        .map(Success::from)
     }
 }

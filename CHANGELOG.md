@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.  The format
 
 ### Added
 * Add support for crafting unsigned deploys and transfers by providing an account, but not seccret key, to the `make-deploy` and `make-transfer` subcommands.
-
+* Added an optional flag to retrieve finalized approvals for `info_get_deploy`
 
 
 ## [2.0.0] - 2023-06-28
