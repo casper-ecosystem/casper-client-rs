@@ -306,7 +306,7 @@ fn args_from_simple_or_json_or_complex(
     }
 }
 
-fn check_exactly_one_args_type_not_empty(
+fn check_no_conflicting_arg_types(
     simple: &Vec<&str>,
     json: &str,
     complex: &str,
@@ -451,11 +451,7 @@ pub(super) fn session_executable_deploy_item(
             requires[] requires_empty[session_entry_point, session_version]
     );
 
-    check_exactly_one_args_type_not_empty(
-        session_args_simple,
-        session_args_json,
-        session_args_complex,
-    )?;
+    check_no_conflicting_arg_types(session_args_simple, session_args_json, session_args_complex)?;
 
     let session_args = args_from_simple_or_json_or_complex(
         arg_simple::session::parse(session_args_simple)?,
@@ -551,11 +547,7 @@ pub(super) fn payment_executable_deploy_item(
         (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
     );
 
-    check_exactly_one_args_type_not_empty(
-        payment_args_simple,
-        payment_args_json,
-        payment_args_complex,
-    )?;
+    check_no_conflicting_arg_types(payment_args_simple, payment_args_json, payment_args_complex)?;
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
