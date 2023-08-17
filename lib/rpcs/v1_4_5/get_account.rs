@@ -10,7 +10,7 @@ pub(crate) const GET_ACCOUNT_METHOD: &str = "state_get_account_info";
 
 /// Identifier of an account.
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[serde(deny_unknown_fields, untagged)]
 pub enum AccountIdentifier {
     /// The public key of an account
     PublicKey(PublicKey),
