@@ -307,6 +307,7 @@ fn args_from_simple_or_json_or_complex(
 }
 
 fn check_no_conflicting_arg_types(
+    context: &str,
     simple: &Vec<&str>,
     json: &str,
     complex: &str,
@@ -318,7 +319,7 @@ fn check_no_conflicting_arg_types(
 
     if count > 1 {
         return Err(CliError::ConflictingArguments {
-            context: "parse_session_info args conflict (simple json complex)",
+            context: format!("parse_session_info {context} args conflict (simple json complex)",),
             args: vec![simple.join(", "), json.to_owned(), complex.to_owned()],
         });
     }
@@ -436,7 +437,7 @@ pub(super) fn session_executable_deploy_item(
     let is_session_transfer = if session_transfer { "true" } else { "" };
 
     check_exactly_one_not_empty!(
-        context: "parse_session_info",
+        context: "parse_session_info".into(),
         (session_hash)
             requires[session_entry_point] requires_empty[session_version],
         (session_name)
@@ -451,7 +452,12 @@ pub(super) fn session_executable_deploy_item(
             requires[] requires_empty[session_entry_point, session_version]
     );
 
-    check_no_conflicting_arg_types(session_args_simple, session_args_json, session_args_complex)?;
+    check_no_conflicting_arg_types(
+        "session",
+        session_args_simple,
+        session_args_json,
+        session_args_complex,
+    )?;
 
     let session_args = args_from_simple_or_json_or_complex(
         arg_simple::session::parse(session_args_simple)?,
@@ -533,7 +539,7 @@ pub(super) fn payment_executable_deploy_item(
         payment_entry_point,
     } = params;
     check_exactly_one_not_empty!(
-        context: "parse_payment_info",
+        context: "parse_payment_info".into(),
         (payment_amount)
             requires[] requires_empty[payment_entry_point, payment_version],
         (payment_hash)
@@ -547,7 +553,12 @@ pub(super) fn payment_executable_deploy_item(
         (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
     );
 
-    check_no_conflicting_arg_types(payment_args_simple, payment_args_json, payment_args_complex)?;
+    check_no_conflicting_arg_types(
+        "payment",
+        payment_args_simple,
+        payment_args_json,
+        payment_args_complex,
+    )?;
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
@@ -830,7 +841,7 @@ mod tests {
                 is_session_transfer: false
             }),
             Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
+                context: "parse_session_info".into(),
                 ..
             })
         ));
@@ -850,7 +861,7 @@ mod tests {
                 payment_entry_point: "entrypoint",
             }),
             Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
+                context: "parse_payment_info".into(),
                 ..
             })
         ));
@@ -873,7 +884,7 @@ mod tests {
                 is_session_transfer: false
             }),
             Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
+                context: "parse_session_info".into(),
                 ..
             })
         ));
@@ -896,7 +907,7 @@ mod tests {
                 payment_entry_point: "",
             }),
             Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
+                context: "parse_payment_info".into(),
                 ..
             })
         ));
@@ -1129,7 +1140,7 @@ mod tests {
         ///         assert!(matches!(
         ///             info,
         ///             Err(CliError::ConflictingArguments {
-        ///                 context: "parse_session_info",
+        ///                 context: "parse_session_info".into(),
         ///                 args: conflicting
         ///             }
         ///             ))
@@ -1181,7 +1192,7 @@ mod tests {
                             assert!(matches!(
                                 info,
                                 Err(CliError::ConflictingArguments {
-                                    context: $context,
+                                    context: $context.to_string(),
                                     ..
                                 }
                                 ))
