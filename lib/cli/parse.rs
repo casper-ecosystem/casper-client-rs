@@ -1535,8 +1535,11 @@ mod tests {
             let account_hash =
                 "account-hash-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
             let parsed = account_identifier(account_hash).unwrap();
+            //This lint should be re-enabled once this bug is fixed. Currently, clippy erroneously flags this variable as unused on both lines.
+            #[allow(unused_variables)]
             let expected = AccountHash::from_formatted_str(account_hash).unwrap();
-            assert!(matches!(parsed, AccountIdentifier::AccountHash(expected)));
+            //The _ should be removed from this statement once the above clippy bug is fixed.
+            assert!(matches!(parsed, AccountIdentifier::AccountHash(_expected)));
         }
 
         #[test]

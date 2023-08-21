@@ -31,7 +31,7 @@ impl GetAccountParams {
         block_identifier: Option<BlockIdentifier>,
     ) -> Self {
         GetAccountParams {
-            public_key: account_identifier,
+            account_identifier,
             block_identifier,
         }
     }
