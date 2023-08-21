@@ -1,21 +1,23 @@
 //! The JSON-RPC request and response types at v1.5.0 of casper-node.
 
-pub(crate) mod get_account {
-    pub use crate::rpcs::v1_4_5::get_account::{AccountIdentifier, GetAccountResult};
-    pub(crate) use crate::rpcs::v1_5_0::get_account::{GetAccountParams, GET_ACCOUNT_METHOD};
-}
+pub(crate) mod get_account;
 
 // The following RPCs are all unchanged from v1.5.0, so we just re-export them.
 
 pub(crate) mod get_chainspec {
-    pub(crate) use crate::rpcs::v1_5_0::get_chainspec::GET_CHAINSPEC_METHOD;
+    pub(crate) use crate::rpcs::v1_5_0::get_chainspec::{GET_CHAINSPEC_METHOD};
+    pub use crate::rpcs::v1_5_0::get_chainspec::{ChainspecRawBytes, GetChainspecResult};
 }
 
 pub(crate) mod get_deploy {
-    pub(crate) use crate::rpcs::v1_5_0::get_deploy::{GetDeployParams, GET_DEPLOY_METHOD};
+    pub(crate) use crate::rpcs::v1_5_0::get_deploy::{
+        GetDeployParams, GET_DEPLOY_METHOD,
+    };
+    pub use crate::rpcs::v1_5_0::get_deploy::{GetDeployResult};
 }
 
 pub(crate) mod get_era_summary {
+    pub use crate::rpcs::v1_5_0::get_era_summary::GetEraSummaryResult;
     pub(crate) use crate::rpcs::v1_5_0::get_era_summary::{
         GetEraSummaryParams, GET_ERA_SUMMARY_METHOD,
     };
@@ -23,15 +25,21 @@ pub(crate) mod get_era_summary {
 
 pub(crate) mod get_node_status {
     pub(crate) use crate::rpcs::v1_5_0::get_node_status::GET_NODE_STATUS_METHOD;
+    pub use crate::rpcs::v1_5_0::get_node_status::{
+        ActivationPoint, AvailableBlockRange, GetNodeStatusResult, MinimalBlockInfo, NextUpgrade,
+        ReactorState,
+    };
 }
 
 pub(crate) mod query_balance {
+    pub use crate::rpcs::v1_5_0::query_balance::QueryBalanceResult;
     pub(crate) use crate::rpcs::v1_5_0::query_balance::{
         PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD,
     };
 }
 
 pub(crate) mod speculative_exec {
+    pub use crate::rpcs::v1_5_0::speculative_exec::SpeculativeExecResult;
     pub(crate) use crate::rpcs::v1_5_0::speculative_exec::{
         SpeculativeExecParams, SPECULATIVE_EXEC_METHOD,
     };
