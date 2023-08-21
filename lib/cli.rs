@@ -55,6 +55,8 @@ use crate::{
 };
 #[cfg(doc)]
 use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
+#[cfg(doc)]
+use casper_types::PublicKey;
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
 pub use error::CliError;
