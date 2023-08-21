@@ -1535,19 +1535,16 @@ mod tests {
             let account_hash =
                 "account-hash-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
             let parsed = account_identifier(account_hash).unwrap();
-            //This lint should be re-enabled once this bug is fixed. Currently, clippy erroneously flags this variable as unused on both lines.
-            #[allow(unused_variables)]
             let expected = AccountHash::from_formatted_str(account_hash).unwrap();
-            //The _ should be removed from this statement once the above clippy bug is fixed.
-            assert!(matches!(parsed, AccountIdentifier::AccountHash(_expected)));
+            assert_eq!(parsed, AccountIdentifier::AccountHash(expected));
         }
 
         #[test]
         pub fn should_parse_valid_public_key() {
             let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd2605d3f4bbb69b3c80";
             let parsed = account_identifier(public_key).unwrap();
-            let _expected = PublicKey::from_hex(public_key).unwrap();
-            assert!(matches!(parsed, AccountIdentifier::PublicKey(_expected)));
+            let expected = PublicKey::from_hex(public_key).unwrap();
+            assert_eq!(parsed, AccountIdentifier::PublicKey(expected));
         }
 
         #[test]
