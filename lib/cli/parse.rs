@@ -1526,13 +1526,13 @@ mod tests {
             }
         }
     }
-    mod account_identifier{
-        use casper_types::account::AccountHash;
-        use crate::rpcs::v1_6_0::get_account::AccountIdentifier;
+
+    mod account_identifier {
         use super::*;
         #[test]
         pub fn should_parse_valid_account_hash() {
-            let account_hash = "account-hash-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let account_hash =
+                "account-hash-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
             let parsed = account_identifier(account_hash).unwrap();
             let _expected = AccountHash::from_formatted_str(account_hash).unwrap();
             assert!(matches!(parsed, AccountIdentifier::AccountHash(_expected)));
@@ -1546,14 +1546,15 @@ mod tests {
         }
 
         #[test]
-        pub fn should_fail_to_parse_invalid_account_hash(){
+        pub fn should_fail_to_parse_invalid_account_hash() {
             //This is the account hash from above with several characters removed
-            let account_hash = "account-hash-c029c14904b870e1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let account_hash =
+                "account-hash-c029c14904b870e1d443d428c606740e82f341bea0f8542ca6494cef1383e";
             let parsed = account_identifier(account_hash);
             assert!(parsed.is_err());
         }
         #[test]
-        pub fn should_fail_to_parse_invalid_public_key(){
+        pub fn should_fail_to_parse_invalid_public_key() {
             //This is the public key from above with several characters removed
             let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd26054bbb69b3c80";
             let parsed = account_identifier(public_key);
