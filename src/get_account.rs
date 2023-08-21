@@ -10,6 +10,8 @@ use crate::{command::ClientCommand, common, Success};
 /// Legacy name of command.
 const COMMAND_ALIAS: &str = "get-account-info";
 const ACCOUNT_IDENTIFIER_IS_REQUIRED: bool = true;
+const ACCOUNT_IDENTIFIER_ALIAS: &str = "public-key";
+const ACCOUNT_IDENTIFIER_SHORT_ALIAS: char = 'p';
 
 pub struct GetAccount;
 
@@ -44,7 +46,7 @@ impl ClientCommand for GetAccount {
             .arg(common::account_identifier::arg(
                 DisplayOrder::AccountIdentifier as usize,
                 ACCOUNT_IDENTIFIER_IS_REQUIRED,
-            ))
+            ).alias(ACCOUNT_IDENTIFIER_ALIAS).short_alias(ACCOUNT_IDENTIFIER_SHORT_ALIAS))
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
