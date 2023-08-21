@@ -1529,14 +1529,16 @@ mod tests {
 
     mod account_identifier {
         use super::*;
+
         #[test]
         pub fn should_parse_valid_account_hash() {
             let account_hash =
                 "account-hash-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
             let parsed = account_identifier(account_hash).unwrap();
-            let _expected = AccountHash::from_formatted_str(account_hash).unwrap();
-            assert!(matches!(parsed, AccountIdentifier::AccountHash(_expected)));
+            let expected = AccountHash::from_formatted_str(account_hash).unwrap();
+            assert!(matches!(parsed, AccountIdentifier::AccountHash(expected)));
         }
+
         #[test]
         pub fn should_parse_valid_public_key() {
             let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd2605d3f4bbb69b3c80";
@@ -1553,6 +1555,7 @@ mod tests {
             let parsed = account_identifier(account_hash);
             assert!(parsed.is_err());
         }
+
         #[test]
         pub fn should_fail_to_parse_invalid_public_key() {
             //This is the public key from above with several characters removed

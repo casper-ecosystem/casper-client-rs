@@ -5,15 +5,13 @@ pub(crate) mod get_account;
 // The following RPCs are all unchanged from v1.5.0, so we just re-export them.
 
 pub(crate) mod get_chainspec {
-    pub(crate) use crate::rpcs::v1_5_0::get_chainspec::{GET_CHAINSPEC_METHOD};
+    pub(crate) use crate::rpcs::v1_5_0::get_chainspec::GET_CHAINSPEC_METHOD;
     pub use crate::rpcs::v1_5_0::get_chainspec::{ChainspecRawBytes, GetChainspecResult};
 }
 
 pub(crate) mod get_deploy {
-    pub(crate) use crate::rpcs::v1_5_0::get_deploy::{
-        GetDeployParams, GET_DEPLOY_METHOD,
-    };
-    pub use crate::rpcs::v1_5_0::get_deploy::{GetDeployResult};
+    pub use crate::rpcs::v1_5_0::get_deploy::GetDeployResult;
+    pub(crate) use crate::rpcs::v1_5_0::get_deploy::{GetDeployParams, GET_DEPLOY_METHOD};
 }
 
 pub(crate) mod get_era_summary {

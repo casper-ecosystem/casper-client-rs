@@ -1,12 +1,10 @@
-
 use serde::{Deserialize, Serialize};
 
 use casper_types::account::AccountHash;
 use casper_types::{ProtocolVersion, PublicKey};
 
-use crate::{rpcs::common::BlockIdentifier, types::Account};
 pub(crate) use crate::rpcs::v1_4_5::get_account::GET_ACCOUNT_METHOD;
-
+use crate::{rpcs::common::BlockIdentifier, types::Account};
 
 /// Identifier of an account.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -22,7 +20,7 @@ pub enum AccountIdentifier {
 #[serde(deny_unknown_fields)]
 pub(crate) struct GetAccountParams {
     ///The identifier of an Account. (named public key to match the JSON-RPC API)
-    public_key: AccountIdentifier,
+    account_identifier: AccountIdentifier,
     /// The block identifier.
     block_identifier: Option<BlockIdentifier>,
 }

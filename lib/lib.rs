@@ -72,9 +72,8 @@ use rpcs::{
         GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
         QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
     },
-    v1_6_0::get_account::AccountIdentifier,
     v1_6_0::{
-        get_account::{GetAccountParams, GET_ACCOUNT_METHOD},
+        get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
         get_auction_info::{GetAuctionInfoParams, GET_AUCTION_INFO_METHOD},
         get_balance::{GetBalanceParams, GET_BALANCE_METHOD},
         get_block::{GetBlockParams, GET_BLOCK_METHOD},

@@ -43,10 +43,14 @@ impl ClientCommand for GetAccount {
                 DisplayOrder::BlockIdentifier as usize,
                 true,
             ))
-            .arg(common::account_identifier::arg(
-                DisplayOrder::AccountIdentifier as usize,
-                ACCOUNT_IDENTIFIER_IS_REQUIRED,
-            ).alias(ACCOUNT_IDENTIFIER_ALIAS).short_alias(ACCOUNT_IDENTIFIER_SHORT_ALIAS))
+            .arg(
+                common::account_identifier::arg(
+                    DisplayOrder::AccountIdentifier as usize,
+                    ACCOUNT_IDENTIFIER_IS_REQUIRED,
+                )
+                .alias(ACCOUNT_IDENTIFIER_ALIAS)
+                .short_alias(ACCOUNT_IDENTIFIER_SHORT_ALIAS),
+            )
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
