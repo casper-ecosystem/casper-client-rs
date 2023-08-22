@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use casper_hashing::Digest;
 use casper_types::{
     bytesrepr::{self, ToBytes},
-    crypto, PublicKey, SecretKey, Signature, URef, U512,
+    crypto, PublicKey, RuntimeArgs, SecretKey, Signature, URef, U512,
 };
 
 use crate::{
@@ -421,9 +421,15 @@ impl<'a> DeployBuilder<'a> {
         maybe_source: Option<URef>,
         target: TransferTarget,
         maybe_transfer_id: Option<u64>,
+        maybe_args: Option<RuntimeArgs>,
     ) -> Self {
-        let session =
-            ExecutableDeployItem::new_transfer(amount, maybe_source, target, maybe_transfer_id);
+        let session = ExecutableDeployItem::new_transfer(
+            amount,
+            maybe_source,
+            target,
+            maybe_transfer_id,
+            maybe_args,
+        );
         DeployBuilder::new(chain_name, session)
     }
 

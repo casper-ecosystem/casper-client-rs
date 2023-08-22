@@ -225,6 +225,7 @@ fn should_create_transfer() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
     );
 
     assert!(transfer_deploy.is_ok());
@@ -244,6 +245,7 @@ fn should_create_transfer() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
     );
 
     assert!(transfer_deploy.is_ok());
@@ -262,6 +264,32 @@ fn should_create_transfer() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
+    );
+
+    assert!(transfer_deploy.is_ok());
+    assert!(matches!(
+        transfer_deploy.unwrap().session(),
+        ExecutableDeployItem::Transfer { .. }
+    ));
+}
+
+#[test]
+fn should_create_transfer_with_custom_args() {
+    use casper_types::{AsymmetricType, PublicKey};
+
+    // with public key.
+    let secret_key = SecretKey::generate_ed25519().unwrap();
+    let public_key = PublicKey::from(&secret_key).to_hex();
+    let transfer_deploy = deploy::new_transfer(
+        "10000",
+        None,
+        &public_key,
+        "1",
+        deploy_params(),
+        PaymentStrParams::with_amount("100"),
+        false,
+        vec!["targetAccountHex:public_key='012bac1d0ff9240ff0b7b06d555815640497861619ca12583ddef434885416e69b'"],
     );
 
     assert!(transfer_deploy.is_ok());
@@ -281,6 +309,7 @@ fn should_fail_to_create_transfer_with_bad_args() {
         deploy_params(),
         PaymentStrParams::with_amount("100"),
         false,
+        Vec::new(),
     );
 
     println!("{:?}", transfer_deploy);
@@ -345,6 +374,7 @@ fn should_create_unsigned_transfer() {
         deploy_params_without_secret_key(),
         PaymentStrParams::with_amount("100"),
         true,
+        Vec::new(),
     )
     .unwrap();
     assert!(transfer_deploy.approvals().is_empty());
@@ -366,6 +396,7 @@ fn should_fail_to_create_transfer_without_account() {
         deploy_params_without_account(),
         PaymentStrParams::with_amount("100"),
         true,
+        Vec::new(),
     );
     assert!(transfer_deploy.is_err());
     assert!(matches!(
@@ -392,6 +423,7 @@ fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned
         deploy_params,
         payment_params,
         false,
+        Vec::new(),
     );
 
     assert!(transfer_deploy.is_err());

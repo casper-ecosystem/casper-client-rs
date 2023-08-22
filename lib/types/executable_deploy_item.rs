@@ -169,8 +169,12 @@ impl ExecutableDeployItem {
         maybe_source: Option<URef>,
         target: TransferTarget,
         maybe_transfer_id: Option<u64>,
+        maybe_args: Option<RuntimeArgs>,
     ) -> Self {
-        let mut args = RuntimeArgs::new();
+        let mut args = match maybe_args {
+            Some(x) => x,
+            None => RuntimeArgs::new(),
+        };
         args.insert(TRANSFER_ARG_AMOUNT, amount.into())
             .expect("should serialize amount arg");
 
