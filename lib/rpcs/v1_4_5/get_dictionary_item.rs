@@ -11,7 +11,7 @@ use crate::Error;
 pub(crate) const GET_DICTIONARY_ITEM_METHOD: &str = "state_get_dictionary_item";
 
 /// The identifier for a dictionary item.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub enum DictionaryItemIdentifier {
     /// A dictionary item identified via an [`Account`]'s named keys.
