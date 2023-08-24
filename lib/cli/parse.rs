@@ -511,11 +511,14 @@ pub(super) fn session_executable_deploy_item(
             args: session_args,
         });
     }
-
-    let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
-        context: format!("unable to read session file at '{}'", session_path),
-        error,
-    })?;
+    let module_bytes = if session_path != "sdk" {
+        fs::read(session_path).map_err(|error| crate::Error::IoError {
+            context: format!("unable to read session file at '{}'", session_path),
+            error,
+        })?
+    } else {
+        Vec::new()
+    };
     Ok(ExecutableDeployItem::ModuleBytes {
         module_bytes: module_bytes.into(),
         args: session_args,
