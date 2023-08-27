@@ -1,24 +1,22 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use std::{convert::TryInto, fs, io, path::Path, str::FromStr};
-
-use rand::Rng;
-use serde::{self, Deserialize};
-
+use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
+#[cfg(not(any(feature = "sdk")))]
+use crate::OutputKind;
+use crate::{BlockIdentifier, GlobalStateIdentifier, JsonRpcId, PurseIdentifier, Verbosity};
+#[cfg(not(any(feature = "sdk")))]
+use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash, bytesrepr, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
     Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff,
     Timestamp, UIntParseError, URef, U512,
 };
-
+use rand::Rng;
+use serde::{self, Deserialize};
 #[cfg(not(any(feature = "sdk")))]
-use casper_types::SecretKey;
-
-use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
-use crate::{
-    BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
-};
+use std::path::Path;
+use std::{convert::TryInto, fs, io, str::FromStr};
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
     if maybe_rpc_id.is_empty() {
@@ -38,6 +36,7 @@ pub(super) fn verbosity(verbosity_level: u64) -> Verbosity {
     }
 }
 
+#[cfg(not(any(feature = "sdk")))]
 pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     if maybe_output_path.is_empty() {
         OutputKind::Stdout

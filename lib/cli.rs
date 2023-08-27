@@ -121,16 +121,19 @@ pub async fn speculative_put_deploy(
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 pub fn make_deploy(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     deploy_params: DeployStrParams<'_>,
     session_params: SessionStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
+    #[allow(unused_variables)] force: bool,
 ) -> Result<Deploy, CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
     let deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)?;
-    let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    #[cfg(not(any(feature = "sdk")))]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    }
     Ok(deploy)
 }
 
@@ -276,15 +279,14 @@ pub async fn speculative_transfer(
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 pub fn make_transfer(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     amount: &str,
     target_account: &str,
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
+    #[allow(unused_variables)] force: bool,
 ) -> Result<Deploy, CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
     let deploy = deploy::new_transfer(
         amount,
         None,
@@ -294,7 +296,11 @@ pub fn make_transfer(
         payment_params,
         true,
     )?;
-    let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    #[cfg(not(any(feature = "sdk")))]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    }
     Ok(deploy)
 }
 
