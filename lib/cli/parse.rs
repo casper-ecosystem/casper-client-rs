@@ -757,7 +757,7 @@ pub(super) fn global_state_identifier(
 }
 
 /// `purse_id` can be a formatted public key, account hash, or URef.  It may not be empty.
-pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
+pub fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
     const UREF_PREFIX: &str = "uref-";
 
