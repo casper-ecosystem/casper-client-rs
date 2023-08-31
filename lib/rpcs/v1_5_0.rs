@@ -88,7 +88,4 @@ pub(crate) mod query_global_state {
     pub use crate::rpcs::v1_4_5::query_global_state::{
         GlobalStateIdentifier, QueryGlobalStateResult,
     };
-    pub(crate) use crate::rpcs::v1_4_5::query_global_state::{
-        QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD,
-    };
 }
