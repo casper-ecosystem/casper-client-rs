@@ -143,7 +143,7 @@ impl ClientCommand for QueryGlobalState {
                 ArgGroup::new("state-identifier")
                     .arg(common::block_identifier::ARG_NAME)
                     .arg(common::state_root_hash::ARG_NAME)
-                    .required(true),
+                    .required(false),
             )
             .arg(key::arg(DisplayOrder::Key as usize))
             .arg(path::arg(DisplayOrder::Path as usize))
