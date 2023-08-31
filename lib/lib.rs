@@ -296,7 +296,7 @@ pub async fn query_global_state(
     rpc_id: JsonRpcId,
     node_address: &str,
     verbosity: Verbosity,
-    global_state_identifier: GlobalStateIdentifier,
+    global_state_identifier: Option<GlobalStateIdentifier>,
     key: Key,
     path: Vec<String>,
 ) -> Result<SuccessResponse<QueryGlobalStateResult>, Error> {
