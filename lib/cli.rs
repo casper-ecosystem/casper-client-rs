@@ -409,8 +409,7 @@ pub async fn query_global_state(
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let global_state_identifier =
-        parse::global_state_identifier(maybe_block_id, maybe_state_root_hash)?
-            .ok_or(CliError::FailedToParseStateIdentifier)?;
+        parse::global_state_identifier(maybe_block_id, maybe_state_root_hash)?;
     let key = parse::key_for_query(key)?;
     let path = if path.is_empty() {
         vec![]
