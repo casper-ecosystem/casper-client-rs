@@ -16,7 +16,7 @@ pub(crate) struct GetAccountParams {
 }
 
 impl GetAccountParams {
-    //This clippy link should be re-enabled once the client is updated to handle multiple different node versions.
+    //This clippy lint should be re-enabled once the client is updated to handle multiple different node versions.
     #[allow(dead_code)]
     pub(crate) fn new(public_key: PublicKey, block_identifier: Option<BlockIdentifier>) -> Self {
         GetAccountParams {
