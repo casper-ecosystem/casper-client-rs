@@ -3,6 +3,7 @@
 pub(crate) mod get_account;
 
 pub(crate) mod query_global_state;
+
 // The following RPCs are all unchanged from v1.5.0, so we just re-export them.
 
 pub(crate) mod get_chainspec {
