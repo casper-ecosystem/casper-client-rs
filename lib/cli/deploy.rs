@@ -39,7 +39,6 @@ pub fn with_payment_and_session(
         .with_ttl(ttl);
 
     if let Some(secret_key) = &maybe_secret_key {
-        println!("secret key: {:?}", secret_key);
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }
     if let Some(account) = maybe_session_account {

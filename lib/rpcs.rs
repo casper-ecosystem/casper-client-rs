@@ -6,6 +6,8 @@ pub mod results;
 pub(crate) mod v1_4_5;
 /// RPCs provided by the v1.5.0 node.
 pub(crate) mod v1_5_0;
+/// RPCs provided by the v1.6.0 node.
+pub(crate) mod v1_6_0;
 /// RPCs provided by the v2.0.0 node.
 pub(crate) mod v2_0_0;
 

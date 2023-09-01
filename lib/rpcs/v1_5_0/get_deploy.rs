@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::LegacyExecutionResult;
 use casper_types::{BlockHashAndHeight, Deploy, ProtocolVersion};
+
+pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_METHOD};
+use crate::types::LegacyExecutionResult;
 
 /// The `result` field of a successful JSON-RPC response to an `info_get_deploy` request.
 #[derive(Serialize, Deserialize, Debug)]

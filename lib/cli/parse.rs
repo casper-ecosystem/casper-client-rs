@@ -14,7 +14,8 @@ use casper_types::{
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
-    BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
+    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind,
+    PurseIdentifier, Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -376,10 +377,12 @@ macro_rules! check_exactly_one_not_empty {
                 });
             }
         } else {
-            let mut non_empty_fields_with_values = vec![$((stringify!($x), $x)),+]
+            // Here we have more than one non-empty arg, so it is an error.  Collect all non-empty
+            // fields and their values into a string to populate the returned Error.
+            let mut non_empty_fields_with_values = [$((stringify!($x), $x)),+]
                 .iter()
-                .filter_map(|(field, value)| if !value.is_empty() {
-                    Some(format!("{}={}", field, value))
+                .filter_map(|(field_name, field_value)| if !field_value.is_empty() {
+                    Some(format!("{}={}", field_name, field_value))
                 } else {
                     None
                 })
@@ -768,6 +771,39 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
             error,
         })?;
     Ok(PurseIdentifier::MainPurseUnderPublicKey(public_key))
+}
+
+/// `account_identifier` can be a formatted public key, in the form of a hex-formatted string,
+/// a pem file, or a file containing a hex formatted string, or a formatted string representing
+/// an account hash.  It may not be empty.
+pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
+    const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
+
+    if account_identifier.is_empty() {
+        return Err(CliError::InvalidArgument {
+            context: "account_identifier",
+            error: "cannot be empty string".to_string(),
+        });
+    }
+
+    if account_identifier.starts_with(ACCOUNT_HASH_PREFIX) {
+        let account_hash =
+            AccountHash::from_formatted_str(account_identifier).map_err(|error| {
+                CliError::FailedToParseAccountHash {
+                    context: "account_identifier",
+                    error,
+                }
+            })?;
+        return Ok(AccountIdentifier::AccountHash(account_hash));
+    }
+
+    let public_key = PublicKey::from_hex(account_identifier).map_err(|error| {
+        CliError::FailedToParsePublicKey {
+            context: "account_identifier".to_string(),
+            error,
+        }
+    })?;
+    Ok(AccountIdentifier::PublicKey(public_key))
 }
 
 #[cfg(test)]
@@ -1489,6 +1525,44 @@ mod tests {
                     other => panic!("incorrect type parsed {:?}", other),
                 }
             }
+        }
+    }
+
+    mod account_identifier {
+        use super::*;
+
+        #[test]
+        pub fn should_parse_valid_account_hash() {
+            let account_hash =
+                "account-hash-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let parsed = account_identifier(account_hash).unwrap();
+            let expected = AccountHash::from_formatted_str(account_hash).unwrap();
+            assert_eq!(parsed, AccountIdentifier::AccountHash(expected));
+        }
+
+        #[test]
+        pub fn should_parse_valid_public_key() {
+            let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd2605d3f4bbb69b3c80";
+            let parsed = account_identifier(public_key).unwrap();
+            let expected = PublicKey::from_hex(public_key).unwrap();
+            assert_eq!(parsed, AccountIdentifier::PublicKey(expected));
+        }
+
+        #[test]
+        pub fn should_fail_to_parse_invalid_account_hash() {
+            //This is the account hash from above with several characters removed
+            let account_hash =
+                "account-hash-c029c14904b870e1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let parsed = account_identifier(account_hash);
+            assert!(parsed.is_err());
+        }
+
+        #[test]
+        pub fn should_fail_to_parse_invalid_public_key() {
+            //This is the public key from above with several characters removed
+            let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd26054bbb69b3c80";
+            let parsed = account_identifier(public_key);
+            assert!(parsed.is_err());
         }
     }
 }
