@@ -377,10 +377,12 @@ macro_rules! check_exactly_one_not_empty {
                 });
             }
         } else {
+            // Here we have more than one non-empty arg, so it is an error.  Collect all non-empty
+            // fields and their values into a string to populate the returned Error.
             let mut non_empty_fields_with_values = [$((stringify!($x), $x)),+]
                 .iter()
-                .filter_map(|(field, value)| if !value.is_empty() {
-                    Some(format!("{}={}", field, value))
+                .filter_map(|(field_name, field_value)| if !field_value.is_empty() {
+                    Some(format!("{}={}", field_name, field_value))
                 } else {
                     None
                 })
