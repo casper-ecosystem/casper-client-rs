@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{JsonBlock, ProtocolVersion};
+use casper_types::{Block, ProtocolVersion};
 
 use crate::rpcs::common::BlockIdentifier;
 
@@ -25,5 +25,5 @@ pub struct GetBlockResult {
     /// The JSON-RPC server version.
     pub api_version: ProtocolVersion,
     /// The block, if found.
-    pub block: Option<JsonBlock>,
+    pub block: Option<Block>,
 }

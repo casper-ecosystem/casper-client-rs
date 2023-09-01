@@ -1,4 +1,6 @@
-use casper_types::{DeployExcessiveSizeError, ExecutableDeployItem, SecretKey};
+use casper_types::{
+    AsymmetricType, DeployExcessiveSizeError, ExecutableDeployItem, PublicKey, SecretKey,
+};
 
 use crate::{Error, OutputKind, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 
@@ -179,7 +181,7 @@ fn should_fail_to_create_large_deploy() {
 #[test]
 fn should_read_deploy() {
     let bytes = SAMPLE_DEPLOY.as_bytes();
-    assert!(matches!(crate::read_deploy(bytes), Ok(_)));
+    assert!(crate::read_deploy(bytes).is_ok());
 }
 
 #[test]
