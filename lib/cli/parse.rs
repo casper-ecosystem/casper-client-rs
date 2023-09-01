@@ -8,9 +8,10 @@ use crate::{BlockIdentifier, GlobalStateIdentifier, JsonRpcId, PurseIdentifier, 
 #[cfg(not(any(feature = "sdk")))]
 use casper_types::SecretKey;
 use casper_types::{
-    account::AccountHash, bytesrepr, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
-    Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff,
-    Timestamp, UIntParseError, URef, U512,
+    account::AccountHash,
+    bytesrepr::{self, Bytes},
+    crypto, AsymmetricType, BlockHash, CLValue, DeployHash, Digest, ExecutableDeployItem, HashAddr,
+    Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
 use rand::Rng;
 use serde::{self, Deserialize};
@@ -425,6 +426,7 @@ pub(super) fn session_executable_deploy_item(
         session_package_hash,
         session_package_name,
         session_path,
+        session_bytes,
         ref session_args_simple,
         session_args_json,
         session_args_complex,
@@ -434,6 +436,12 @@ pub(super) fn session_executable_deploy_item(
     } = params;
     // This is to make sure that we're using &str consistently in the macro call below.
     let is_session_transfer = if session_transfer { "true" } else { "" };
+
+    let session_bytes_str: String = if session_bytes.is_empty() {
+        String::default()
+    } else {
+        String::from_utf8_lossy(&session_bytes).into_owned()
+    };
 
     check_exactly_one_not_empty!(
         context: "parse_session_info".into(),
@@ -447,6 +455,8 @@ pub(super) fn session_executable_deploy_item(
             requires[session_entry_point] requires_empty[],
         (session_path)
             requires[] requires_empty[session_entry_point, session_version],
+        (&session_bytes_str)
+            requires[] requires_empty[session_entry_point, session_version, session_path],
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
     );
@@ -510,16 +520,20 @@ pub(super) fn session_executable_deploy_item(
             args: session_args,
         });
     }
-    let module_bytes = if session_path != "sdk" {
-        fs::read(session_path).map_err(|error| crate::Error::IoError {
-            context: format!("unable to read session file at '{}'", session_path),
-            error,
-        })?
+    let module_bytes = if !session_path.is_empty() {
+        fs::read(session_path)
+            .map_err(|error| crate::Error::IoError {
+                context: format!("unable to read session file at '{}'", session_path),
+                error,
+            })?
+            .into()
+    } else if !session_bytes.is_empty() {
+        session_bytes
     } else {
-        Vec::new()
+        Bytes::new()
     };
     Ok(ExecutableDeployItem::ModuleBytes {
-        module_bytes: module_bytes.into(),
+        module_bytes,
         args: session_args,
     })
 }

@@ -1,3 +1,5 @@
+use casper_types::bytesrepr::Bytes;
+
 /// Container for session-related arguments used while constructing a `Deploy`.
 ///
 /// ## `session_args_simple`
@@ -36,6 +38,7 @@ pub struct SessionStrParams<'a> {
     pub(super) session_package_hash: &'a str,
     pub(super) session_package_name: &'a str,
     pub(super) session_path: &'a str,
+    pub(super) session_bytes: Bytes,
     pub(super) session_args_simple: Vec<&'a str>,
     pub(super) session_args_json: &'a str,
     pub(super) session_args_complex: &'a str,
@@ -59,6 +62,27 @@ impl<'a> SessionStrParams<'a> {
     ) -> Self {
         Self {
             session_path,
+            session_args_simple,
+            session_args_json,
+            session_args_complex,
+            ..Default::default()
+        }
+    }
+
+    /// Constructs a `SessionStrParams` using session bytes.
+    ///
+    /// * `session_bytes` are the bytes of the compiled Wasm session code.
+    /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
+    ///   [`session_args_json`](#session_args_json) and
+    ///   [`session_args_complex`](#session_args_complex).
+    pub fn with_bytes(
+        session_bytes: Bytes,
+        session_args_simple: Vec<&'a str>,
+        session_args_json: &'a str,
+        session_args_complex: &'a str,
+    ) -> Self {
+        Self {
+            session_bytes,
             session_args_simple,
             session_args_json,
             session_args_complex,
