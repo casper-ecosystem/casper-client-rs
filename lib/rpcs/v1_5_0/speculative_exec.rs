@@ -25,7 +25,7 @@ impl SpeculativeExecParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `speculative_exec` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct SpeculativeExecResult {
     /// The JSON-RPC server version.
