@@ -14,9 +14,13 @@ All notable changes to this project will be documented in this file.  The format
 ## Unreleased
 
 ### Added
-* Add support for crafting unsigned deploys and transfers by providing an account, but not seccret key, to the `make-deploy` and `make-transfer` subcommands.
+* Add support for crafting unsigned deploys and transfers by providing an account, but not secret key, to the `make-deploy` and `make-transfer` subcommands.
 * Added an optional flag to retrieve finalized approvals for `info_get_deploy`
 * Add support for providing an account identifier (public key, or account hash) for the `state_get_account_info` RPC method.
+
+### Changed
+* Changed query-global-state to support omitting a global state identifier, if no global state identifier is provided the latest block will be used.
+
 
 
 ## [2.0.0] - 2023-06-28

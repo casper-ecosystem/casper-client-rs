@@ -2,18 +2,21 @@ use serde::{Deserialize, Serialize};
 
 use casper_types::{Key, ProtocolVersion};
 
-pub use crate::rpcs::common::GlobalStateIdentifier;
-use crate::types::{BlockHeader, StoredValue};
+pub(crate) use crate::rpcs::v1_4_5::query_global_state::QUERY_GLOBAL_STATE_METHOD;
+use crate::{
+    rpcs::common::GlobalStateIdentifier,
+    types::{BlockHeader, StoredValue},
+};
+
 #[cfg(doc)]
 use crate::BlockIdentifier;
-
-pub(crate) const QUERY_GLOBAL_STATE_METHOD: &str = "query_global_state";
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct QueryGlobalStateParams {
-    /// The identifier used for the query.
-    state_identifier: GlobalStateIdentifier,
+    /// The identifier used for the query. If none is passed
+    /// the tip of the chain will be used.
+    state_identifier: Option<GlobalStateIdentifier>,
     /// `casper_types::Key` as formatted string.
     key: String,
     /// The path components starting from the key as base.
@@ -21,10 +24,8 @@ pub(crate) struct QueryGlobalStateParams {
 }
 
 impl QueryGlobalStateParams {
-    //This clippy lint should be re-enabled once the client is updated to handle multiple different node versions.
-    #[allow(dead_code)]
     pub(crate) fn new(
-        state_identifier: GlobalStateIdentifier,
+        state_identifier: Option<GlobalStateIdentifier>,
         key: Key,
         path: Vec<String>,
     ) -> Self {
