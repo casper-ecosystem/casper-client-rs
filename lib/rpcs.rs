@@ -12,6 +12,6 @@ pub(crate) mod v1_6_0;
 pub(crate) mod v2_0_0;
 
 pub use v2_0_0::{
-    get_dictionary_item::DictionaryItemIdentifier, query_balance::PurseIdentifier,
-    query_global_state::GlobalStateIdentifier,
+    get_account::AccountIdentifier, get_dictionary_item::DictionaryItemIdentifier,
+    query_balance::PurseIdentifier, query_global_state::GlobalStateIdentifier,
 };

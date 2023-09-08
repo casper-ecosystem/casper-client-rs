@@ -31,6 +31,8 @@ mod payment_str_params;
 mod session_str_params;
 mod simple_args;
 #[cfg(feature = "sdk")]
+pub use parse::account_identifier as parse_account_identifier;
+#[cfg(feature = "sdk")]
 pub use parse::purse_identifier as parse_purse_identifier;
 #[cfg(feature = "sdk")]
 pub use simple_args::insert_arg;
