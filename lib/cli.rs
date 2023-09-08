@@ -42,7 +42,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{crypto, AsymmetricType, Deploy, Digest, PublicKey, URef};
+use casper_types::{Deploy, Digest, URef};
 
 use crate::{
     rpcs::{
@@ -59,6 +59,8 @@ use crate::{
 };
 #[cfg(doc)]
 use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
+#[cfg(doc)]
+use casper_types::PublicKey;
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
 pub use error::CliError;
@@ -554,16 +556,12 @@ pub async fn get_account(
     node_address: &str,
     verbosity_level: u64,
     maybe_block_id: &str,
-    public_key: &str,
+    account_identifier: &str,
 ) -> Result<SuccessResponse<GetAccountResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let maybe_block_id = parse::block_identifier(maybe_block_id)?;
-    let account_identifier =
-        PublicKey::from_hex(public_key).map_err(|error| crate::Error::CryptoError {
-            context: "public key in get_account",
-            error: crypto::ErrorExt::from(error),
-        })?;
+    let account_identifier = parse::account_identifier(account_identifier)?;
 
     crate::get_account(
         rpc_id,

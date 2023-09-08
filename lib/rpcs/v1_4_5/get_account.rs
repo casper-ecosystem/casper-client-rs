@@ -9,11 +9,16 @@ pub(crate) const GET_ACCOUNT_METHOD: &str = "state_get_account_info";
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct GetAccountParams {
+    ///The identifier of an Account. (named public key to match the JSON-RPC API)
     public_key: PublicKey,
+    /// The block identifier.
     block_identifier: Option<BlockIdentifier>,
 }
 
 impl GetAccountParams {
+    // This lint should be re-enabled once the client is updated to handle multiple different node
+    // node versions.
+    #[allow(dead_code)]
     pub(crate) fn new(public_key: PublicKey, block_identifier: Option<BlockIdentifier>) -> Self {
         GetAccountParams {
             public_key,
