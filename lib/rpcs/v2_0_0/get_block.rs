@@ -13,5 +13,5 @@ pub struct GetBlockResult {
     /// The JSON-RPC server version.
     pub api_version: ProtocolVersion,
     /// The block, if found.
-    pub block: Option<JsonBlockWithSignatures>,
+    pub block_with_signatures: Option<JsonBlockWithSignatures>,
 }
