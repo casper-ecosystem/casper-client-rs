@@ -1,6 +1,7 @@
 //! The JSON-RPC request and response types at v2.0.0 of casper-node.
 
 pub(crate) mod get_deploy;
+pub mod get_block;
 
 // The following RPCs are all unchanged from v1.6.0, so we just re-export them.
 
@@ -19,11 +20,6 @@ pub(crate) mod get_auction_info {
 pub(crate) mod get_balance {
     pub use crate::rpcs::v1_6_0::get_balance::GetBalanceResult;
     pub(crate) use crate::rpcs::v1_6_0::get_balance::{GetBalanceParams, GET_BALANCE_METHOD};
-}
-
-pub(crate) mod get_block {
-    pub use crate::rpcs::v1_6_0::get_block::GetBlockResult;
-    pub(crate) use crate::rpcs::v1_6_0::get_block::{GetBlockParams, GET_BLOCK_METHOD};
 }
 
 pub(crate) mod get_block_transfers {
