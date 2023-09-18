@@ -1,6 +1,7 @@
 //! The JSON-RPC request and response types at v2.0.0 of casper-node.
 
 pub(crate) mod get_deploy;
+
 pub mod get_block;
 
 // The following RPCs are all unchanged from v1.6.0, so we just re-export them.
