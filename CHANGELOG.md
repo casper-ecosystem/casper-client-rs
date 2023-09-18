@@ -48,6 +48,8 @@ All notable changes to this project will be documented in this file.  The format
 * Add an optional flag to retrieve finalized approvals for `info_get_deploy`
 * Add support for providing an account identifier (public key, or account hash) for the `state_get_account_info` RPC method.
 
+### Fixed
+* Fix `GetBlockResult` to match the node's RPC response via `JsonBlockWithSignatures`, and provide block proofs.
 
 
 ## [2.0.0] - 2023-06-28
