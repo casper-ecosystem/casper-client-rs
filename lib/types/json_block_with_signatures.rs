@@ -22,12 +22,3 @@ impl KeyValueLabels for BlockProofLabels {
     const KEY: &'static str = "public_key";
     const VALUE: &'static str = "signature";
 }
-
-impl KeyValueJsonSchema for BlockProofLabels {
-    const JSON_SCHEMA_KV_NAME: Option<&'static str> = Some("BlockProof");
-    const JSON_SCHEMA_KV_DESCRIPTION: Option<&'static str> = Some(
-        "A validator's public key paired with a corresponding signature of a given block hash.",
-    );
-    const JSON_SCHEMA_KEY_DESCRIPTION: Option<&'static str> = Some("The validator's public key.");
-    const JSON_SCHEMA_VALUE_DESCRIPTION: Option<&'static str> = Some("The validator's signature.");
-}
