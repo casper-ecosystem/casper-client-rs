@@ -7,7 +7,6 @@ use casper_types::{Block, PublicKey, Signature};
 
 /// A JSON-friendly representation of a block and the signatures for that block.
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
-#[cfg_attr(feature = "datasize", derive(DataSize))]
 #[serde(deny_unknown_fields)]
 pub struct JsonBlockWithSignatures {
     /// The block.
