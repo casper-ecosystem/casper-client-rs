@@ -60,7 +60,7 @@ use crate::{
     SuccessResponse,
 };
 #[cfg(doc)]
-use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
+use crate::{Account, Block, Error, StoredValue, Transfer};
 #[cfg(doc)]
 use casper_types::PublicKey;
 pub use deploy_str_params::DeployStrParams;
