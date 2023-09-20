@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
-use serde_map_to_array::{BTreeMapToArray, KeyValueJsonSchema, KeyValueLabels, };
+use serde_map_to_array::{BTreeMapToArray, KeyValueLabels};
 
 use casper_types::{Block, PublicKey, Signature};
 
