@@ -58,7 +58,7 @@ assets = [["./target/release/casper-client", "/usr/bin/casper-client", "755"], ]
 extended-description = """
 Package for Casper Client to connect to Casper Node.
 
-For information on using package, see https://github.com/CasperLabs/casper-node
+For information on using package, see https://github.com/casper-network/casper-node
 """
 
 [package.metadata.deb.variants.bionic]
