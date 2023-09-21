@@ -1,13 +1,10 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 #[cfg(not(any(feature = "sdk")))]
-use crate::OutputKind;
-use crate::{
-    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, PurseIdentifier,
-    Verbosity,
-};
+use std::path::Path;
+use std::{convert::TryInto, fs, io, str::FromStr};
+
 #[cfg(not(any(feature = "sdk")))]
 use casper_types::SecretKey;
 use casper_types::{
@@ -18,9 +15,14 @@ use casper_types::{
 };
 use rand::Rng;
 use serde::{self, Deserialize};
+
+use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 #[cfg(not(any(feature = "sdk")))]
-use std::path::Path;
-use std::{convert::TryInto, fs, io, str::FromStr};
+use crate::OutputKind;
+use crate::{
+    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, PurseIdentifier,
+    Verbosity,
+};
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
     if maybe_rpc_id.is_empty() {
