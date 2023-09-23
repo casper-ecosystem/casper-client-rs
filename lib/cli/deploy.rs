@@ -99,28 +99,42 @@ pub fn new_transfer(
     Ok(deploy)
 }
 
+#[cfg(not(feature = "sdk"))]
 fn get_maybe_secret_key(
     secret_key: &str,
     allow_unsigned_deploy: bool,
 ) -> Result<Option<SecretKey>, CliError> {
     if !secret_key.is_empty() {
-        #[cfg(feature = "sdk")]
-        {
-            let secret_key: SecretKey = match SecretKey::from_pem(secret_key) {
-                Ok(key) => key,
-                Err(error) => {
-                    return Err(CliError::Core(crate::Error::CryptoError {
-                        context: "secret key",
-                        error,
-                    }));
-                }
-            };
-            Ok(Some(secret_key))
-        }
-        #[cfg(not(feature = "sdk"))]
-        {
-            Ok(Some(parse::secret_key_from_file(secret_key)?))
-        }
+        Ok(Some(parse::secret_key_from_file(secret_key)?))
+    } else if !allow_unsigned_deploy {
+        Err(CliError::InvalidArgument {
+            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
+            error: format!(
+                "allow_unsigned_deploy was {}, but no secret key was provided",
+                allow_unsigned_deploy
+            ),
+        })
+    } else {
+        Ok(None)
+    }
+}
+
+#[cfg(feature = "sdk")]
+fn get_maybe_secret_key(
+    secret_key: &str,
+    allow_unsigned_deploy: bool,
+) -> Result<Option<SecretKey>, CliError> {
+    if !secret_key.is_empty() {
+        let secret_key: SecretKey = match SecretKey::from_pem(secret_key) {
+            Ok(key) => key,
+            Err(error) => {
+                return Err(CliError::Core(crate::Error::CryptoError {
+                    context: "secret key",
+                    error,
+                }));
+            }
+        };
+        Ok(Some(secret_key))
     } else if !allow_unsigned_deploy {
         Err(CliError::InvalidArgument {
             context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
