@@ -66,9 +66,8 @@ use casper_types::PublicKey;
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
 pub use error::CliError;
-pub use json_args::JsonArg;
 pub use json_args::{
-    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails,
+    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails, JsonArg
 };
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
