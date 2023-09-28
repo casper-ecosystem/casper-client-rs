@@ -1,22 +1,28 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use std::{convert::TryInto, fs, io, path::Path, str::FromStr};
+#[cfg(not(any(feature = "sdk")))]
+use std::path::Path;
+use std::{convert::TryInto, fs, io, str::FromStr};
 
 use rand::Rng;
 use serde::{self, Deserialize};
 
 use casper_hashing::Digest;
+#[cfg(not(any(feature = "sdk")))]
+use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash, bytesrepr, crypto, AsymmetricType, CLValue, HashAddr, Key, NamedArg,
-    PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
+    PublicKey, RuntimeArgs, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
+#[cfg(not(any(feature = "sdk")))]
+use crate::OutputKind;
 use crate::{
     types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
-    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind,
-    PurseIdentifier, Verbosity,
+    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, PurseIdentifier,
+    Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -37,6 +43,7 @@ pub(super) fn verbosity(verbosity_level: u64) -> Verbosity {
     }
 }
 
+#[cfg(not(any(feature = "sdk")))]
 pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     if maybe_output_path.is_empty() {
         OutputKind::Stdout
@@ -45,6 +52,7 @@ pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     }
 }
 
+#[cfg(not(any(feature = "sdk")))]
 pub(super) fn secret_key_from_file<P: AsRef<Path>>(
     secret_key_path: P,
 ) -> Result<SecretKey, CliError> {

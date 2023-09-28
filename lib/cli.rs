@@ -30,6 +30,8 @@ mod parse;
 mod payment_str_params;
 mod session_str_params;
 mod simple_args;
+#[cfg(feature = "sdk")]
+pub use simple_args::insert_arg;
 #[cfg(test)]
 mod tests;
 
@@ -51,18 +53,18 @@ use crate::{
         },
         DictionaryItemIdentifier,
     },
+    types::Deploy,
     SuccessResponse,
 };
 #[cfg(doc)]
-use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
+use crate::{Account, Block, Error, StoredValue, Transfer};
 #[cfg(doc)]
 use casper_types::PublicKey;
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
 pub use error::CliError;
-use json_args::JsonArg;
 pub use json_args::{
-    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails,
+    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails, JsonArg,
 };
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
@@ -121,16 +123,20 @@ pub async fn speculative_put_deploy(
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 pub fn make_deploy(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     deploy_params: DeployStrParams<'_>,
     session_params: SessionStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
-) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    #[allow(unused_variables)] force: bool,
+) -> Result<Deploy, CliError> {
     let deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    #[cfg(not(any(feature = "sdk")))]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    }
+    Ok(deploy)
 }
 
 /// Reads a previously-saved [`Deploy`] from a file, cryptographically signs it, and outputs it to a
@@ -140,6 +146,7 @@ pub fn make_deploy(
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+#[cfg(not(any(feature = "sdk")))]
 pub fn sign_deploy_file(
     input_path: &str,
     secret_key_path: &str,
@@ -274,15 +281,14 @@ pub async fn speculative_transfer(
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 pub fn make_transfer(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     amount: &str,
     target_account: &str,
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
-) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    #[allow(unused_variables)] force: bool,
+) -> Result<Deploy, CliError> {
     let deploy = deploy::new_transfer(
         amount,
         None,
@@ -292,7 +298,12 @@ pub fn make_transfer(
         payment_params,
         true,
     )?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    #[cfg(not(any(feature = "sdk")))]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+    }
+    Ok(deploy)
 }
 
 /// Retrieves a [`Deploy`] from the network.
