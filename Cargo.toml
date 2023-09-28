@@ -1,7 +1,12 @@
 [package]
 name = "casper-client"
-version = "2.0.0" # when updating, also update 'html_root_url' in lib.rs
-authors = ["Marc Brinkmann <marc@casperlabs.io>", "Fraser Hutchison <fraser@casperlabs.io>", "Zachary Showalter <zach@casperlabs.io>"]
+# when updating, also update 'html_root_url' in lib.rs
+version = "2.0.0"
+authors = [
+  "Marc Brinkmann <marc@casperlabs.io>",
+  "Fraser Hutchison <fraser@casperlabs.io>",
+  "Zachary Showalter <zach@casperlabs.io>",
+]
 edition = "2021"
 description = "A client library and binary for interacting with the Casper network"
 documentation = "https://docs.rs/casper-client"
@@ -23,7 +28,7 @@ doc = false
 async-trait = "0.1.59"
 base16 = "0.2.1"
 casper-hashing = "2.0.0"
-casper-types = { version = "3.0.0", features = ["std"] }
+casper-types = { version = "3.0.0", features = ["std", "sdk"] }
 clap = { version = "4", features = ["cargo", "deprecated", "wrap_help"] }
 clap_complete = "4"
 hex-buffer-serde = "0.4.0"
@@ -38,7 +43,13 @@ schemars = "0.8"
 serde = { version = "1", default-features = false, features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "1.0.34"
-tokio = { version = "1.23.0", features = ["macros", "net", "rt-multi-thread", "sync", "time", ]}
+tokio = { version = "1.23.0", features = [
+  "macros",
+  "net",
+  "rt-multi-thread",
+  "sync",
+  "time",
+] }
 uint = "0.9.4"
 
 [dev-dependencies]
@@ -48,13 +59,13 @@ tempfile = "3.7.1"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-casper-hashing = { git = "https://github.com/casper-network/casper-node", branch = "dev" }
-casper-types = { git = "https://github.com/casper-network/casper-node", branch = "dev"}
+casper-hashing = { git = "https://github.com/casper-network/casper-node", branch = "rustSDK-1.5" }
+casper-types = { git = "https://github.com/casper-network/casper-node", branch = "rustSDK-1.5" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
 revision = "0"
-assets = [["./target/release/casper-client", "/usr/bin/casper-client", "755"], ]
+assets = [["./target/release/casper-client", "/usr/bin/casper-client", "755"]]
 extended-description = """
 Package for Casper Client to connect to Casper Node.
 
