@@ -40,7 +40,7 @@ impl QueryBalanceParams {
 }
 
 /// Result for "query_balance" RPC response.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct QueryBalanceResult {
     /// The RPC API version.
     pub api_version: ProtocolVersion,

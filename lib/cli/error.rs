@@ -113,7 +113,7 @@ pub enum CliError {
     ConflictingArguments {
         /// Contextual description of where this error occurred including relevant paths,
         /// filenames, etc.
-        context: &'static str,
+        context: String,
         /// Arguments passed, with their values.
         args: Vec<String>,
     },

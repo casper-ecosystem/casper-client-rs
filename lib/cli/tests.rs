@@ -182,7 +182,7 @@ fn should_fail_to_create_large_deploy() {
 #[test]
 fn should_read_deploy() {
     let bytes = SAMPLE_DEPLOY.as_bytes();
-    assert!(matches!(crate::read_deploy(bytes), Ok(_)));
+    assert!(crate::read_deploy(bytes).is_ok());
 }
 
 #[test]

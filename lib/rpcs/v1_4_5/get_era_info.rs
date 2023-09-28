@@ -40,7 +40,7 @@ pub struct EraSummary {
 
 /// The `result` field of a successful JSON-RPC response to a `chain_get_era_info_by_switch_block`
 /// request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetEraInfoResult {
     /// The JSON-RPC server version.

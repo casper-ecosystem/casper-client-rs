@@ -12,8 +12,10 @@ use casper_hashing::Digest;
 #[cfg(not(any(feature = "sdk")))]
 use casper_types::SecretKey;
 use casper_types::{
-    account::AccountHash, bytesrepr, crypto, AsymmetricType, CLValue, HashAddr, Key, NamedArg,
-    PublicKey, RuntimeArgs, UIntParseError, URef, U512,
+    account::AccountHash,
+    bytesrepr::{self, Bytes},
+    crypto, AsymmetricType, CLValue, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs,
+    UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -403,6 +405,26 @@ macro_rules! check_exactly_one_not_empty {
     }}
 }
 
+fn check_no_conflicting_arg_types(
+    context: &str,
+    simple: &Vec<&str>,
+    json: &str,
+    complex: &str,
+) -> Result<(), CliError> {
+    let count = [!simple.is_empty(), !json.is_empty(), !complex.is_empty()]
+        .iter()
+        .filter(|&&x| x)
+        .count();
+
+    if count > 1 {
+        return Err(CliError::ConflictingArguments {
+            context: format!("parse_session_info {context} args conflict (simple json complex)",),
+            args: vec![simple.join(", "), json.to_owned(), complex.to_owned()],
+        });
+    }
+    Ok(())
+}
+
 pub(super) fn session_executable_deploy_item(
     params: SessionStrParams,
 ) -> Result<ExecutableDeployItem, CliError> {
@@ -412,6 +434,7 @@ pub(super) fn session_executable_deploy_item(
         session_package_hash,
         session_package_name,
         session_path,
+        session_bytes,
         ref session_args_simple,
         session_args_json,
         session_args_complex,
@@ -422,8 +445,14 @@ pub(super) fn session_executable_deploy_item(
     // This is to make sure that we're using &str consistently in the macro call below.
     let is_session_transfer = if session_transfer { "true" } else { "" };
 
+    let session_bytes_str: String = if session_bytes.is_empty() {
+        String::default()
+    } else {
+        String::from_utf8_lossy(&session_bytes).into_owned()
+    };
+
     check_exactly_one_not_empty!(
-        context: "parse_session_info",
+        context: "parse_session_info".into(),
         (session_hash)
             requires[session_entry_point] requires_empty[session_version],
         (session_name)
@@ -434,15 +463,18 @@ pub(super) fn session_executable_deploy_item(
             requires[session_entry_point] requires_empty[],
         (session_path)
             requires[] requires_empty[session_entry_point, session_version],
+        (&session_bytes_str)
+            requires[] requires_empty[session_entry_point, session_version, session_path],
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
     );
-    if !session_args_simple.is_empty() && !session_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_session_info",
-            args: vec!["session_args".to_owned(), "session_args_complex".to_owned()],
-        });
-    }
+
+    check_no_conflicting_arg_types(
+        "session",
+        session_args_simple,
+        session_args_json,
+        session_args_complex,
+    )?;
 
     let session_args = args_from_simple_or_json_or_complex(
         arg_simple::session::parse(session_args_simple)?,
@@ -497,12 +529,20 @@ pub(super) fn session_executable_deploy_item(
         });
     }
 
-    let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
-        context: format!("unable to read session file at '{}'", session_path),
-        error,
-    })?;
+    let module_bytes = if !session_path.is_empty() {
+        fs::read(session_path)
+            .map_err(|error| crate::Error::IoError {
+                context: format!("unable to read session file at '{}'", session_path),
+                error,
+            })?
+            .into()
+    } else if !session_bytes.is_empty() {
+        session_bytes
+    } else {
+        Bytes::new()
+    };
     Ok(ExecutableDeployItem::ModuleBytes {
-        module_bytes: module_bytes.into(),
+        module_bytes,
         args: session_args,
     })
 }
@@ -524,7 +564,7 @@ pub(super) fn payment_executable_deploy_item(
         payment_entry_point,
     } = params;
     check_exactly_one_not_empty!(
-        context: "parse_payment_info",
+        context: "parse_payment_info".into(),
         (payment_amount)
             requires[] requires_empty[payment_entry_point, payment_version],
         (payment_hash)
@@ -537,15 +577,13 @@ pub(super) fn payment_executable_deploy_item(
             requires[payment_entry_point] requires_empty[],
         (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
     );
-    if !payment_args_simple.is_empty() && !payment_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_payment_info",
-            args: vec![
-                "payment_args_simple".to_owned(),
-                "payment_args_complex".to_owned(),
-            ],
-        });
-    }
+
+    check_no_conflicting_arg_types(
+        "payment",
+        payment_args_simple,
+        payment_args_json,
+        payment_args_complex,
+    )?;
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
@@ -742,7 +780,7 @@ pub(super) fn global_state_identifier(
 }
 
 /// `purse_id` can be a formatted public key, account hash, or URef.  It may not be empty.
-pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
+pub fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
     const UREF_PREFIX: &str = "uref-";
 
@@ -783,7 +821,7 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
 /// `account_identifier` can be a formatted public key, in the form of a hex-formatted string,
 /// a pem file, or a file containing a hex formatted string, or a formatted string representing
 /// an account hash.  It may not be empty.
-pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
+pub fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
     if account_identifier.is_empty() {
@@ -846,6 +884,7 @@ mod tests {
 
     #[test]
     fn should_fail_to_parse_conflicting_arg_types() {
+        let test_context = String::from("parse_session_info");
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
                 session_hash: "",
@@ -853,6 +892,7 @@ mod tests {
                 session_package_hash: "",
                 session_package_name: "",
                 session_path: "",
+                session_bytes: Bytes::new(),
                 session_args_simple: vec!["something:u32='0'"],
                 session_args_json: "",
                 session_args_complex: "path_to/file",
@@ -860,12 +900,10 @@ mod tests {
                 session_entry_point: "entrypoint",
                 is_session_transfer: false
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
 
+        let test_context = String::from("parse_payment_info");
         assert!(matches!(
             payment_executable_deploy_item(PaymentStrParams {
                 payment_amount: "",
@@ -880,15 +918,13 @@ mod tests {
                 payment_version: "",
                 payment_entry_point: "entrypoint",
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
     }
 
     #[test]
     fn should_fail_to_parse_conflicting_session_parameters() {
+        let test_context = String::from("parse_session_info");
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
                 session_hash: HASH,
@@ -896,6 +932,7 @@ mod tests {
                 session_package_hash: PACKAGE_HASH,
                 session_package_name: PACKAGE_NAME,
                 session_path: PATH,
+                session_bytes: Bytes::new(),
                 session_args_simple: vec![],
                 session_args_json: "",
                 session_args_complex: "",
@@ -903,15 +940,13 @@ mod tests {
                 session_entry_point: "",
                 is_session_transfer: false
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
     }
 
     #[test]
     fn should_fail_to_parse_conflicting_payment_parameters() {
+        let test_context = String::from("parse_payment_info");
         assert!(matches!(
             payment_executable_deploy_item(PaymentStrParams {
                 payment_amount: "12345",
@@ -926,10 +961,7 @@ mod tests {
                 payment_version: "",
                 payment_entry_point: "",
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
     }
 
@@ -943,6 +975,7 @@ mod tests {
                 session_package_hash: "",
                 session_package_name: "",
                 session_path: "",
+                session_bytes: Bytes::new(),
                 session_args_simple: vec![],
                 session_args_json: "",
                 session_args_complex: missing_file,
@@ -1209,14 +1242,11 @@ mod tests {
                                 format!("{}={}", stringify!($con), $con_value),
                             ];
                             conflicting.sort();
-                            assert!(matches!(
+                            let is_conflicting = matches!(
                                 info,
-                                Err(CliError::ConflictingArguments {
-                                    context: $context,
-                                    ..
-                                }
-                                ))
+                                Err(CliError::ConflictingArguments { context, .. }) if context == $context
                             );
+                            assert!(is_conflicting);
                         }
                     )+
                 }

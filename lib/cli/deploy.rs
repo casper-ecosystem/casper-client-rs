@@ -1,6 +1,6 @@
-#[cfg(feature = "sdk")]
-use casper_types::SecretKey;
-use casper_types::{account::AccountHash, AsymmetricType, PublicKey, UIntParseError, URef, U512};
+use casper_types::{
+    account::AccountHash, AsymmetricType, PublicKey, SecretKey, UIntParseError, URef, U512,
+};
 
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
 use crate::{

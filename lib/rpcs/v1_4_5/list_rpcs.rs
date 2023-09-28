@@ -137,7 +137,7 @@ pub struct OpenRpcSchema {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `rpc.discover` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct ListRpcsResult {
     /// The JSON-RPC server version.

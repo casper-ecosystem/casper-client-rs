@@ -99,7 +99,7 @@ use crate::cli;
 ///
 /// **Note** while multiple payment args can be specified for a single payment code instance, only
 /// one of `payment_args_simple`, `payment_args_json` or `payment_args_complex` may be used.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct PaymentStrParams<'a> {
     pub(super) payment_amount: &'a str,
     pub(super) payment_hash: &'a str,

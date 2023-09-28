@@ -676,7 +676,7 @@ mod tests {
         const ARG_GIBBERISH: &str = "asdf|1234(..)";
         const ARG_UNQUOTED: &str = "name:u32=0"; // value needs single quotes to be valid
         const EMPTY: &str = "";
-        const LARGE_2K_INPUT: &str = r#"
+        const LARGE_2K_INPUT: &str = r"
 eJy2irIizK6zT0XOklyBAY1KVUsAbyF6eJUYBmRPHqX2rONbaEieJt4Ci1eZYjBdHdEq46oMBH0LeiQO8RIJb95
 SJGEp83RxakDj7trunJVvMbj2KZFnpJOyEauFa35dlaVG9Ki7hjFy4BLlDyA0Wgwk20RXFkbgKQIQVvR16RPffR
 WO86WqZ3gMuOh447svZRYfhbRF3NVBaWRz7SJ9Zm3w8djisvS0Y3GSnpzKnSEQirApqomfQTHTrU9ww2SMgdGuu
@@ -701,7 +701,7 @@ Q8d1wPtqKgayVtgdIaMbvsnXMkRqITkf3o8Qh495pm1wkKArTGFGODXc1cCKheFUEtJWdK92DHH7OuRE
 PKzSUg2k18wyf9XCy1pQKv31wii3rWrWMCbxOWmhuzw1N9tqO8U97NsThRSoPAjpd05G2roia4m4CaPWTAUmVky
 RfiWoA7bglAh4Aoz2LN2ezFleTNJjjLw3n9bYPg5BdRL8n8wimhXDo9SW46A5YS62C08ZOVtvfn82YRaYkuKKz7
 3NJ25PnQG6diMm4Lm3wi22yR7lY7oYYJjLNcaLYOI6HOvaJ
-"#;
+";
 
         check_insert_invalid_arg(ARG_BAD_TYPE);
         check_insert_invalid_arg(ARG_GIBBERISH);

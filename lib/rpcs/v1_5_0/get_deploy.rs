@@ -6,7 +6,7 @@ pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_MET
 use crate::types::{BlockHashAndHeight, Deploy, ExecutionResult};
 
 /// The `result` field of a successful JSON-RPC response to an `info_get_deploy` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetDeployResult {
     /// The JSON-RPC server version.

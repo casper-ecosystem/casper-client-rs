@@ -20,7 +20,7 @@ impl GetStateRootHashParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `chain_get_state_root_hash` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetStateRootHashResult {
     /// The JSON-RPC server version.
