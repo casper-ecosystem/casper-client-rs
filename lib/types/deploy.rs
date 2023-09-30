@@ -196,11 +196,20 @@ impl ToBytes for Approval {
 #[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct Deploy {
-    hash: DeployHash,
-    header: DeployHeader,
-    payment: ExecutableDeployItem,
-    session: ExecutableDeployItem,
-    approvals: Vec<Approval>,
+    /// The unique identifier for the deploy.
+    pub hash: DeployHash,
+
+    /// The header information for the deploy.
+    pub header: DeployHeader,
+
+    /// The payment logic for the deploy.
+    pub payment: ExecutableDeployItem,
+
+    /// The session logic for the deploy.
+    pub session: ExecutableDeployItem,
+
+    /// List of approvals for the deploy.
+    pub approvals: Vec<Approval>,
 }
 
 /// Used when constructing a `Deploy`.
@@ -396,10 +405,15 @@ impl<'a> DeployBuilder<'a> {
     ///     [`with_standard_payment`](Self::with_standard_payment) or
     ///     [`with_payment`](Self::with_payment)
     pub fn new<C: Into<String>>(chain_name: C, session: ExecutableDeployItem) -> Self {
+        #[cfg(not(any(feature = "sdk")))]
+        let timestamp = Timestamp::now();
+        #[cfg(feature = "sdk")]
+        let timestamp = Timestamp::default();
+
         DeployBuilder {
             account: None,
             secret_key: None,
-            timestamp: Timestamp::now(),
+            timestamp,
             ttl: Deploy::DEFAULT_TTL,
             gas_price: Deploy::DEFAULT_GAS_PRICE,
             dependencies: vec![],
