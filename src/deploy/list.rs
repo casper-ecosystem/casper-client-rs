@@ -34,12 +34,12 @@ impl From<GetBlockResult> for ListDeploysResult {
         ListDeploysResult {
             api_version: get_block_result.api_version,
             deploy_hashes: get_block_result
-                .block
+                .block_with_signatures
                 .as_ref()
-                .map(|block| block.body().deploy_hashes().to_vec()),
+                .map(|block| block.block.body().deploy_hashes().to_vec()),
             transfer_hashes: get_block_result
-                .block
-                .map(|ref block| block.body().transfer_hashes().to_vec()),
+                .block_with_signatures
+                .map(|ref block| block.block.body().transfer_hashes().to_vec()),
         }
     }
 }
