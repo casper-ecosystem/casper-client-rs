@@ -405,6 +405,24 @@ macro_rules! check_exactly_one_not_empty {
     }}
 }
 
+/// Checks if conflicting arguments are provided for parsing session information.
+///
+/// # Arguments
+///
+/// * `context` - A string indicating the context in which the arguments are checked.
+/// * `simple` - A vector of strings representing simple arguments.
+/// * `json` - A string representing JSON-formatted arguments.
+/// * `complex` - A string representing complex arguments.
+///
+/// # Returns
+///
+/// Returns a `Result` with an empty `Ok(())` variant if no conflicting arguments are found. If conflicting arguments are provided,
+/// an `Err` variant with a `CliError::ConflictingArguments` is returned.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError::ConflictingArguments` if conflicting arguments are provided.
+///
 fn check_no_conflicting_arg_types(
     context: &str,
     simple: &Vec<&str>,
@@ -425,6 +443,21 @@ fn check_no_conflicting_arg_types(
     Ok(())
 }
 
+/// Parses session parameters and constructs an `ExecutableDeployItem` accordingly.
+///
+/// # Arguments
+///
+/// * `params` - A struct containing session-related parameters including hashes, names, paths, bytes, and arguments.
+///
+/// # Returns
+///
+/// Returns a `Result` containing an `ExecutableDeployItem` if the session parameters are valid.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError` if there are issues with parsing session parameters,
+/// conflicting arguments, or invalid entry points.
+///
 pub(super) fn session_executable_deploy_item(
     params: SessionStrParams,
 ) -> Result<ExecutableDeployItem, CliError> {
