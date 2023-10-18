@@ -102,6 +102,41 @@ pub fn new_transfer(
     Ok(deploy)
 }
 
+/// Retrieves a `SecretKey` based on the provided secret key string and configuration options.
+///
+/// # Arguments
+///
+/// * `secret_key` - A string representing the secret key. If empty, a `None` option is returned.
+/// * `allow_unsigned_deploy` - A boolean indicating whether unsigned deploys are allowed.
+///
+/// # Returns
+///
+/// Returns a `Result` containing an `Option<SecretKey>`. If a valid secret key is provided and the `sdk` feature is enabled,
+/// the `Result` contains `Some(SecretKey)`. If the `sdk` feature is disabled, the `Result` contains `Some(SecretKey)` parsed from the provided file.
+/// If `secret_key` is empty and `allow_unsigned_deploy` is `true`, the `Result` contains `None`. If `secret_key` is empty and `allow_unsigned_deploy` is `false`,
+/// an `Err` variant with a `CliError::InvalidArgument` is returned.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError::Core` or `CliError::InvalidArgument` if there are issues with parsing the secret key.
+///
+/// # Examples
+///
+/// ```
+/// use casper_client::CliError;
+///
+/// match get_maybe_secret_key("path/to/secret_key.pem", true) {
+///     Ok(Some(secret_key)) => {
+///         println!("Secret Key: {:?}", secret_key);
+///     }
+///     Ok(None) => {
+///         println!("No secret key provided, unsigned deploys allowed.");
+///     }
+///     Err(error) => {
+///         eprintln!("Error: {:?}", error);
+///     }
+/// }
+/// ```
 fn get_maybe_secret_key(
     secret_key: &str,
     allow_unsigned_deploy: bool,

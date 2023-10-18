@@ -127,6 +127,8 @@ pub async fn speculative_put_deploy(
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+/// With sdk feature file is not written
+/// Returns the Deploy
 pub fn make_deploy(
     #[allow(unused_variables)] maybe_output_path: &str,
     deploy_params: DeployStrParams<'_>,
@@ -151,6 +153,7 @@ pub fn make_deploy(
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+/// Method not available with the sdk feature, use deploy.sign() directly
 #[cfg(not(any(feature = "sdk")))]
 pub fn sign_deploy_file(
     input_path: &str,
@@ -285,6 +288,8 @@ pub async fn speculative_transfer(
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+/// With sdk feature file is not written
+/// Returns the Deploy
 pub fn make_transfer(
     #[allow(unused_variables)] maybe_output_path: &str,
     amount: &str,
