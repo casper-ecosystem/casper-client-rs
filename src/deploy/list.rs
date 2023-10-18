@@ -36,10 +36,10 @@ impl From<GetBlockResult> for ListDeploysResult {
             deploy_hashes: get_block_result
                 .block_with_signatures
                 .as_ref()
-                .map(|block| block.block.body().deploy_hashes().to_vec()),
+                .map(|block| block.block.clone_body().deploy_hashes().to_vec()),
             transfer_hashes: get_block_result
                 .block_with_signatures
-                .map(|ref block| block.block.body().transfer_hashes().to_vec()),
+                .map(|ref block| block.block.clone_body().transfer_hashes().to_vec()),
         }
     }
 }
