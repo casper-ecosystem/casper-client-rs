@@ -81,7 +81,7 @@ impl<'a> TryFrom<DictionaryItemStrParams<'a>> for DictionaryItemIdentifier {
                         error,
                     }
                 })?;
-                let hash_addr = key.into_hash().ok_or(CliError::InvalidArgument {
+                let hash_addr = key.into_hash_addr().ok_or(CliError::InvalidArgument {
                     context: "dictionary item contract named key",
                     error: "not a hash-addr".to_string(),
                 })?;
