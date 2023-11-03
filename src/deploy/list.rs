@@ -5,7 +5,7 @@ use clap::{ArgMatches, Command};
 use serde::{Deserialize, Serialize};
 
 use casper_client::cli::CliError;
-use casper_types::{DeployHash, ProtocolVersion};
+use casper_types::{Block, DeployHash, ProtocolVersion, TransactionHash};
 
 use crate::{command::ClientCommand, common, Success};
 use casper_client::rpcs::results::GetBlockResult;
@@ -33,13 +33,30 @@ impl From<GetBlockResult> for ListDeploysResult {
     fn from(get_block_result: GetBlockResult) -> Self {
         ListDeploysResult {
             api_version: get_block_result.api_version,
-            deploy_hashes: get_block_result
-                .block_with_signatures
-                .as_ref()
-                .map(|block| block.block.clone_body().deploy_hashes().to_vec()),
-            transfer_hashes: get_block_result
-                .block_with_signatures
-                .map(|ref block| block.block.clone_body().transfer_hashes().to_vec()),
+            deploy_hashes: get_block_result.block_with_signatures.as_ref().map(
+                |block| match &block.block {
+                    Block::V1(v1_block) => v1_block.deploy_hashes().to_vec(),
+                    Block::V2(v2_block) => v2_block
+                        .standard()
+                        .filter_map(|txn_hash| match txn_hash {
+                            TransactionHash::Deploy(deploy_hash) => Some(*deploy_hash),
+                            TransactionHash::V1(_) => None,
+                        })
+                        .collect(),
+                },
+            ),
+            transfer_hashes: get_block_result.block_with_signatures.map(|block| {
+                match &block.block {
+                    Block::V1(v1_block) => v1_block.transfer_hashes().to_vec(),
+                    Block::V2(v2_block) => v2_block
+                        .transfer()
+                        .filter_map(|txn_hash| match txn_hash {
+                            TransactionHash::Deploy(deploy_hash) => Some(*deploy_hash),
+                            TransactionHash::V1(_) => None,
+                        })
+                        .collect(),
+                }
+            }),
         }
     }
 }

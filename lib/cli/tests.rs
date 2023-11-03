@@ -167,10 +167,10 @@ fn should_fail_to_create_large_deploy() {
 
     match deploy::with_payment_and_session(deploy_params, payment_params, session_params, false) {
         Err(CliError::Core(Error::DeploySize(DeployExcessiveSizeError {
-            max_deploy_size,
+            max_transaction_size,
             actual_deploy_size,
         }))) => {
-            assert_eq!(max_deploy_size, MAX_SERIALIZED_SIZE_OF_DEPLOY);
+            assert_eq!(max_transaction_size, MAX_SERIALIZED_SIZE_OF_DEPLOY);
             assert!(actual_deploy_size > MAX_SERIALIZED_SIZE_OF_DEPLOY as usize);
         }
         Err(error) => panic!("unexpected error: {}", error),
