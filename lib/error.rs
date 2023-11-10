@@ -2,7 +2,10 @@ use std::{io, path::PathBuf};
 
 use thiserror::Error;
 
-use casper_types::{bytesrepr::Error as ToBytesError, crypto, Key};
+use casper_types::{
+    bytesrepr::Error as ToBytesError, crypto, Key, TransactionV1BuilderError,
+    TransactionV1ConfigFailure,
+};
 #[cfg(doc)]
 use casper_types::{CLValue, Deploy, DeployBuilder, TimeDiff, Timestamp, URef};
 
@@ -146,6 +149,14 @@ pub enum Error {
     /// Failed to validate response.
     #[error("invalid response: {0}")]
     ResponseFailedValidation(#[from] ValidateResponseError),
+
+    ///The transaction was configured incorrectly
+    #[error(transparent)]
+    TransactionConfig(#[from] TransactionV1ConfigFailure),
+
+    #[error(transparent)]
+    ///The transaction builder encountered an error
+    TransactionBuilder(#[from] TransactionV1BuilderError),
 }
 
 impl From<ToBytesError> for Error {

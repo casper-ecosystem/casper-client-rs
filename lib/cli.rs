@@ -30,6 +30,9 @@ mod parse;
 mod payment_str_params;
 mod session_str_params;
 mod simple_args;
+pub mod transaction;
+pub mod transaction_str_params;
+
 #[cfg(test)]
 mod tests;
 
@@ -39,6 +42,7 @@ use serde::Serialize;
 use casper_types::{account::AccountHash, Key};
 use casper_types::{Digest, URef};
 
+use crate::cli::transaction_str_params::TransactionStrParams;
 use crate::{
     rpcs::{
         results::{
@@ -130,6 +134,27 @@ pub fn make_deploy(
     let deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)?;
     crate::output_deploy(output, &deploy).map_err(CliError::from)
+}
+
+/// Creates a [`Transaction`] and outputs it to a file or stdout.
+///
+/// As a file, the `Transaction` can subsequently be signed by other parties using [`Transation`]
+/// and then sent to the network for execution using [`Transaction`].
+///
+/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
+/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
+/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
+/// and the file will not be written.
+pub fn make_transaction(
+    maybe_output_path: &str,
+    transaction_str_params: TransactionStrParams<'_>,
+    session_params: SessionStrParams<'_>,
+    force: bool,
+) -> Result<(), CliError> {
+    let output = parse::output_kind(maybe_output_path, force);
+    let transaction =
+        transaction::create_transaction(transaction_str_params, session_params, true)?;
+    crate::output_transaction(output, &transaction).map_err(CliError::from)
 }
 
 /// Reads a previously-saved [`Deploy`] from a file, cryptographically signs it, and outputs it to a

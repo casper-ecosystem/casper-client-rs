@@ -7,7 +7,11 @@ use thiserror::Error;
 use casper_types::{
     account::AccountHash, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff, Timestamp, URef,
 };
-use casper_types::{CLValueError, KeyFromStrError, UIntParseError, URefFromStrError};
+
+use casper_types::{
+    CLValueError, KeyFromStrError, TransactionV1BuilderError, TransactionV1ConfigFailure,
+    UIntParseError, URefFromStrError,
+};
 
 use crate::cli::JsonArgsError;
 #[cfg(doc)]
@@ -145,6 +149,14 @@ pub enum CliError {
     /// Core error.
     #[error(transparent)]
     Core(#[from] crate::Error),
+
+    ///Wrapper error type for transaction configuration failures
+    #[error(transparent)]
+    Transaction(TransactionV1ConfigFailure),
+
+    ///Wrapper error type for transaction builder errors
+    #[error(transparent)]
+    TransactionBuilder(TransactionV1BuilderError),
 }
 
 impl From<CLValueError> for CliError {
@@ -155,5 +167,17 @@ impl From<CLValueError> for CliError {
                 CliError::InvalidCLValue(type_mismatch.to_string())
             }
         }
+    }
+}
+
+impl From<TransactionV1BuilderError> for CliError {
+    fn from(error: TransactionV1BuilderError) -> Self {
+        CliError::TransactionBuilder(error)
+    }
+}
+
+impl From<TransactionV1ConfigFailure> for CliError {
+    fn from(error: TransactionV1ConfigFailure) -> Self {
+        CliError::Transaction(error)
     }
 }

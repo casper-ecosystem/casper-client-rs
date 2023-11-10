@@ -55,7 +55,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::Account, Block, StoredValue, Transfer};
-use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, URef};
+use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, Transaction, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
@@ -206,6 +206,19 @@ pub async fn get_deploy(
             Some(GetDeployParams::new(deploy_hash, finalized_approvals)),
         )
         .await
+}
+
+/// Outputs a [`Transaction`] to a file or stdout.
+///
+/// As a file, the `Deploy` can subsequently be signed by other parties using [`sign_transaction_file`]
+/// and then read and sent to the network for execution using [`read_transaction_file`] and
+/// [`put_transaction`] respectively.
+///
+/// `output` specifies the output file and corresponding overwrite behaviour, or if
+/// `OutputKind::Stdout`, causes the `Deploy` to be printed `stdout`.
+pub fn output_transaction(output: OutputKind, transaction: &Transaction) -> Result<(), Error> {
+    write_transaction(transaction, output.get()?)?;
+    output.commit()
 }
 
 /// Retrieves a [`Block`] from the network.
@@ -515,6 +528,21 @@ fn read_deploy<R: Read>(input: R) -> Result<Deploy, Error> {
         })?;
     deploy.is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)?;
     Ok(deploy)
+}
+
+/// Writes a [`transaction`] to a file.
+fn write_transaction<W: Write>(transaction: &Transaction, mut output: W) -> Result<(), Error> {
+    let content =
+        serde_json::to_string_pretty(transaction).map_err(|error| Error::FailedToEncodeToJson {
+            context: "writing transaction",
+            error,
+        })?;
+    output
+        .write_all(content.as_bytes())
+        .map_err(|error| Error::IoError {
+            context: "unable to write transaction".to_owned(),
+            error,
+        })
 }
 
 /// Retrieves era information from the network at a given switch [`Block`].
