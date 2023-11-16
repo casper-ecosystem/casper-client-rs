@@ -142,7 +142,7 @@ fn get_maybe_secret_key(
     allow_unsigned_deploy: bool,
 ) -> Result<Option<SecretKey>, CliError> {
     if !secret_key.is_empty() {
-        #[cfg(feature = "sdk")]
+        #[cfg(not(feature = "std-output"))]
         {
             let secret_key: SecretKey = match SecretKey::from_pem(secret_key) {
                 Ok(key) => key,
@@ -155,7 +155,7 @@ fn get_maybe_secret_key(
             };
             Ok(Some(secret_key))
         }
-        #[cfg(not(feature = "sdk"))]
+        #[cfg(feature = "std-output")]
         {
             Ok(Some(parse::secret_key_from_file(secret_key)?))
         }

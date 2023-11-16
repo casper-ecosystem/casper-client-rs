@@ -27,14 +27,11 @@ mod dictionary_item_str_params;
 mod error;
 mod json_args;
 mod parse;
+pub use parse::account_identifier as parse_account_identifier;
+pub use parse::purse_identifier as parse_purse_identifier;
 mod payment_str_params;
 mod session_str_params;
 mod simple_args;
-#[cfg(feature = "sdk")]
-pub use parse::account_identifier as parse_account_identifier;
-#[cfg(feature = "sdk")]
-pub use parse::purse_identifier as parse_purse_identifier;
-#[cfg(feature = "sdk")]
 pub use simple_args::insert_arg;
 
 #[cfg(test)]
@@ -138,7 +135,7 @@ pub fn make_deploy(
 ) -> Result<Deploy, CliError> {
     let deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)?;
-    #[cfg(not(any(feature = "sdk")))]
+    #[cfg(feature = "std-output")]
     {
         let output = parse::output_kind(maybe_output_path, force);
         let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
@@ -154,16 +151,22 @@ pub fn make_deploy(
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 /// Method not available with the sdk feature, use deploy.sign() directly
-#[cfg(not(any(feature = "sdk")))]
 pub fn sign_deploy_file(
     input_path: &str,
     secret_key_path: &str,
     maybe_output_path: &str,
     force: bool,
 ) -> Result<(), CliError> {
-    let secret_key = parse::secret_key_from_file(secret_key_path)?;
-    let output = parse::output_kind(maybe_output_path, force);
-    crate::sign_deploy_file(input_path, &secret_key, output).map_err(CliError::from)
+    #[cfg(not(feature = "std-output"))]
+    {
+        return Ok(());
+    }
+    #[cfg(feature = "std-output")]
+    {
+        let secret_key = parse::secret_key_from_file(secret_key_path)?;
+        let output = parse::output_kind(maybe_output_path, force);
+        crate::sign_deploy_file(input_path, &secret_key, output).map_err(CliError::from)
+    }
 }
 
 /// Reads a previously-saved [`Deploy`] from a file and sends it to the network for execution.
@@ -308,7 +311,7 @@ pub fn make_transfer(
         payment_params,
         true,
     )?;
-    #[cfg(not(any(feature = "sdk")))]
+    #[cfg(feature = "std-output")]
     {
         let output = parse::output_kind(maybe_output_path, force);
         let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
