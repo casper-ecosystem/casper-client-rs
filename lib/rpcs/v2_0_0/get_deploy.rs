@@ -9,9 +9,12 @@ pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_MET
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct DeployExecutionInfo {
-    pub(crate) block_hash: BlockHash,
-    pub(crate) block_height: u64,
-    pub(crate) execution_result: Option<ExecutionResult>,
+    /// Hash of the block that included the deploy.
+    pub block_hash: BlockHash,
+    /// Height of block that included the deploy.
+    pub block_height: u64,
+    /// Execution result of the deploy.
+    pub execution_result: Option<ExecutionResult>,
 }
 
 /// The `result` field of a successful JSON-RPC response to an `info_get_deploy` request.
