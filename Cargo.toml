@@ -26,10 +26,10 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-casper-hashing = { version = "2.0.0", path = "../casper-node/hashing" }
+casper-hashing = { version = "2.0.0", git = "https://github.com/casper-network/casper-node", branch = "rustSDK-1.6" }
 async-trait = "0.1.59"
 base16 = "0.2.1"
-casper-types = { version = "3.0.0", path = "../casper-node/types", default-features = false, features = [
+casper-types = { version = "3.0.0", git = "https://github.com/casper-network/casper-node", default-features = false, branch = "rustSDK-1.6", features = [
   "std",
 ] }
 clap = { version = "4", features = ["cargo", "deprecated"] }
@@ -53,8 +53,8 @@ uint = "0.9.4"
 tempfile = "3.7.1"
 
 [features]
-default = ["std-output"]
-std-output = ["casper-types/std-output"]
+default = ["std-fs-io"]
+std-fs-io = ["casper-types/std-fs-io"]
 
 [build-dependencies]
 vergen = { version = "7", default-features = false, features = ["git"] }

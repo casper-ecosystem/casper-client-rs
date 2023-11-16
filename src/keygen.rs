@@ -101,12 +101,37 @@ impl ClientCommand for Keygen {
             .arg(algorithm::arg())
     }
 
+    /// Asynchronously runs the keygen command based on the provided command-line arguments.
+    ///
+    /// # Arguments
+    ///
+    /// * `matches` - A reference to the `ArgMatches` containing the parsed command-line arguments.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` indicating the success or failure of the command execution.
+    /// If successful, returns `Success::Output` with a message indicating the outcome.
+    /// If unsuccessful, returns a `CliError` with details about the error.
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
+        // Retrieve the output directory, key algorithm, and force flag from command-line arguments
         let output_dir = output_dir::get(matches);
         let algorithm = algorithm::get(matches);
         let force = common::force::get(matches);
 
-        keygen::generate_files(&output_dir, algorithm, force)?;
-        Ok(Success::Output(format!("Wrote files to {}", output_dir)))
+        // Check if the std-fs-io feature is enabled
+        #[cfg(feature = "std-fs-io")]
+        {
+            // If std-fs-io feature is enabled, generate key files and return success message
+            keygen::generate_files(&output_dir, algorithm, force)?;
+            Ok(Success::Output(format!("Wrote files to {}", output_dir)))
+        }
+
+        // If std-fs-io feature is not enabled, return an error message
+        #[cfg(not(feature = "std-fs-io"))]
+        {
+            Ok(Success::Output(format!(
+                "keygen not available without std-fs-io feature"
+            )))
+        }
     }
 }

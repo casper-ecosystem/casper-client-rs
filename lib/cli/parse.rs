@@ -1,7 +1,7 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-#[cfg(feature = "std-output")]
+#[cfg(feature = "std-fs-io")]
 use std::path::Path;
 use std::{convert::TryInto, fs, io, str::FromStr};
 
@@ -9,7 +9,7 @@ use rand::Rng;
 use serde::{self, Deserialize};
 
 use casper_hashing::Digest;
-#[cfg(feature = "std-output")]
+#[cfg(feature = "std-fs-io")]
 use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash,
@@ -19,7 +19,7 @@ use casper_types::{
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
-#[cfg(feature = "std-output")]
+#[cfg(feature = "std-fs-io")]
 use crate::OutputKind;
 use crate::{
     types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
@@ -45,7 +45,7 @@ pub(super) fn verbosity(verbosity_level: u64) -> Verbosity {
     }
 }
 
-#[cfg(feature = "std-output")]
+#[cfg(feature = "std-fs-io")]
 pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     if maybe_output_path.is_empty() {
         OutputKind::Stdout
@@ -54,7 +54,7 @@ pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     }
 }
 
-#[cfg(feature = "std-output")]
+#[cfg(feature = "std-fs-io")]
 pub(super) fn secret_key_from_file<P: AsRef<Path>>(
     secret_key_path: P,
 ) -> Result<SecretKey, CliError> {

@@ -142,7 +142,11 @@ fn get_maybe_secret_key(
     allow_unsigned_deploy: bool,
 ) -> Result<Option<SecretKey>, CliError> {
     if !secret_key.is_empty() {
-        #[cfg(not(feature = "std-output"))]
+        #[cfg(feature = "std-fs-io")]
+        {
+            Ok(Some(parse::secret_key_from_file(secret_key)?))
+        }
+        #[cfg(not(feature = "std-fs-io"))]
         {
             let secret_key: SecretKey = match SecretKey::from_pem(secret_key) {
                 Ok(key) => key,
@@ -154,10 +158,6 @@ fn get_maybe_secret_key(
                 }
             };
             Ok(Some(secret_key))
-        }
-        #[cfg(feature = "std-output")]
-        {
-            Ok(Some(parse::secret_key_from_file(secret_key)?))
         }
     } else if !allow_unsigned_deploy {
         Err(CliError::InvalidArgument {

@@ -406,9 +406,9 @@ impl<'a> DeployBuilder<'a> {
     ///     [`with_payment`](Self::with_payment)
     pub fn new<C: Into<String>>(chain_name: C, session: ExecutableDeployItem) -> Self {
         // Timestamp::now() not available with feature sdk, use default() instead
-        #[cfg(feature = "std-output")]
+        #[cfg(feature = "std-fs-io")]
         let timestamp = Timestamp::now();
-        #[cfg(not(feature = "std-output"))]
+        #[cfg(not(feature = "std-fs-io"))]
         let timestamp = Timestamp::default();
 
         DeployBuilder {
