@@ -51,7 +51,8 @@ uint = "0.9.4"
 tempfile = "3.7.1"
 
 [features]
-sdk = ["casper-types/sdk"]
+default = ["std-fs-io"]
+std-fs-io = ["casper-types/std-fs-io"]
 
 [build-dependencies]
 vergen = { version = "7", default-features = false, features = ["git"] }
