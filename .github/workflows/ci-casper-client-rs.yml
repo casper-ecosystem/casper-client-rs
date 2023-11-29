@@ -27,6 +27,7 @@ jobs:
           toolchain: stable
           profile: minimal
           components: rustfmt, clippy
+          target: wasm32-unknown-unknown
 
       - name: Fmt
         uses: actions-rs/cargo@v1
@@ -45,6 +46,12 @@ jobs:
           command: clippy
           args: --all-targets
 
+      - name: Clippy with no features
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --no-default-features
+
       - name: Doc
         uses: actions-rs/cargo@v1
         with:
@@ -55,3 +62,15 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+
+      - name: Test with no features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features
+
+      - name: Build lib for Wasm with no features
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --lib --target wasm32-unknown-unknown --no-default-features
