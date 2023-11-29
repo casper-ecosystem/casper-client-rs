@@ -27,7 +27,11 @@ pub fn with_payment_and_session(
         .with_timestamp(timestamp)
         .with_ttl(ttl);
 
-    let maybe_secret_key = get_maybe_secret_key(deploy_params.secret_key, allow_unsigned_deploy)?;
+    let maybe_secret_key = get_maybe_secret_key(
+        deploy_params.secret_key,
+        allow_unsigned_deploy,
+        "with_payment_and_session",
+    )?;
     if let Some(secret_key) = &maybe_secret_key {
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }
@@ -88,7 +92,11 @@ pub fn new_transfer(
             .with_timestamp(timestamp)
             .with_ttl(ttl);
 
-    let maybe_secret_key = get_maybe_secret_key(deploy_params.secret_key, allow_unsigned_deploy)?;
+    let maybe_secret_key = get_maybe_secret_key(
+        deploy_params.secret_key,
+        allow_unsigned_deploy,
+        "new_transfer",
+    )?;
     if let Some(secret_key) = &maybe_secret_key {
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }
@@ -119,27 +127,10 @@ pub fn new_transfer(
 /// # Errors
 ///
 /// Returns an `Err` variant with a `CliError::Core` or `CliError::InvalidArgument` if there are issues with parsing the secret key.
-///
-/// # Examples
-///
-/// ```
-/// use casper_client::CliError;
-///
-/// match get_maybe_secret_key("path/to/secret_key.pem", true) {
-///     Ok(Some(secret_key)) => {
-///         println!("Secret Key: {:?}", secret_key);
-///     }
-///     Ok(None) => {
-///         println!("No secret key provided, unsigned deploys allowed.");
-///     }
-///     Err(error) => {
-///         eprintln!("Error: {:?}", error);
-///     }
-/// }
-/// ```
 fn get_maybe_secret_key(
     secret_key: &str,
     allow_unsigned_deploy: bool,
+    context: &'static str,
 ) -> Result<Option<SecretKey>, CliError> {
     if !secret_key.is_empty() {
         #[cfg(feature = "std-fs-io")]
@@ -148,20 +139,13 @@ fn get_maybe_secret_key(
         }
         #[cfg(not(feature = "std-fs-io"))]
         {
-            let secret_key: SecretKey = match SecretKey::from_pem(secret_key) {
-                Ok(key) => key,
-                Err(error) => {
-                    return Err(CliError::Core(crate::Error::CryptoError {
-                        context: "secret key",
-                        error,
-                    }));
-                }
-            };
+            let secret_key = SecretKey::from_pem(secret_key)
+                .map_err(|error| CliError::Core(crate::Error::CryptoError { context, error }))?;
             Ok(Some(secret_key))
         }
     } else if !allow_unsigned_deploy {
         Err(CliError::InvalidArgument {
-            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
+            context,
             error: format!(
                 "allow_unsigned_deploy was {}, but no secret key was provided",
                 allow_unsigned_deploy

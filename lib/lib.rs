@@ -26,7 +26,7 @@
     html_root_url = "https://docs.rs/casper-client/2.0.0",
     html_favicon_url = "https://raw.githubusercontent.com/casper-network/casper-node/blob/dev/images/Casper_Logo_Favicon_48.png",
     html_logo_url = "https://raw.githubusercontent.com/casper-network/casper-node/blob/dev/images/Casper_Logo_Favicon.png",
-    test(attr(forbid(warnings)))
+    test(attr(deny(warnings)))
 )]
 #![warn(
     missing_docs,
@@ -34,11 +34,14 @@
     trivial_numeric_casts,
     unused_qualifications
 )]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 pub mod cli;
 mod error;
 mod json_rpc;
+#[cfg(feature = "std-fs-io")]
 pub mod keygen;
+#[cfg(feature = "std-fs-io")]
 mod output_kind;
 pub mod rpcs;
 mod transfer_target;
@@ -46,22 +49,27 @@ pub mod types;
 mod validation;
 mod verbosity;
 
+#[cfg(feature = "std-fs-io")]
 use std::{
     fs,
     io::{Cursor, Read, Write},
     path::Path,
 };
 
+#[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
 use casper_hashing::Digest;
+#[cfg(feature = "std-fs-io")]
+use casper_types::SecretKey;
 #[cfg(doc)]
 use casper_types::Transfer;
-use casper_types::{Key, SecretKey, URef};
+use casper_types::{Key, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
+#[cfg(feature = "std-fs-io")]
 pub use output_kind::OutputKind;
 use rpcs::{
     common::{BlockIdentifier, GlobalStateIdentifier},
@@ -96,9 +104,11 @@ use rpcs::{
     DictionaryItemIdentifier,
 };
 pub use transfer_target::TransferTarget;
+#[cfg(feature = "std-fs-io")]
+use types::MAX_SERIALIZED_SIZE_OF_DEPLOY;
 #[cfg(doc)]
 use types::{Account, Block, StoredValue};
-use types::{Deploy, DeployHash, MAX_SERIALIZED_SIZE_OF_DEPLOY};
+use types::{Deploy, DeployHash};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
 
@@ -146,12 +156,14 @@ pub async fn speculative_exec(
 ///
 /// `output` specifies the output file and corresponding overwrite behaviour, or if
 /// `OutputKind::Stdout`, causes the `Deploy` to be printed `stdout`.
+#[cfg(feature = "std-fs-io")]
 pub fn output_deploy(output: OutputKind, deploy: &Deploy) -> Result<(), Error> {
     write_deploy(deploy, output.get()?)?;
     output.commit()
 }
 
 /// Reads a previously-saved [`Deploy`] from a file.
+#[cfg(feature = "std-fs-io")]
 pub fn read_deploy_file<P: AsRef<Path>>(deploy_path: P) -> Result<Deploy, Error> {
     let input = fs::read(deploy_path.as_ref()).map_err(|error| Error::IoError {
         context: format!(
@@ -171,6 +183,7 @@ pub fn read_deploy_file<P: AsRef<Path>>(deploy_path: P) -> Result<Deploy, Error>
 ///
 /// The same path can be specified for input and output, and if the operation fails, the original
 /// input file will be left unmodified.
+#[cfg(feature = "std-fs-io")]
 pub fn sign_deploy_file<P: AsRef<Path>>(
     input_path: P,
     secret_key: &SecretKey,
@@ -476,6 +489,7 @@ pub async fn list_rpcs(
 /// When `verbosity` is `Low`, nothing is printed.  For `Medium`, the value is printed with long
 /// string fields shortened to a string indicating the character count of the field.  `High`
 /// verbosity is the same as `Medium` except without abbreviation of long fields.
+#[cfg(feature = "std-fs-io")]
 pub(crate) fn json_pretty_print<T: ?Sized + Serialize>(
     value: &T,
     verbosity: Verbosity,
@@ -493,6 +507,7 @@ pub(crate) fn json_pretty_print<T: ?Sized + Serialize>(
     Ok(())
 }
 
+#[cfg(feature = "std-fs-io")]
 fn write_deploy<W: Write>(deploy: &Deploy, mut output: W) -> Result<(), Error> {
     let content =
         serde_json::to_string_pretty(deploy).map_err(|error| Error::FailedToEncodeToJson {
@@ -507,6 +522,7 @@ fn write_deploy<W: Write>(deploy: &Deploy, mut output: W) -> Result<(), Error> {
         })
 }
 
+#[cfg(feature = "std-fs-io")]
 fn read_deploy<R: Read>(input: R) -> Result<Deploy, Error> {
     let deploy: Deploy =
         serde_json::from_reader(input).map_err(|error| Error::FailedToDecodeFromJson {

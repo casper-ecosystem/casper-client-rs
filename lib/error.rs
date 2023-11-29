@@ -1,3 +1,4 @@
+#[cfg(feature = "std-fs-io")]
 use std::{io, path::PathBuf};
 
 use thiserror::Error;
@@ -125,6 +126,7 @@ pub enum Error {
     },
 
     /// Failed to create new file because it already exists.
+    #[cfg(feature = "std-fs-io")]
     #[error("file at {} already exists", .0.display())]
     FileAlreadyExists(PathBuf),
 
@@ -137,6 +139,7 @@ pub enum Error {
     UnsupportedAlgorithm(String),
 
     /// Context-adding wrapper for `std::io::Error`.
+    #[cfg(feature = "std-fs-io")]
     #[error("input/output error: {context}: {error}")]
     IoError {
         /// Contextual description of where this error occurred including relevant paths,

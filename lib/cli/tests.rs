@@ -1,9 +1,8 @@
 use casper_types::{AsymmetricType, PublicKey, SecretKey};
 
-use crate::{
-    types::{ExecutableDeployItem, MAX_SERIALIZED_SIZE_OF_DEPLOY},
-    Error, OutputKind,
-};
+use crate::Error;
+#[cfg(feature = "std-fs-io")]
+use crate::{types::ExecutableDeployItem, OutputKind, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 
 use super::*;
 
@@ -11,6 +10,7 @@ const SAMPLE_ACCOUNT: &str = "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa1
 const PKG_HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
 const ENTRYPOINT: &str = "entrypoint";
 const VERSION: &str = "2";
+#[cfg(feature = "std-fs-io")]
 const SAMPLE_DEPLOY: &str = r#"{
   "hash": "1053f767f1734e3b5b31253ea680778ac53f134f7c24518bf2c4cbb204852617",
   "header": {
@@ -116,6 +116,7 @@ fn args_simple() -> Vec<&'static str> {
 }
 
 #[test]
+#[cfg(feature = "std-fs-io")]
 fn should_create_deploy() {
     let deploy_params = deploy_params();
     let payment_params =
@@ -123,12 +124,12 @@ fn should_create_deploy() {
     let session_params =
         SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
 
-    let mut output = Vec::new();
-
-    let deploy =
+    let _deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, false)
             .unwrap();
-    crate::write_deploy(&deploy, &mut output).unwrap();
+
+    let mut output = Vec::new();
+    crate::write_deploy(&_deploy, &mut output).unwrap();
 
     // The test output can be used to generate data for SAMPLE_DEPLOY:
     // let secret_key = SecretKey::generate_ed25519().unwrap();
@@ -149,6 +150,7 @@ fn should_create_deploy() {
 }
 
 #[test]
+#[cfg(feature = "std-fs-io")]
 fn should_fail_to_create_large_deploy() {
     let deploy_params = deploy_params();
     let payment_params =
@@ -180,12 +182,14 @@ fn should_fail_to_create_large_deploy() {
 }
 
 #[test]
+#[cfg(feature = "std-fs-io")]
 fn should_read_deploy() {
     let bytes = SAMPLE_DEPLOY.as_bytes();
     assert!(crate::read_deploy(bytes).is_ok());
 }
 
 #[test]
+#[cfg(feature = "std-fs-io")]
 fn should_sign_deploy() {
     let bytes = SAMPLE_DEPLOY.as_bytes();
     let deploy = crate::read_deploy(bytes).unwrap();
@@ -211,6 +215,7 @@ fn should_sign_deploy() {
 }
 
 #[test]
+#[cfg(feature = "std-fs-io")]
 fn should_create_transfer() {
     use casper_types::{AsymmetricType, PublicKey};
 
@@ -395,13 +400,18 @@ fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned
     );
 
     assert!(transfer_deploy.is_err());
-    assert!(matches!(
-        transfer_deploy.unwrap_err(),
-        CliError::InvalidArgument {
-            context: "new_transfer (secret_key, allow_unsigned_deploy)",
-            error: _
-        }
-    ));
+    let actual_error = transfer_deploy.unwrap_err();
+    assert!(
+        matches!(
+            actual_error,
+            CliError::InvalidArgument {
+                context: "new_transfer",
+                error: _
+            }
+        ),
+        "{:?}",
+        actual_error
+    );
 }
 
 #[test]
@@ -417,11 +427,16 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, false);
 
     assert!(transfer_deploy.is_err());
-    assert!(matches!(
-        transfer_deploy.unwrap_err(),
-        CliError::InvalidArgument {
-            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
-            error: _
-        }
-    ));
+    let actual_error = transfer_deploy.unwrap_err();
+    assert!(
+        matches!(
+            actual_error,
+            CliError::InvalidArgument {
+                context: "with_payment_and_session",
+                error: _
+            }
+        ),
+        "{:?}",
+        actual_error
+    );
 }

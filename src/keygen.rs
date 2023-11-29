@@ -118,20 +118,7 @@ impl ClientCommand for Keygen {
         let algorithm = algorithm::get(matches);
         let force = common::force::get(matches);
 
-        // Check if the std-fs-io feature is enabled
-        #[cfg(feature = "std-fs-io")]
-        {
-            // If std-fs-io feature is enabled, generate key files and return success message
-            keygen::generate_files(&output_dir, algorithm, force)?;
-            Ok(Success::Output(format!("Wrote files to {}", output_dir)))
-        }
-
-        // If std-fs-io feature is not enabled, return an error message
-        #[cfg(not(feature = "std-fs-io"))]
-        {
-            Ok(Success::Output(format!(
-                "keygen not available without std-fs-io feature"
-            )))
-        }
+        keygen::generate_files(&output_dir, algorithm, force)?;
+        Ok(Success::Output(format!("Wrote files to {}", output_dir)))
     }
 }

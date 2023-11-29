@@ -1,11 +1,10 @@
 //! Cryptographic key generation.
 
-#[cfg(feature = "std-fs-io")]
-use crate::Error;
-#[cfg(feature = "std-fs-io")]
-use casper_types::{AsymmetricType, PublicKey, SecretKey};
-#[cfg(feature = "std-fs-io")]
 use std::{fs, path::Path};
+
+use casper_types::{AsymmetricType, PublicKey, SecretKey};
+
+use crate::Error;
 
 /// Default filename for the PEM-encoded secret key file.
 pub const SECRET_KEY_PEM: &str = "secret_key.pem";
@@ -31,7 +30,6 @@ pub const SECP256K1: &str = "secp256k1";
 ///
 /// If `force` is true, existing files will be overwritten. If `force` is false and any of the
 /// files exist, [`Error::FileAlreadyExists`] is returned and no files are written.
-#[cfg(feature = "std-fs-io")]
 pub fn generate_files(output_dir: &str, algorithm: &str, force: bool) -> Result<(), Error> {
     if output_dir.is_empty() {
         return Err(Error::EmptyKeygenPath);

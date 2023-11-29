@@ -16,7 +16,7 @@ static CLIENT: OnceCell<Client> = OnceCell::new();
 pub(crate) struct Call {
     rpc_id: JsonRpcId,
     node_address: String,
-    #[allow(dead_code)]
+    #[cfg_attr(not(feature = "std-fs-io"), allow(dead_code))]
     verbosity: Verbosity,
 }
 
