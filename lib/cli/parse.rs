@@ -11,6 +11,7 @@ use casper_types::{
     Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey,
     TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
+use casper_types::bytesrepr::Bytes;
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
@@ -498,6 +499,14 @@ pub(super) fn session_executable_deploy_item(
         module_bytes: module_bytes.into(),
         args: session_args,
     })
+}
+
+pub(super) fn temp_transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError>{
+    let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
+        context: format!("unable to read session file at '{}'", session_path),
+        error,
+    })?;
+    Ok(Bytes::from(module_bytes))
 }
 
 pub(super) fn payment_executable_deploy_item(
