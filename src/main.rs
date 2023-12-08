@@ -19,6 +19,7 @@ mod keygen;
 mod list_rpcs;
 mod query_balance;
 mod query_global_state;
+mod transaction;
 
 use std::process;
 
@@ -49,6 +50,9 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
+use transaction::{
+    MakeTransaction
+};
 
 const APP_NAME: &str = "Casper client";
 
@@ -70,6 +74,7 @@ static VERSION: Lazy<String> =
 enum DisplayOrder {
     PutDeploy,
     MakeDeploy,
+    MakeTransaction,
     SignDeploy,
     SendDeploy,
     Transfer,
@@ -103,6 +108,7 @@ fn cli() -> Command {
         .about("A client for interacting with the Casper network")
         .subcommand(PutDeploy::build(DisplayOrder::PutDeploy as usize))
         .subcommand(MakeDeploy::build(DisplayOrder::MakeDeploy as usize))
+        .subcommand(MakeTransaction::build(DisplayOrder::MakeTransaction as usize))
         .subcommand(SignDeploy::build(DisplayOrder::SignDeploy as usize))
         .subcommand(SendDeploy::build(DisplayOrder::SendDeploy as usize))
         .subcommand(Transfer::build(DisplayOrder::Transfer as usize))
@@ -154,6 +160,7 @@ async fn main() {
     let result = match subcommand_name {
         PutDeploy::NAME => PutDeploy::run(matches).await,
         MakeDeploy::NAME => MakeDeploy::run(matches).await,
+        MakeTransaction::NAME => MakeTransaction::run(matches).await,
         SignDeploy::NAME => SignDeploy::run(matches).await,
         SendDeploy::NAME => SendDeploy::run(matches).await,
         Transfer::NAME => Transfer::run(matches).await,
