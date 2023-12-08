@@ -477,8 +477,6 @@ pub(super) mod pricing_mode {
 
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
     const ARG_HELP: &str = "Used to identify the payment mode chosen to execute the transaction";
-    //TODO: Add info about the pricing mode options to ARG_HELP to inform the user of possible values
-    // also discuss this being an integer value.
 
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -502,8 +500,6 @@ pub(super) mod initiator_address {
     const ARG_HELP: &str = "Used to specify the account initiating the transaction. This can be a \
                             a public key, account hash, or an entity address. \
     ";
-    //TODO: Add info about the pricing mode options to ARG_HELP to inform the user of possible values
-    // also discuss this being an integer value.
 
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
