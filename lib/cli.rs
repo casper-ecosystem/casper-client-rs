@@ -73,27 +73,9 @@ pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
 pub use simple_args::help as simple_args_help;
 pub use transaction_str_params::TransactionStrParams;
-/// Creates a transfer [`Transaction`] and outputs it to a file or stdout.
-///
-/// As a file, the `Transaction` can subsequently be signed by other parties using [`sign_transaction_file`]
-/// and then sent to the network for execution using [`send_transaction_file`].
-///
-/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
-/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
-/// and the file will not be written.
-pub fn make_transaction(
-    maybe_output_path: &str,
-    transaction_params: TransactionStrParams<'_>,
-    session_params: SessionStrParams<'_>,
-    payment_amount: &str,
-    force: bool,
-) -> Result<(), CliError>{
-    let output = parse::output_kind(maybe_output_path, force);
-    let deploy =
-        transaction::with_payment_and_session(transaction_params, payment_amount, session_params, true)?;
-    crate::output_transaction(output, &deploy).map_err(CliError::from)
-}
+pub use transaction::{
+    make_transaction
+};
 
 /// Retrieves a [`Deploy`] from the network.
 ///
