@@ -4,7 +4,7 @@ use casper_types::{
 };
 
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
-use crate::{Error, MAX_SERIALIZED_SIZE_OF_DEPLOY, SuccessResponse};
+use crate::{MAX_SERIALIZED_SIZE_OF_DEPLOY, SuccessResponse};
 use crate::rpcs::results::{PutDeployResult, SpeculativeExecResult};
 
 

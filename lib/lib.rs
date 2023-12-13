@@ -55,7 +55,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::Account, Block, StoredValue, Transfer};
-use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, Transaction, TransactionV1, URef};
+use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, TransactionV1, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;

@@ -1,5 +1,5 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
-//! creating deploys.
+//! creating transactions.
 
 use std::process;
 
@@ -178,9 +178,9 @@ pub(super) mod speculative_exec {
     const ARG_NAME: &str = "speculative-exec";
     const ARG_VALUE_NAME: &str = "HEX STRING OR INTEGER";
     const ARG_HELP: &str =
-        "If the receiving node supports this, execution of the deploy will only be attempted on \
-        that single node. Full validation of the deploy is not performed, and successful execution \
-        at the given global state is no guarantee that the deploy will be able to be successfully \
+        "If the receiving node supports this, execution of the transaction will only be attempted on \
+        that single node. Full validation of the transaction is not performed, and successful execution \
+        at the given global state is no guarantee that the transaction will be able to be successfully \
         executed if put to the network, nor should execution costs be expected to be identical. \
         Optionally provide the hex-encoded block hash or height of the block to specify the global \
         state on which to execute";
@@ -243,7 +243,7 @@ pub(super) mod ttl {
     const ARG_VALUE_NAME: &str = "DURATION";
     const ARG_DEFAULT: &str = "30min";
     const ARG_HELP: &str =
-        "Time that the deploy will remain valid for. A deploy can only be included in a block \
+        "Time that the transaction will remain valid for. A transaction can only be included in a block \
         between `timestamp` and `timestamp + ttl`. Input examples: '1hr 12min', '30min 50sec', \
         '1day'. For all options, see \
         https://docs.rs/humantime/latest/humantime/fn.parse_duration.html";
@@ -545,8 +545,8 @@ pub(super) fn apply_common_creation_options(
     } else {
         common::secret_key::arg(
             DisplayOrder::SecretKey as usize,
-            ". If not provided, the deploy will not be signed and will remain invalid until \
-            signed, for example by running the `sign-deploy` subcommand.",
+            ". If not provided, the transaction will not be signed and will remain invalid until \
+            signed, for example by running the `sign-transaction` subcommand.",
         )
     };
 
