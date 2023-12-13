@@ -314,7 +314,7 @@ pub fn make_transaction(
     force: bool,
 ) -> Result<(), CliError>{
     let output = parse::output_kind(maybe_output_path, force);
-    let deploy =
+    let txn =
         transaction::with_payment_and_session(transaction_params, payment_amount, session_params, true)?;
     crate::output_transaction(output, &deploy).map_err(CliError::from)
 }
