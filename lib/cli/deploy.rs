@@ -3,7 +3,7 @@ use casper_types::{
     UIntParseError, URef, U512,
 };
 
-use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams, deploy};
+use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
 use crate::{Error, MAX_SERIALIZED_SIZE_OF_DEPLOY, SuccessResponse};
 use crate::rpcs::results::{PutDeployResult, SpeculativeExecResult};
 
@@ -23,7 +23,7 @@ pub async fn put_deploy(
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let deploy =
-        deploy::with_payment_and_session(deploy_params, payment_params, session_params, false)?;
+        with_payment_and_session(deploy_params, payment_params, session_params, false)?;
     crate::put_deploy(rpc_id, node_address, verbosity, deploy)
         .await
         .map_err(CliError::from)
@@ -45,7 +45,7 @@ pub async fn speculative_put_deploy(
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let deploy =
-        deploy::with_payment_and_session(deploy_params, payment_params, session_params, false)?;
+        with_payment_and_session(deploy_params, payment_params, session_params, false)?;
     let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
         .await
@@ -69,7 +69,7 @@ pub fn make_deploy(
 ) -> Result<(), CliError> {
     let output = parse::output_kind(maybe_output_path, force);
     let deploy =
-        deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)?;
+        with_payment_and_session(deploy_params, payment_params, session_params, true)?;
     crate::output_deploy(output, &deploy).map_err(CliError::from)
 }
 
@@ -150,7 +150,7 @@ pub async fn transfer(
 ) -> Result<SuccessResponse<PutDeployResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy = deploy::new_transfer(
+    let deploy = new_transfer(
         amount,
         None,
         target_account,
@@ -189,7 +189,7 @@ pub async fn speculative_transfer(
 ) -> Result<SuccessResponse<SpeculativeExecResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy = deploy::new_transfer(
+    let deploy = new_transfer(
         amount,
         None,
         target_account,
@@ -223,7 +223,7 @@ pub fn make_transfer(
     force: bool,
 ) -> Result<(), CliError> {
     let output = parse::output_kind(maybe_output_path, force);
-    let deploy = deploy::new_transfer(
+    let deploy = new_transfer(
         amount,
         None,
         target_account,
