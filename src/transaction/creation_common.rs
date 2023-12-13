@@ -42,7 +42,7 @@ pub(super) enum DisplayOrder {
     SessionTransfer,
     SessionAccount,
     PaymentAmmount,
-    PaymentMode,
+    PricingMode,
     }
 
 /// Handles providing the arg for and executing the show-simple-arg-examples option.
@@ -318,7 +318,7 @@ pub(super) mod session_path {
     }
 }
 
-/// Handles providing the arg for and retrieval of simple session and payment args.
+/// Handles providing the arg for and retrieval of simple session args.
 pub(super) mod arg_simple {
     use super::*;
     use once_cell::sync::Lazy;
@@ -365,7 +365,7 @@ pub(super) mod arg_simple {
     }
 }
 
-/// Handles providing the arg for and retrieval of JSON session and payment args.
+/// Handles providing the arg for and retrieval of JSON session args.
 pub(super) mod args_json {
     use super::*;
     use once_cell::sync::Lazy;
