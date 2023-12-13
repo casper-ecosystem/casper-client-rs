@@ -153,7 +153,7 @@ pub fn output_deploy(output: OutputKind, deploy: &Deploy) -> Result<(), Error> {
 
 /// Outputs a [`Transaction`] to a file or stdout.
 ///
-/// As a file, the `Deploy` can subsequently be signed by other parties using [`sign_transaction_file`]
+/// As a file, the `Transaction` can subsequently be signed by other parties using [`sign_transaction_file`]
 /// and then read and sent to the network for execution using [`read_transaction_file`] and
 /// [`put_transaction`] respectively.
 ///

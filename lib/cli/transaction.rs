@@ -50,8 +50,8 @@ pub fn with_payment_and_session(
         transaction_builder = transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
     }
 
-    let deploy = transaction_builder.build().map_err(crate::Error::from)?;
-    Ok(deploy)
+    let txn = transaction_builder.build().map_err(crate::Error::from)?;
+    Ok(txn)
 }
 
 /// Creates a transfer [`Transaction`] and outputs it to a file or stdout.
