@@ -484,7 +484,7 @@ pub(super) mod pricing_mode {
             .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::PaymentMode as usize)
+            .display_order(DisplayOrder::PricingMode as usize)
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
@@ -507,7 +507,7 @@ pub(super) mod initiator_address {
             .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::PaymentMode as usize)
+            .display_order(DisplayOrder::PricingMode as usize)
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
