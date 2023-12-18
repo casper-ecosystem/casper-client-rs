@@ -22,7 +22,7 @@ impl GetBalanceParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `state_get_balance` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetBalanceResult {
     /// The JSON-RPC server version.

@@ -142,7 +142,7 @@ fn cli() -> Command {
         ))
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let arg_matches = cli().get_matches();
     let (subcommand_name, matches) = arg_matches.subcommand().unwrap_or_else(|| {

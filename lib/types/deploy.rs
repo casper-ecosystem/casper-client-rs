@@ -45,6 +45,12 @@ impl Display for DeployHash {
     }
 }
 
+impl AsRef<[u8]> for DeployHash {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 impl ToBytes for DeployHash {
     fn write_bytes(&self, buffer: &mut Vec<u8>) -> Result<(), bytesrepr::Error> {
         self.0.write_bytes(buffer)
@@ -190,11 +196,20 @@ impl ToBytes for Approval {
 #[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct Deploy {
-    hash: DeployHash,
-    header: DeployHeader,
-    payment: ExecutableDeployItem,
-    session: ExecutableDeployItem,
-    approvals: Vec<Approval>,
+    /// The unique identifier for the deploy.
+    pub hash: DeployHash,
+
+    /// The header information for the deploy.
+    pub header: DeployHeader,
+
+    /// The payment logic for the deploy.
+    pub payment: ExecutableDeployItem,
+
+    /// The session logic for the deploy.
+    pub session: ExecutableDeployItem,
+
+    /// List of approvals for the deploy.
+    pub approvals: Vec<Approval>,
 }
 
 /// Used when constructing a `Deploy`.
@@ -369,7 +384,7 @@ fn serialize_body(payment: &ExecutableDeployItem, session: &ExecutableDeployItem
 pub struct DeployBuilder<'a> {
     account: Option<PublicKey>,
     secret_key: Option<&'a SecretKey>,
-    timestamp: Timestamp,
+    timestamp: Option<Timestamp>,
     ttl: TimeDiff,
     gas_price: u64,
     dependencies: Vec<DeployHash>,
@@ -389,11 +404,19 @@ impl<'a> DeployBuilder<'a> {
     ///   * that payment code is provided by either calling
     ///     [`with_standard_payment`](Self::with_standard_payment) or
     ///     [`with_payment`](Self::with_payment)
+    ///   * if feature `std-fs-io` is not enabled (it is enabled by default) that a timestamp is
+    ///     provided by calling [`with_timestamp`](Self::with_timestamp)
     pub fn new<C: Into<String>>(chain_name: C, session: ExecutableDeployItem) -> Self {
+        // Timestamp::now() not available with feature sdk, use default() instead
+        #[cfg(feature = "std-fs-io")]
+        let timestamp = Some(Timestamp::now());
+        #[cfg(not(feature = "std-fs-io"))]
+        let timestamp = None;
+
         DeployBuilder {
             account: None,
             secret_key: None,
-            timestamp: Timestamp::now(),
+            timestamp,
             ttl: Deploy::DEFAULT_TTL,
             gas_price: Deploy::DEFAULT_GAS_PRICE,
             dependencies: vec![],
@@ -415,6 +438,8 @@ impl<'a> DeployBuilder<'a> {
     ///   * that payment code is provided by either calling
     ///     [`with_standard_payment`](Self::with_standard_payment) or
     ///     [`with_payment`](Self::with_payment)
+    ///   * if feature `std-fs-io` is not enabled (it is enabled by default) that a timestamp is
+    ///     provided by calling [`with_timestamp`](Self::with_timestamp)
     pub fn new_transfer<C: Into<String>, A: Into<U512>>(
         chain_name: C,
         amount: A,
@@ -460,9 +485,11 @@ impl<'a> DeployBuilder<'a> {
     /// Sets the `timestamp` in the `Deploy`.
     ///
     /// If not provided, the timestamp will be set to the time when the `DeployBuilder` was
-    /// constructed.
+    /// constructed if feature `std-fs-io` is enabled (it is enabled by default).  If `std-fs-io`
+    /// is not enabled, [`build`](Self::build) will return an error if `with_timestamp` has not
+    /// previously been called.
     pub fn with_timestamp(mut self, timestamp: Timestamp) -> Self {
-        self.timestamp = timestamp;
+        self.timestamp = Some(timestamp);
         self
     }
 
@@ -474,9 +501,13 @@ impl<'a> DeployBuilder<'a> {
         self
     }
 
-    /// Returns the new `Deploy`, or an error if neither
-    /// [`with_standard_payment`](Self::with_standard_payment) nor
-    /// [`with_payment`](Self::with_payment) were previously called.
+    /// Returns the new `Deploy`.
+    ///
+    /// Returns an error if
+    ///   * neither [`with_standard_payment`](Self::with_standard_payment) nor
+    ///     [`with_payment`](Self::with_payment) were previously called
+    ///   * if feature `std-fs-io` was not enabled (it is enabled by default) and
+    ///     [`with_timestamp`](Self::with_timestamp) was not previously called
     pub fn build(self) -> Result<Deploy, Error> {
         let account_and_secret_key = match (self.account, self.secret_key) {
             (Some(account), Some(secret_key)) => AccountAndSecretKey::Both {
@@ -488,9 +519,10 @@ impl<'a> DeployBuilder<'a> {
             (None, None) => return Err(Error::DeployMissingSessionAccount),
         };
 
+        let timestamp = self.timestamp.ok_or(Error::DeployMissingTimestamp)?;
         let payment = self.payment.ok_or(Error::DeployMissingPaymentCode)?;
         let deploy = Deploy::new(
-            self.timestamp,
+            timestamp,
             self.ttl,
             self.gas_price,
             self.dependencies,

@@ -39,7 +39,7 @@ impl Display for ChainspecRawBytes {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `info_get_chainspec` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetChainspecResult {
     /// The JSON-RPC server version.

@@ -20,7 +20,7 @@
 //! * `maybe_block_id` - Must be a hex-encoded, 32-byte hash digest or a `u64` representing the
 //!   [`Block`] height or empty.  If empty, the latest `Block` known on the server will be used.
 
-/// Deploy module.
+/// Functions for creating Deploys.
 pub mod deploy;
 mod deploy_str_params;
 mod dictionary_item_str_params;
@@ -33,6 +33,7 @@ mod simple_args;
 #[cfg(test)]
 mod tests;
 
+#[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
 use casper_hashing::Digest;
@@ -51,22 +52,25 @@ use crate::{
         },
         DictionaryItemIdentifier,
     },
+    types::Deploy,
     SuccessResponse,
 };
 #[cfg(doc)]
-use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
+use crate::{Account, Block, Error, StoredValue, Transfer};
 #[cfg(doc)]
 use casper_types::PublicKey;
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
 pub use error::CliError;
-use json_args::JsonArg;
 pub use json_args::{
-    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails,
+    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails, JsonArg,
+};
+pub use parse::{
+    account_identifier as parse_account_identifier, purse_identifier as parse_purse_identifier,
 };
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
-pub use simple_args::help as simple_args_help;
+pub use simple_args::{help as simple_args_help, insert_arg};
 
 /// Creates a [`Deploy`] and sends it to the network for execution.
 ///
@@ -111,26 +115,32 @@ pub async fn speculative_put_deploy(
         .await
         .map_err(CliError::from)
 }
-/// Creates a [`Deploy`] and outputs it to a file or stdout.
+/// Returns a [`Deploy`] and outputs it to a file or stdout if the `std-fs-io` feature is enabled.
 ///
 /// As a file, the `Deploy` can subsequently be signed by other parties using [`sign_deploy_file`]
-/// and then sent to the network for execution using [`send_deploy_file`].
+/// and then sent to the network for execution using [`send_deploy_file`].  Alternatively, the
+/// returned `Deploy` can be signed via the [`Deploy::sign`] method.
 ///
-/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
-/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
-/// and the file will not be written.
+/// If the `std-fs-io` feature is NOT enabled, `maybe_output_path` and `force` are ignored.
+/// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
+/// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
+/// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
+/// [`Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_deploy(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     deploy_params: DeployStrParams<'_>,
     session_params: SessionStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
-) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    #[allow(unused_variables)] force: bool,
+) -> Result<Deploy, CliError> {
     let deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    #[cfg(feature = "std-fs-io")]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        crate::output_deploy(output, &deploy).map_err(CliError::from)?;
+    }
+    Ok(deploy)
 }
 
 /// Reads a previously-saved [`Deploy`] from a file, cryptographically signs it, and outputs it to a
@@ -140,6 +150,7 @@ pub fn make_deploy(
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+#[cfg(feature = "std-fs-io")]
 pub fn sign_deploy_file(
     input_path: &str,
     secret_key_path: &str,
@@ -154,6 +165,7 @@ pub fn sign_deploy_file(
 /// Reads a previously-saved [`Deploy`] from a file and sends it to the network for execution.
 ///
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).
+#[cfg(feature = "std-fs-io")]
 pub async fn send_deploy_file(
     maybe_rpc_id: &str,
     node_address: &str,
@@ -171,6 +183,7 @@ pub async fn send_deploy_file(
 /// Reads a previously-saved [`Deploy`] from a file and sends it to the specified node for
 /// speculative execution.
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).
+#[cfg(feature = "std-fs-io")]
 pub async fn speculative_send_deploy_file(
     maybe_block_id: &str,
     maybe_rpc_id: &str,
@@ -264,25 +277,27 @@ pub async fn speculative_transfer(
         .map_err(CliError::from)
 }
 
-/// Creates a transfer [`Deploy`] and outputs it to a file or stdout.
+/// Returns a transfer [`Deploy`] and outputs it to a file or stdout if the `std-fs-io` feature is
+/// enabled.
 ///
 /// As a file, the `Deploy` can subsequently be signed by other parties using [`sign_deploy_file`]
-/// and then sent to the network for execution using [`send_deploy_file`].
+/// and then sent to the network for execution using [`send_deploy_file`].  Alternatively, the
+/// returned `Deploy` can be signed via the [`Deploy::sign`] method.
 ///
-/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
-/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
-/// and the file will not be written.
+/// If the `std-fs-io` feature is NOT enabled, `maybe_output_path` and `force` are ignored.
+/// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
+/// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
+/// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
+/// [`Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_transfer(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     amount: &str,
     target_account: &str,
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
-) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    #[allow(unused_variables)] force: bool,
+) -> Result<Deploy, CliError> {
     let deploy = deploy::new_transfer(
         amount,
         None,
@@ -292,7 +307,12 @@ pub fn make_transfer(
         payment_params,
         true,
     )?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    #[cfg(feature = "std-fs-io")]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        crate::output_deploy(output, &deploy).map_err(CliError::from)?;
+    }
+    Ok(deploy)
 }
 
 /// Retrieves a [`Deploy`] from the network.
@@ -658,6 +678,7 @@ pub async fn list_rpcs(
 /// When `verbosity_level` is `0`, nothing is printed.  For `1`, the value is printed with long
 /// string fields shortened to a string indicating the character count of the field.  Greater than
 /// `1` is the same as for `1` except without abbreviation of long fields.
+#[cfg(feature = "std-fs-io")]
 pub fn json_pretty_print<T: ?Sized + Serialize>(
     value: &T,
     verbosity_level: u64,

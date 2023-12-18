@@ -19,7 +19,7 @@ impl GetBlockTransfersParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `chain_get_block_transfers` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetBlockTransfersResult {
     /// The JSON-RPC server version.

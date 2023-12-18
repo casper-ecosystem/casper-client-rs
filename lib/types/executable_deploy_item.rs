@@ -198,8 +198,7 @@ impl ExecutableDeployItem {
     }
 
     /// Returns the runtime arguments.
-    #[cfg(test)]
-    pub(crate) fn args(&self) -> &RuntimeArgs {
+    pub fn args(&self) -> &RuntimeArgs {
         match self {
             ExecutableDeployItem::ModuleBytes { args, .. }
             | ExecutableDeployItem::StoredContractByHash { args, .. }

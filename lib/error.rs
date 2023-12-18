@@ -1,3 +1,4 @@
+#[cfg(feature = "std-fs-io")]
 use std::{io, path::PathBuf};
 
 use thiserror::Error;
@@ -28,6 +29,12 @@ pub enum Error {
     /// calling [`DeployBuilder::build`].
     #[error("deploy requires session account - use `with_account` or `with_secret_key`")]
     DeployMissingSessionAccount,
+
+    /// Failed to build [`Deploy`] due to missing timestamp.
+    ///
+    /// Call [`DeployBuilder::with_timestamp`] before calling [`DeployBuilder::build`].
+    #[error("deploy requires timestamp - use `with_timestamp`")]
+    DeployMissingTimestamp,
 
     /// Failed to build [`Deploy`] due to missing payment code.
     ///
@@ -125,6 +132,7 @@ pub enum Error {
     },
 
     /// Failed to create new file because it already exists.
+    #[cfg(feature = "std-fs-io")]
     #[error("file at {} already exists", .0.display())]
     FileAlreadyExists(PathBuf),
 
@@ -137,6 +145,7 @@ pub enum Error {
     UnsupportedAlgorithm(String),
 
     /// Context-adding wrapper for `std::io::Error`.
+    #[cfg(feature = "std-fs-io")]
     #[error("input/output error: {context}: {error}")]
     IoError {
         /// Contextual description of where this error occurred including relevant paths,

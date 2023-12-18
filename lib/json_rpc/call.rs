@@ -16,6 +16,7 @@ static CLIENT: OnceCell<Client> = OnceCell::new();
 pub(crate) struct Call {
     rpc_id: JsonRpcId,
     node_address: String,
+    #[cfg_attr(not(feature = "std-fs-io"), allow(dead_code))]
     verbosity: Verbosity,
 }
 
@@ -53,6 +54,7 @@ impl Call {
             None => JsonRpc::request(&self.rpc_id, method),
         };
 
+        #[cfg(feature = "std-fs-io")]
         crate::json_pretty_print(&rpc_request, self.verbosity)?;
 
         let client = CLIENT.get_or_init(Client::new);
@@ -85,6 +87,7 @@ impl Call {
                     error,
                 })?;
 
+        #[cfg(feature = "std-fs-io")]
         crate::json_pretty_print(&rpc_response, self.verbosity)?;
 
         let response_kind = match &rpc_response {

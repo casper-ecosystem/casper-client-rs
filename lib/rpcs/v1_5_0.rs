@@ -9,10 +9,6 @@ pub(crate) mod speculative_exec;
 
 // The following RPCs are all unchanged from v1.4.5, so we just re-export them.
 
-pub(crate) mod get_account {
-    pub use crate::rpcs::v1_4_5::get_account::GetAccountResult;
-}
-
 pub(crate) mod get_auction_info {
     pub use crate::rpcs::v1_4_5::get_auction_info::GetAuctionInfoResult;
     pub(crate) use crate::rpcs::v1_4_5::get_auction_info::{
@@ -85,7 +81,5 @@ pub(crate) mod put_deploy {
 }
 
 pub(crate) mod query_global_state {
-    pub use crate::rpcs::v1_4_5::query_global_state::{
-        GlobalStateIdentifier, QueryGlobalStateResult,
-    };
+    pub use crate::rpcs::v1_4_5::query_global_state::GlobalStateIdentifier;
 }

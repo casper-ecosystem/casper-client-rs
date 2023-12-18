@@ -13,3 +13,5 @@ pub use v1_5_0::{
     get_dictionary_item::DictionaryItemIdentifier, query_balance::PurseIdentifier,
     query_global_state::GlobalStateIdentifier,
 };
+
+pub use v1_6_0::get_account::AccountIdentifier;

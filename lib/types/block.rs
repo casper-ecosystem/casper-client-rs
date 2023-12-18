@@ -61,6 +61,12 @@ impl Display for BlockHash {
     }
 }
 
+impl AsRef<[u8]> for BlockHash {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 impl ToBytes for BlockHash {
     fn write_bytes(&self, buffer: &mut Vec<u8>) -> Result<(), bytesrepr::Error> {
         self.0.write_bytes(buffer)

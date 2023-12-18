@@ -46,7 +46,7 @@ pub struct NextUpgrade {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `info_get_status` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetNodeStatusResult {
     /// The JSON-RPC server version.

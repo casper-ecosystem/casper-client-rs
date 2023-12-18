@@ -1,3 +1,5 @@
+use casper_types::bytesrepr::Bytes;
+
 #[cfg(doc)]
 use crate::cli;
 
@@ -99,7 +101,7 @@ use crate::cli;
 ///
 /// **Note** while multiple payment args can be specified for a single payment code instance, only
 /// one of `payment_args_simple`, `payment_args_json` or `payment_args_complex` may be used.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct PaymentStrParams<'a> {
     pub(super) payment_amount: &'a str,
     pub(super) payment_hash: &'a str,
@@ -107,6 +109,7 @@ pub struct PaymentStrParams<'a> {
     pub(super) payment_package_hash: &'a str,
     pub(super) payment_package_name: &'a str,
     pub(super) payment_path: &'a str,
+    pub(super) payment_bytes: Bytes,
     pub(super) payment_args_simple: Vec<&'a str>,
     pub(super) payment_args_json: &'a str,
     pub(super) payment_args_complex: &'a str,
@@ -129,6 +132,27 @@ impl<'a> PaymentStrParams<'a> {
     ) -> Self {
         Self {
             payment_path,
+            payment_args_simple,
+            payment_args_json,
+            payment_args_complex,
+            ..Default::default()
+        }
+    }
+
+    /// Constructs a `PaymentStrParams` using payment bytes.
+    ///
+    /// * `payment_bytes` are the bytes of the compiled Wasm payment code.
+    /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple),
+    ///   [`payment_args_json`](#payment_args_json) and
+    ///   [`payment_args_complex`](#payment_args_complex).
+    pub fn with_bytes(
+        payment_bytes: Bytes,
+        payment_args_simple: Vec<&'a str>,
+        payment_args_json: &'a str,
+        payment_args_complex: &'a str,
+    ) -> Self {
+        Self {
+            payment_bytes,
             payment_args_simple,
             payment_args_json,
             payment_args_complex,

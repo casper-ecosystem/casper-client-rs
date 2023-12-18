@@ -1,22 +1,32 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use std::{convert::TryInto, fs, io, path::Path, str::FromStr};
+use std::str::FromStr;
+#[cfg(feature = "std-fs-io")]
+use std::{convert::TryInto, fs, io, path::Path};
 
 use rand::Rng;
+#[cfg(feature = "std-fs-io")]
 use serde::{self, Deserialize};
 
 use casper_hashing::Digest;
 use casper_types::{
-    account::AccountHash, bytesrepr, crypto, AsymmetricType, CLValue, HashAddr, Key, NamedArg,
-    PublicKey, RuntimeArgs, SecretKey, UIntParseError, URef, U512,
+    account::AccountHash, crypto, AsymmetricType, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs,
+    UIntParseError, URef, U512,
+};
+#[cfg(feature = "std-fs-io")]
+use casper_types::{
+    bytesrepr::{self, Bytes},
+    CLValue, SecretKey,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
+#[cfg(feature = "std-fs-io")]
+use crate::OutputKind;
 use crate::{
     types::{BlockHash, DeployHash, ExecutableDeployItem, TimeDiff, Timestamp},
-    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind,
-    PurseIdentifier, Verbosity,
+    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, PurseIdentifier,
+    Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -37,6 +47,7 @@ pub(super) fn verbosity(verbosity_level: u64) -> Verbosity {
     }
 }
 
+#[cfg(feature = "std-fs-io")]
 pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     if maybe_output_path.is_empty() {
         OutputKind::Stdout
@@ -45,6 +56,7 @@ pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     }
 }
 
+#[cfg(feature = "std-fs-io")]
 pub(super) fn secret_key_from_file<P: AsRef<Path>>(
     secret_key_path: P,
 ) -> Result<SecretKey, CliError> {
@@ -157,6 +169,7 @@ mod args_json {
 
 /// Handles providing the arg for and retrieval of complex session and payment args. These are read
 /// in from a file.
+#[cfg(feature = "std-fs-io")]
 mod args_complex {
     use std::{
         fmt::{self, Formatter},
@@ -314,7 +327,7 @@ fn args_from_simple_or_json_or_complex(
 /// - More than one parameter is non-empty.
 /// - Any parameter that is non-empty has requires[] requirements that are empty.
 macro_rules! check_exactly_one_not_empty {
-    ( context: $site:expr, $( ($x:expr) requires[$($y:expr),*] requires_empty[$($z:expr),*] ),+ $(,)? ) => {{
+    ( context: $site:tt, $( ($x:expr) requires[$($y:expr),*] requires_empty[$($z:expr),*] ),+ $(,)? ) => {{
 
         let field_is_empty_map = &[$(
             (stringify!($x), $x.is_empty())
@@ -373,7 +386,7 @@ macro_rules! check_exactly_one_not_empty {
                 conflicting_fields.push(format!("{}={}", name, value));
                 conflicting_fields.sort();
                 return Err(CliError::ConflictingArguments{
-                    context: $site,
+                    context: $site.to_string(),
                     args: conflicting_fields,
                 });
             }
@@ -388,13 +401,67 @@ macro_rules! check_exactly_one_not_empty {
                 .collect::<Vec<String>>();
             non_empty_fields_with_values.sort();
             return Err(CliError::ConflictingArguments {
-                context: $site,
+                context: $site.to_string(),
                 args: non_empty_fields_with_values,
             });
         }
     }}
 }
 
+/// Checks if conflicting arguments are provided for parsing session information.
+///
+/// # Arguments
+///
+/// * `context` - A string indicating the context in which the arguments are checked.
+/// * `simple` - A vector of strings representing simple arguments.
+/// * `json` - A string representing JSON-formatted arguments.
+/// * `complex` - A string representing complex arguments.
+///
+/// # Returns
+///
+/// Returns a `Result` with an empty `Ok(())` variant if no conflicting arguments are found. If
+/// conflicting arguments are provided, an `Err` variant with a `CliError::ConflictingArguments` is
+/// returned.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError::ConflictingArguments` if conflicting arguments are
+/// provided.
+fn check_no_conflicting_arg_types(
+    context: &str,
+    simple: &Vec<&str>,
+    json: &str,
+    complex: &str,
+) -> Result<(), CliError> {
+    let count = [!simple.is_empty(), !json.is_empty(), !complex.is_empty()]
+        .iter()
+        .filter(|&&x| x)
+        .count();
+
+    if count > 1 {
+        return Err(CliError::ConflictingArguments {
+            context: format!("parsing {context} args conflict (simple json complex)",),
+            args: vec![simple.join(", "), json.to_owned(), complex.to_owned()],
+        });
+    }
+    Ok(())
+}
+
+/// Parses session parameters and constructs an `ExecutableDeployItem` accordingly.
+///
+/// # Arguments
+///
+/// * `params` - A struct containing session-related parameters including hashes, names, paths, bytes, and arguments.
+///
+/// # Returns
+///
+/// Returns a `Result` containing an `ExecutableDeployItem` if the session parameters are valid.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError` if there are issues with parsing session parameters,
+/// conflicting arguments, or invalid entry points.
+///
 pub(super) fn session_executable_deploy_item(
     params: SessionStrParams,
 ) -> Result<ExecutableDeployItem, CliError> {
@@ -404,6 +471,7 @@ pub(super) fn session_executable_deploy_item(
         session_package_hash,
         session_package_name,
         session_path,
+        session_bytes,
         ref session_args_simple,
         session_args_json,
         session_args_complex,
@@ -413,6 +481,8 @@ pub(super) fn session_executable_deploy_item(
     } = params;
     // This is to make sure that we're using &str consistently in the macro call below.
     let is_session_transfer = if session_transfer { "true" } else { "" };
+    // This is to make sure that we're using &str consistently in the macro call below.
+    let has_session_bytes = if session_bytes.is_empty() { "" } else { "true" };
 
     check_exactly_one_not_empty!(
         context: "parse_session_info",
@@ -425,21 +495,27 @@ pub(super) fn session_executable_deploy_item(
         (session_package_name)
             requires[session_entry_point] requires_empty[],
         (session_path)
-            requires[] requires_empty[session_entry_point, session_version],
+            requires[] requires_empty[session_entry_point, session_version, has_session_bytes],
+        (has_session_bytes)
+            requires[] requires_empty[session_entry_point, session_version, session_path],
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
     );
-    if !session_args_simple.is_empty() && !session_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_session_info",
-            args: vec!["session_args".to_owned(), "session_args_complex".to_owned()],
-        });
-    }
+
+    check_no_conflicting_arg_types(
+        "session",
+        session_args_simple,
+        session_args_json,
+        session_args_complex,
+    )?;
 
     let session_args = args_from_simple_or_json_or_complex(
         arg_simple::session::parse(session_args_simple)?,
         args_json::session::parse(session_args_json)?,
+        #[cfg(feature = "std-fs-io")]
         args_complex::session::parse(session_args_complex)?,
+        #[cfg(not(feature = "std-fs-io"))]
+        None,
     );
     if session_transfer {
         if session_args.is_empty() {
@@ -489,12 +565,26 @@ pub(super) fn session_executable_deploy_item(
         });
     }
 
-    let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
-        context: format!("unable to read session file at '{}'", session_path),
-        error,
-    })?;
+    let module_bytes = if !session_bytes.is_empty() {
+        session_bytes
+    } else {
+        #[cfg(feature = "std-fs-io")]
+        {
+            let session = fs::read(session_path).map_err(|error| crate::Error::IoError {
+                context: format!("unable to read session file at '{}'", session_path),
+                error,
+            })?;
+            Bytes::from(session)
+        }
+        #[cfg(not(feature = "std-fs-io"))]
+        return Err(CliError::InvalidArgument {
+            context: "session_executable_deploy_item",
+            error: "missing session bytes".to_string(),
+        });
+    };
+
     Ok(ExecutableDeployItem::ModuleBytes {
-        module_bytes: module_bytes.into(),
+        module_bytes,
         args: session_args,
     })
 }
@@ -509,12 +599,15 @@ pub(super) fn payment_executable_deploy_item(
         payment_package_hash,
         payment_package_name,
         payment_path,
+        payment_bytes,
         ref payment_args_simple,
         payment_args_json,
         payment_args_complex,
         payment_version,
         payment_entry_point,
     } = params;
+    // This is to make sure that we're using &str consistently in the macro call below.
+    let has_payment_bytes = if payment_bytes.is_empty() { "" } else { "true" };
     check_exactly_one_not_empty!(
         context: "parse_payment_info",
         (payment_amount)
@@ -527,17 +620,18 @@ pub(super) fn payment_executable_deploy_item(
             requires[payment_entry_point] requires_empty[],
         (payment_package_name)
             requires[payment_entry_point] requires_empty[],
-        (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
+        (payment_path)
+            requires[] requires_empty[payment_entry_point, payment_version, has_payment_bytes],
+        (has_payment_bytes)
+            requires[] requires_empty[payment_entry_point, payment_version, payment_path],
     );
-    if !payment_args_simple.is_empty() && !payment_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_payment_info",
-            args: vec![
-                "payment_args_simple".to_owned(),
-                "payment_args_complex".to_owned(),
-            ],
-        });
-    }
+
+    check_no_conflicting_arg_types(
+        "payment",
+        payment_args_simple,
+        payment_args_json,
+        payment_args_complex,
+    )?;
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
@@ -554,7 +648,10 @@ pub(super) fn payment_executable_deploy_item(
     let payment_args = args_from_simple_or_json_or_complex(
         arg_simple::payment::parse(payment_args_simple)?,
         args_json::payment::parse(payment_args_json)?,
+        #[cfg(feature = "std-fs-io")]
         args_complex::payment::parse(payment_args_complex)?,
+        #[cfg(not(feature = "std-fs-io"))]
+        None,
     );
 
     if let Some(payment_name) = name(payment_name) {
@@ -592,12 +689,26 @@ pub(super) fn payment_executable_deploy_item(
         });
     }
 
-    let module_bytes = fs::read(payment_path).map_err(|error| crate::Error::IoError {
-        context: format!("unable to read payment file at '{}'", payment_path),
-        error,
-    })?;
+    let module_bytes = if !payment_bytes.is_empty() {
+        payment_bytes
+    } else {
+        #[cfg(feature = "std-fs-io")]
+        {
+            let payment = fs::read(payment_path).map_err(|error| crate::Error::IoError {
+                context: format!("unable to read payment file at '{}'", payment_path),
+                error,
+            })?;
+            Bytes::from(payment)
+        }
+        #[cfg(not(feature = "std-fs-io"))]
+        return Err(CliError::InvalidArgument {
+            context: "payment_executable_deploy_item",
+            error: "missing payment bytes".to_string(),
+        });
+    };
+
     Ok(ExecutableDeployItem::ModuleBytes {
-        module_bytes: module_bytes.into(),
+        module_bytes,
         args: payment_args,
     })
 }
@@ -734,7 +845,7 @@ pub(super) fn global_state_identifier(
 }
 
 /// `purse_id` can be a formatted public key, account hash, or URef.  It may not be empty.
-pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
+pub fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
     const UREF_PREFIX: &str = "uref-";
 
@@ -775,7 +886,7 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
 /// `account_identifier` can be a formatted public key, in the form of a hex-formatted string,
 /// a pem file, or a file containing a hex formatted string, or a formatted string representing
 /// an account hash.  It may not be empty.
-pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
+pub fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
     if account_identifier.is_empty() {
@@ -809,6 +920,8 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
 mod tests {
     use std::convert::TryFrom;
 
+    use casper_types::bytesrepr::Bytes;
+
     use super::*;
 
     const HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
@@ -838,49 +951,61 @@ mod tests {
 
     #[test]
     fn should_fail_to_parse_conflicting_arg_types() {
-        assert!(matches!(
-            session_executable_deploy_item(SessionStrParams {
-                session_hash: "",
-                session_name: "name",
-                session_package_hash: "",
-                session_package_name: "",
-                session_path: "",
-                session_args_simple: vec!["something:u32='0'"],
-                session_args_json: "",
-                session_args_complex: "path_to/file",
-                session_version: "",
-                session_entry_point: "entrypoint",
-                is_session_transfer: false
-            }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
-                ..
-            })
-        ));
+        let test_context = "parsing session args conflict (simple json complex)";
+        let actual_error = session_executable_deploy_item(SessionStrParams {
+            session_hash: "",
+            session_name: "name",
+            session_package_hash: "",
+            session_package_name: "",
+            session_path: "",
+            session_bytes: Bytes::new(),
+            session_args_simple: vec!["something:u32='0'"],
+            session_args_json: "",
+            session_args_complex: "path_to/file",
+            session_version: "",
+            session_entry_point: "entrypoint",
+            is_session_transfer: false,
+        })
+        .unwrap_err();
 
-        assert!(matches!(
-            payment_executable_deploy_item(PaymentStrParams {
-                payment_amount: "",
-                payment_hash: "name",
-                payment_name: "",
-                payment_package_hash: "",
-                payment_package_name: "",
-                payment_path: "",
-                payment_args_simple: vec!["something:u32='0'"],
-                payment_args_json: "",
-                payment_args_complex: "path_to/file",
-                payment_version: "",
-                payment_entry_point: "entrypoint",
-            }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
-                ..
-            })
-        ));
+        assert!(
+            matches!(
+                actual_error,
+                CliError::ConflictingArguments { ref context, .. } if context == test_context
+            ),
+            "{:?}",
+            actual_error
+        );
+
+        let test_context = "parsing payment args conflict (simple json complex)";
+        let actual_error = payment_executable_deploy_item(PaymentStrParams {
+            payment_amount: "",
+            payment_hash: "name",
+            payment_name: "",
+            payment_package_hash: "",
+            payment_package_name: "",
+            payment_path: "",
+            payment_bytes: Bytes::new(),
+            payment_args_simple: vec!["something:u32='0'"],
+            payment_args_json: "",
+            payment_args_complex: "path_to/file",
+            payment_version: "",
+            payment_entry_point: "entrypoint",
+        })
+        .unwrap_err();
+        assert!(
+            matches!(
+                actual_error,
+                CliError::ConflictingArguments { ref context, .. } if context == test_context
+            ),
+            "{:?}",
+            actual_error
+        );
     }
 
     #[test]
     fn should_fail_to_parse_conflicting_session_parameters() {
+        let test_context = String::from("parse_session_info");
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
                 session_hash: HASH,
@@ -888,6 +1013,7 @@ mod tests {
                 session_package_hash: PACKAGE_HASH,
                 session_package_name: PACKAGE_NAME,
                 session_path: PATH,
+                session_bytes: Bytes::new(),
                 session_args_simple: vec![],
                 session_args_json: "",
                 session_args_complex: "",
@@ -895,15 +1021,13 @@ mod tests {
                 session_entry_point: "",
                 is_session_transfer: false
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
     }
 
     #[test]
     fn should_fail_to_parse_conflicting_payment_parameters() {
+        let test_context = String::from("parse_payment_info");
         assert!(matches!(
             payment_executable_deploy_item(PaymentStrParams {
                 payment_amount: "12345",
@@ -912,20 +1036,19 @@ mod tests {
                 payment_package_hash: PACKAGE_HASH,
                 payment_package_name: PACKAGE_NAME,
                 payment_path: PATH,
+                payment_bytes: Bytes::new(),
                 payment_args_simple: vec![],
                 payment_args_json: "",
                 payment_args_complex: "",
                 payment_version: "",
                 payment_entry_point: "",
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
     }
 
     #[test]
+    #[cfg(feature = "std-fs-io")]
     fn should_fail_to_parse_bad_session_args_complex() {
         let missing_file = "missing/file";
         assert!(matches!(
@@ -935,6 +1058,7 @@ mod tests {
                 session_package_hash: "",
                 session_package_name: "",
                 session_path: "",
+                session_bytes: Bytes::new(),
                 session_args_simple: vec![],
                 session_args_json: "",
                 session_args_complex: missing_file,
@@ -950,6 +1074,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std-fs-io")]
     fn should_fail_to_parse_bad_payment_args_complex() {
         let missing_file = "missing/file";
         assert!(matches!(
@@ -960,6 +1085,7 @@ mod tests {
                 payment_package_hash: "",
                 payment_package_name: "",
                 payment_path: "",
+                payment_bytes: Bytes::new(),
                 payment_args_simple: vec![],
                 payment_args_json: "",
                 payment_args_complex: missing_file,
@@ -1197,18 +1323,15 @@ mod tests {
                             }
                             .try_into();
                             let mut conflicting = vec![
-                                format!("{}={}", stringify!($arg), $arg_value),
-                                format!("{}={}", stringify!($con), $con_value),
+                                format!("{}={:?}", stringify!($arg), $arg_value),
+                                format!("{}={:?}", stringify!($con), $con_value),
                             ];
                             conflicting.sort();
-                            assert!(matches!(
+                            let is_conflicting = matches!(
                                 info,
-                                Err(CliError::ConflictingArguments {
-                                    context: $context,
-                                    ..
-                                }
-                                ))
+                                Err(CliError::ConflictingArguments { context, .. }) if context == $context
                             );
+                            assert!(is_conflicting);
                         }
                     )+
                 }
@@ -1224,13 +1347,21 @@ mod tests {
             session_str_params[
 
                 // path
-                test[session_path => PATH, conflict: session_package_hash => PACKAGE_HASH, requires[], path_conflicts_with_package_hash]
-                test[session_path => PATH, conflict: session_package_name => PACKAGE_NAME, requires[], path_conflicts_with_package_name]
-                test[session_path => PATH, conflict: session_hash =>         HASH,         requires[], path_conflicts_with_hash]
-                test[session_path => PATH, conflict: session_name =>         HASH,         requires[], path_conflicts_with_name]
-                test[session_path => PATH, conflict: session_version =>      VERSION,      requires[], path_conflicts_with_version]
-                test[session_path => PATH, conflict: session_entry_point =>  ENTRY_POINT,  requires[], path_conflicts_with_entry_point]
-                test[session_path => PATH, conflict: is_session_transfer =>  TRANSFER,     requires[], path_conflicts_with_transfer]
+                test[session_path => PATH, conflict: session_package_hash => PACKAGE_HASH,         requires[], path_conflicts_with_package_hash]
+                test[session_path => PATH, conflict: session_package_name => PACKAGE_NAME,         requires[], path_conflicts_with_package_name]
+                test[session_path => PATH, conflict: session_bytes =>        Bytes::from(vec![1]), requires[], path_conflicts_with_session_bytes]
+                test[session_path => PATH, conflict: session_hash =>         HASH,                 requires[], path_conflicts_with_hash]
+                test[session_path => PATH, conflict: session_name =>         HASH,                 requires[], path_conflicts_with_name]
+                test[session_path => PATH, conflict: session_version =>      VERSION,              requires[], path_conflicts_with_version]
+                test[session_path => PATH, conflict: session_entry_point =>  ENTRY_POINT,          requires[], path_conflicts_with_entry_point]
+                test[session_path => PATH, conflict: is_session_transfer =>  TRANSFER,             requires[], path_conflicts_with_transfer]
+
+                // bytes
+                test[session_bytes => Bytes::from(vec![1]), conflict: session_package_hash => PACKAGE_HASH, requires[session_entry_point => ENTRY_POINT], bytes_conflicts_with_package_hash]
+                test[session_bytes => Bytes::from(vec![1]), conflict: session_package_name => PACKAGE_NAME, requires[session_entry_point => ENTRY_POINT], bytes_conflicts_with_package_name]
+                test[session_bytes => Bytes::from(vec![1]), conflict: session_hash =>         HASH,         requires[session_entry_point => ENTRY_POINT], bytes_conflicts_with_hash]
+                test[session_bytes => Bytes::from(vec![1]), conflict: session_version =>      VERSION,      requires[session_entry_point => ENTRY_POINT], bytes_conflicts_with_version]
+                test[session_bytes => Bytes::from(vec![1]), conflict: is_session_transfer =>  TRANSFER,     requires[session_entry_point => ENTRY_POINT], bytes_conflicts_with_transfer]
 
                 // name
                 test[session_name => NAME, conflict: session_package_hash => PACKAGE_HASH, requires[session_entry_point => ENTRY_POINT], name_conflicts_with_package_hash]
@@ -1281,12 +1412,19 @@ mod tests {
 
                 // path
                 // amount <-> path is already checked
-                test[payment_path => PATH, conflict: payment_package_hash => PACKAGE_HASH, requires[], path_conflicts_with_package_hash]
-                test[payment_path => PATH, conflict: payment_package_name => PACKAGE_NAME, requires[], path_conflicts_with_package_name]
-                test[payment_path => PATH, conflict: payment_hash =>         HASH,         requires[], path_conflicts_with_hash]
-                test[payment_path => PATH, conflict: payment_name =>         HASH,         requires[], path_conflicts_with_name]
-                test[payment_path => PATH, conflict: payment_version =>      VERSION,      requires[], path_conflicts_with_version]
-                test[payment_path => PATH, conflict: payment_entry_point =>  ENTRY_POINT,  requires[], path_conflicts_with_entry_point]
+                test[payment_path => PATH, conflict: payment_package_hash => PACKAGE_HASH,         requires[], path_conflicts_with_package_hash]
+                test[payment_path => PATH, conflict: payment_package_name => PACKAGE_NAME,         requires[], path_conflicts_with_package_name]
+                test[payment_path => PATH, conflict: payment_bytes =>        Bytes::from(vec![1]), requires[], path_conflicts_with_payment_bytes]
+                test[payment_path => PATH, conflict: payment_hash =>         HASH,                 requires[], path_conflicts_with_hash]
+                test[payment_path => PATH, conflict: payment_name =>         HASH,                 requires[], path_conflicts_with_name]
+                test[payment_path => PATH, conflict: payment_version =>      VERSION,              requires[], path_conflicts_with_version]
+                test[payment_path => PATH, conflict: payment_entry_point =>  ENTRY_POINT,          requires[], path_conflicts_with_entry_point]
+
+                // bytes
+                test[payment_bytes => Bytes::from(vec![1]), conflict: payment_package_hash => PACKAGE_HASH, requires[payment_entry_point => ENTRY_POINT], bytes_conflicts_with_package_hash]
+                test[payment_bytes => Bytes::from(vec![1]), conflict: payment_package_name => PACKAGE_NAME, requires[payment_entry_point => ENTRY_POINT], bytes_conflicts_with_package_name]
+                test[payment_bytes => Bytes::from(vec![1]), conflict: payment_hash =>         HASH,         requires[payment_entry_point => ENTRY_POINT], bytes_conflicts_with_hash]
+                test[payment_bytes => Bytes::from(vec![1]), conflict: payment_version =>      VERSION,      requires[payment_entry_point => ENTRY_POINT], bytes_conflicts_with_version]
 
                 // name
                 // amount <-> path is already checked
