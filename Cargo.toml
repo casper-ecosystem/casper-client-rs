@@ -54,8 +54,8 @@ tempfile = "3.8.1"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-casper-hashing = { git = "https://github.com/Fraser999/casper-node", branch = "rustSDK-1.6" }
-casper-types = { git = "https://github.com/Fraser999/casper-node", branch = "rustSDK-1.6" }
+casper-hashing = { git = "https://github.com/casper-network/casper-node", branch = "dev" }
+casper-types = { git = "https://github.com/casper-network/casper-node", branch = "dev" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
