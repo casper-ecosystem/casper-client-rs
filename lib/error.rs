@@ -30,6 +30,12 @@ pub enum Error {
     #[error("deploy requires session account - use `with_account` or `with_secret_key`")]
     DeployMissingSessionAccount,
 
+    /// Failed to build [`Deploy`] due to missing timestamp.
+    ///
+    /// Call [`DeployBuilder::with_timestamp`] before calling [`DeployBuilder::build`].
+    #[error("deploy requires timestamp - use `with_timestamp`")]
+    DeployMissingTimestamp,
+
     /// Failed to build [`Deploy`] due to missing payment code.
     ///
     /// Call [`DeployBuilder::with_standard_payment`] or [`DeployBuilder::with_payment`] before
