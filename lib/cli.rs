@@ -593,3 +593,12 @@ pub async fn get_era_info(
         .await
         .map_err(CliError::from)
 }
+
+/// Verifies the smart contract code againt the one deployed at address.
+pub async fn verify_contract(
+    block_identifier: &str,
+    public_key: &str,
+    verbosity_level: u64,
+) -> Result<(), CliError> {
+    crate::verify_contract(block_identifier, public_key, verbosity_level).await.map_err(CliError::from)
+}

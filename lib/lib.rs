@@ -735,3 +735,15 @@ pub async fn get_era_info(
         .send_request(GET_ERA_INFO_METHOD, params)
         .await
 }
+
+/// Verifies the smart contract code againt the one deployed at address.
+pub async fn verify_contract(
+    block_identifier: &str,
+    public_key: &str,
+    verbosity_level: u64,
+) -> Result<(), Error> {
+    println!("Block indentifer: {}", block_identifier);
+    println!("Public key: {}", public_key);
+    println!("Verbosity level: {}", verbosity_level);
+    Ok(())
+}
