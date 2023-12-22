@@ -28,7 +28,6 @@ impl ClientCommand for VerifyContract {
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
             .arg(common::block_identifier::arg(DisplayOrder::BlockIdentifier as usize, true))
             .arg(common::public_key::arg(DisplayOrder::PublicKey as usize, true))
-
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
