@@ -38,9 +38,10 @@ mod transaction_str_params;
 
 use serde::Serialize;
 
+use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{Digest, URef};
+use casper_types::{Digest, PublicKey, URef};
 
 use crate::{
     rpcs::{
@@ -597,8 +598,10 @@ pub async fn get_era_info(
 /// Verifies the smart contract code againt the one deployed at address.
 pub async fn verify_contract(
     block_identifier: &str,
-    public_key: &str,
+    public_key: PublicKey,
     verbosity_level: u64,
 ) -> Result<(), CliError> {
-    crate::verify_contract(block_identifier, public_key, verbosity_level).await.map_err(CliError::from)
+    crate::verify_contract(block_identifier, public_key, verbosity_level)
+        .await
+        .map_err(CliError::from)
 }
