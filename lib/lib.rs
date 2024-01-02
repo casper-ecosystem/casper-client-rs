@@ -64,7 +64,7 @@ use casper_hashing::Digest;
 use casper_types::SecretKey;
 #[cfg(doc)]
 use casper_types::Transfer;
-use casper_types::{Key, URef};
+use casper_types::{Key, URef, PublicKey};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
@@ -558,7 +558,7 @@ pub async fn get_era_info(
 /// Verifies the smart contract code againt the one deployed at address.
 pub async fn verify_contract(
     block_identifier: &str,
-    public_key: &str,
+    public_key: PublicKey,
     verbosity_level: u64,
 ) -> Result<(), Error> {
     println!("Block indentifer: {}", block_identifier);
