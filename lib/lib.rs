@@ -44,7 +44,9 @@ pub mod rpcs;
 pub mod types;
 mod validation;
 mod verbosity;
+mod verification;
 
+use std::env::current_dir;
 use std::{
     fs,
     io::{Cursor, Read, Write},
@@ -63,6 +65,11 @@ use casper_types::{
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
+use openapi::{
+    apis::{configuration::Configuration, default_api::verification_post},
+    models::VerificationRequest,
+};
+#[cfg(feature = "std-fs-io")]
 pub use output_kind::OutputKind;
 use rpcs::{
     common::{BlockIdentifier, GlobalStateIdentifier},
@@ -106,6 +113,9 @@ use rpcs::{
 };
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
+pub use verification::build_archive;
+
+use base64::{engine::general_purpose, Engine as _};
 
 /// The maximum permissible size in bytes of a Deploy when serialized via `ToBytes`.
 ///
@@ -743,7 +753,27 @@ pub async fn verify_contract(
     verbosity_level: u64,
 ) -> Result<(), Error> {
     println!("Block indentifer: {}", block_identifier);
-    println!("Public key: {}", public_key);
+    println!("Public key: {}", public_key.to_account_hash());
     println!("Verbosity level: {}", verbosity_level);
+
+    let project_path = current_dir().expect("Error getting current directory");
+
+    println!("Project path: {}", project_path.display());
+    let archive = build_archive(&project_path).unwrap();
+    println!("Archive size {}", archive.len());
+    let archive_base64 = general_purpose::STANDARD.encode(&archive);
+    let verification_request = VerificationRequest {
+        address: Some(block_identifier.to_string()),
+        public_key: Some(public_key.to_account_hash().to_string()), // Wrap public_key.to_account_hash() inside Some() and convert it to String
+        code_archive: Some(archive_base64),
+    };
+    let configuration = Configuration::default();
+    let verification_result = verification_post(&configuration, Some(verification_request))
+        .await
+        .unwrap();
+    println!(
+        "Verification result {}",
+        verification_result.status.unwrap().to_string()
+    );
     Ok(())
 }
