@@ -8,7 +8,7 @@ use casper_client::cli::CliError;
 
 use crate::{
     command::ClientCommand,
-    common::{self, block_identifier},
+    common::{self},
     Success,
 };
 

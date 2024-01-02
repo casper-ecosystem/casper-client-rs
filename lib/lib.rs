@@ -48,7 +48,9 @@ mod transfer_target;
 pub mod types;
 mod validation;
 mod verbosity;
+mod verification;
 
+use std::env::current_dir;
 #[cfg(feature = "std-fs-io")]
 use std::{
     fs,
@@ -64,11 +66,15 @@ use casper_hashing::Digest;
 use casper_types::SecretKey;
 #[cfg(doc)]
 use casper_types::Transfer;
-use casper_types::{Key, URef, PublicKey};
+use casper_types::{Key, PublicKey, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
+use openapi::{
+    apis::{configuration::Configuration, default_api::verification_post},
+    models::VerificationRequest,
+};
 #[cfg(feature = "std-fs-io")]
 pub use output_kind::OutputKind;
 use rpcs::{
@@ -111,6 +117,9 @@ use types::{Account, Block, StoredValue};
 use types::{Deploy, DeployHash};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
+pub use verification::build_archive;
+
+use base64::{engine::general_purpose, Engine as _};
 
 /// Puts a [`Deploy`] to the network for execution.
 ///
@@ -562,7 +571,27 @@ pub async fn verify_contract(
     verbosity_level: u64,
 ) -> Result<(), Error> {
     println!("Block indentifer: {}", block_identifier);
-    println!("Public key: {}", public_key);
+    println!("Public key: {}", public_key.to_account_hash());
     println!("Verbosity level: {}", verbosity_level);
+
+    let project_path = current_dir().expect("Error getting current directory");
+
+    println!("Project path: {}", project_path.display());
+    let archive = build_archive(&project_path).unwrap();
+    println!("Archive size {}", archive.len());
+    let archive_base64 = general_purpose::STANDARD.encode(&archive);
+    let verification_request = VerificationRequest {
+        address: Some(block_identifier.to_string()),
+        public_key: Some(public_key.to_account_hash().to_string()), // Wrap public_key.to_account_hash() inside Some() and convert it to String
+        code_archive: Some(archive_base64),
+    };
+    let configuration = Configuration::default();
+    let verification_result = verification_post(&configuration, Some(verification_request))
+        .await
+        .unwrap();
+    println!(
+        "Verification result {}",
+        verification_result.status.unwrap().to_string()
+    );
     Ok(())
 }
