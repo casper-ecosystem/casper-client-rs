@@ -713,14 +713,15 @@ pub async fn get_era_info(
 
 /// Verifies the smart contract code againt the one deployed at address.
 pub async fn verify_contract(
-    block_identifier: &str,
+    deploy_hash: &str,
     public_key: PublicKey,
     verbosity_level: u64,
     verification_url_base_path: &str,
 ) -> Result<VerificationResult, CliError> {
     let verbosity = parse::verbosity(verbosity_level);
+    let deploy_hash = parse::deploy_hash(deploy_hash)?;
     crate::verify_contract(
-        block_identifier,
+        deploy_hash,
         public_key,
         verbosity,
         verification_url_base_path,
