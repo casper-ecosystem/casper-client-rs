@@ -72,8 +72,11 @@ pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
 use openapi::{
-    apis::{configuration::Configuration, default_api::verification_post},
-    models::VerificationRequest,
+    apis::{
+        configuration::Configuration,
+        default_api::{verification_address_status_get, verification_post},
+    },
+    models::{VerificationRequest, VerificationStatus, VerificationResult},
 };
 #[cfg(feature = "std-fs-io")]
 pub use output_kind::OutputKind;
@@ -568,30 +571,83 @@ pub async fn get_era_info(
 pub async fn verify_contract(
     block_identifier: &str,
     public_key: PublicKey,
-    verbosity_level: u64,
-) -> Result<(), Error> {
-    println!("Block indentifer: {}", block_identifier);
-    println!("Public key: {}", public_key.to_account_hash());
-    println!("Verbosity level: {}", verbosity_level);
+    verbosity: Verbosity,
+    verification_url_base_path: &str,
+) -> Result<VerificationResult, Error> {
+
+    if verbosity == Verbosity::High {
+        println!("Block indentifer: {}", block_identifier);
+        println!("Public key: {}", public_key.to_account_hash());
+        println!("Verification URL base path: {}", verification_url_base_path);
+    }
 
     let project_path = current_dir().expect("Error getting current directory");
 
-    println!("Project path: {}", project_path.display());
-    let archive = build_archive(&project_path).unwrap();
-    println!("Archive size {}", archive.len());
+    if verbosity == Verbosity::High {
+        println!("Project path: {}", project_path.display());
+    }
+
+    let archive = build_archive(&project_path).expect("Cannot create project archive");
+
+    if verbosity == Verbosity::High {
+        println!("Created project archive - size: {}", archive.len());
+    }
+    
     let archive_base64 = general_purpose::STANDARD.encode(&archive);
+
     let verification_request = VerificationRequest {
         address: Some(block_identifier.to_string()),
         public_key: Some(public_key.to_account_hash().to_string()), // Wrap public_key.to_account_hash() inside Some() and convert it to String
         code_archive: Some(archive_base64),
     };
-    let configuration = Configuration::default();
-    let verification_result = verification_post(&configuration, Some(verification_request))
+
+    let mut configuration = Configuration::default();
+    configuration.base_path = verification_url_base_path.to_string();
+
+    if verbosity == Verbosity::High {
+        println!("Sending verfication request to {}", configuration.base_path);
+    }
+
+    let mut verification_result = verification_post(&configuration, Some(verification_request))
         .await
-        .unwrap();
-    println!(
-        "Verification result {}",
-        verification_result.status.unwrap().to_string()
-    );
-    Ok(())
+        .expect("Cannot send verification request");
+    
+    if verbosity == Verbosity::High {
+        println!(
+            "Sent verification request - status {}",
+            verification_result.status.unwrap().to_string()
+        );
+    }
+
+    let mut verification_status = verification_result.status.unwrap();
+
+    if verbosity == Verbosity::High {
+        print!("Waiting for verification to finish...",);
+    }
+
+    while verification_status != VerificationStatus::Verified
+        && verification_status != VerificationStatus::Failed
+    {
+        verification_result = verification_address_status_get(&configuration, block_identifier)
+            .await
+            .unwrap();
+        verification_status = verification_result.status.unwrap();
+        
+        if verbosity == Verbosity::High {
+            print!(".",);
+        }
+    }
+
+    if verbosity == Verbosity::High {
+        println!("");
+    }
+
+    if verbosity == Verbosity::High {
+        println!(
+            "Verification finished - status {}",
+            verification_status.to_string()
+        );
+    }
+
+    Ok(verification_result)
 }
