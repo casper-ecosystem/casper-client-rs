@@ -749,7 +749,7 @@ pub async fn get_era_info(
         .await
 }
 
-/// Verifies the smart contract code againt the one deployed at address.
+/// Verifies the smart contract code againt the one deployed at deploy hash.
 pub async fn verify_contract(
     deploy_hash: DeployHash,
     public_key: PublicKey,
@@ -777,8 +777,8 @@ pub async fn verify_contract(
     let archive_base64 = general_purpose::STANDARD.encode(&archive);
 
     let verification_request = VerificationRequest {
-        address: Some(deploy_hash.to_string()),
-        public_key: Some(public_key.to_account_hash().to_string()), // Wrap public_key.to_account_hash() inside Some() and convert it to String
+        deploy_hash: Some(deploy_hash.to_string()),
+        public_key: Some(public_key.to_account_hash().to_string()),
         code_archive: Some(archive_base64),
     };
 
