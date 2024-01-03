@@ -36,6 +36,7 @@ mod transaction;
 mod transaction_builder_params;
 mod transaction_str_params;
 
+use openapi::models::VerificationResult;
 use serde::Serialize;
 
 use casper_hashing::Digest;
@@ -600,8 +601,15 @@ pub async fn verify_contract(
     block_identifier: &str,
     public_key: PublicKey,
     verbosity_level: u64,
-) -> Result<(), CliError> {
-    crate::verify_contract(block_identifier, public_key, verbosity_level)
-        .await
-        .map_err(CliError::from)
+    verification_url_base_path: &str,
+) -> Result<VerificationResult, CliError> {
+    let verbosity = parse::verbosity(verbosity_level);
+    crate::verify_contract(
+        block_identifier,
+        public_key,
+        verbosity,
+        verification_url_base_path,
+    )
+    .await
+    .map_err(CliError::from)
 }
