@@ -70,7 +70,7 @@ use openapi::{
         configuration::Configuration,
         default_api::{verification_address_status_get, verification_post},
     },
-    models::{VerificationRequest, VerificationStatus, VerificationResult},
+    models::{VerificationRequest, VerificationResult, VerificationStatus},
 };
 #[cfg(feature = "std-fs-io")]
 pub use output_kind::OutputKind;
@@ -751,14 +751,13 @@ pub async fn get_era_info(
 
 /// Verifies the smart contract code againt the one deployed at address.
 pub async fn verify_contract(
-    block_identifier: &str,
+    deploy_hash: DeployHash,
     public_key: PublicKey,
     verbosity: Verbosity,
     verification_url_base_path: &str,
 ) -> Result<VerificationResult, Error> {
-
     if verbosity == Verbosity::High {
-        println!("Block indentifer: {}", block_identifier);
+        println!("Deploy hash: {}", deploy_hash.to_string());
         println!("Public key: {}", public_key.to_account_hash());
         println!("Verification URL base path: {}", verification_url_base_path);
     }
@@ -774,11 +773,11 @@ pub async fn verify_contract(
     if verbosity == Verbosity::High {
         println!("Created project archive - size: {}", archive.len());
     }
-    
+
     let archive_base64 = general_purpose::STANDARD.encode(&archive);
 
     let verification_request = VerificationRequest {
-        address: Some(block_identifier.to_string()),
+        address: Some(deploy_hash.to_string()),
         public_key: Some(public_key.to_account_hash().to_string()), // Wrap public_key.to_account_hash() inside Some() and convert it to String
         code_archive: Some(archive_base64),
     };
@@ -793,7 +792,7 @@ pub async fn verify_contract(
     let mut verification_result = verification_post(&configuration, Some(verification_request))
         .await
         .expect("Cannot send verification request");
-    
+
     if verbosity == Verbosity::High {
         println!(
             "Sent verification request - status {}",
@@ -810,11 +809,12 @@ pub async fn verify_contract(
     while verification_status != VerificationStatus::Verified
         && verification_status != VerificationStatus::Failed
     {
-        verification_result = verification_address_status_get(&configuration, block_identifier)
-            .await
-            .unwrap();
+        verification_result =
+            verification_address_status_get(&configuration, deploy_hash.to_string().as_str())
+                .await
+                .unwrap();
         verification_status = verification_result.status.unwrap();
-        
+
         if verbosity == Verbosity::High {
             print!(".",);
         }

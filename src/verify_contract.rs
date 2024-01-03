@@ -19,7 +19,7 @@ pub struct VerifyContract;
 /// This struct defines the order in which the args are shown for this subcommand's help message.
 enum DisplayOrder {
     Verbose,
-    BlockIdentifier,
+    DeployHash,
     PublicKey,
     VerificationUrlBasePath,
 }
@@ -62,12 +62,10 @@ impl ClientCommand for VerifyContract {
             .about(Self::ABOUT)
             .display_order(display_order)
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
-            .arg(common::block_identifier::arg(
-                DisplayOrder::BlockIdentifier as usize,
-                true,
-            ))
+            .arg(common::deploy_hash::arg(DisplayOrder::DeployHash as usize))
             .arg(common::public_key::arg(
                 DisplayOrder::PublicKey as usize,
+                true,
                 true,
             ))
             .arg(verification_url_base_path::arg(
@@ -76,7 +74,7 @@ impl ClientCommand for VerifyContract {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        let block_identifier = common::block_identifier::get(matches);
+        let deploy_hash = common::deploy_hash::get(matches);
         let hex_public_key = common::public_key::get(matches, true)?;
         let public_key = PublicKey::from_hex(&hex_public_key).map_err(|error| {
             eprintln!("Can't parse {} as a public key: {}", hex_public_key, error);
@@ -89,7 +87,7 @@ impl ClientCommand for VerifyContract {
         let verification_url_base_path = verification_url_base_path::get(matches);
 
         casper_client::cli::verify_contract(
-            block_identifier,
+            deploy_hash,
             public_key,
             verbosity_level,
             verification_url_base_path,
