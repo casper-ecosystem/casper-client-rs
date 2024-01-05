@@ -1,9 +1,14 @@
 use async_trait::async_trait;
+use casper_types::TransactionV1Builder;
 use clap::{ArgMatches, Command};
 
 use casper_client::cli::{CliError, TransactionStrParams};
 
-use super::creation_common;
+use super::creation_common::{
+    self, add_bid, arg_simple, args_json, delegate, invocable_entity, invocable_entity_alias,
+    package, package_alias, redelegate, session, transfer, undelegate, withdraw_bid,
+};
+
 use crate::{command::ClientCommand, common, Success};
 
 pub struct MakeTransaction;
@@ -19,6 +24,18 @@ impl ClientCommand for MakeTransaction {
     fn build(display_order: usize) -> Command {
         let subcommand = Command::new(Self::NAME)
             .about(Self::ABOUT)
+            .subcommand_required(true)
+            .subcommand(withdraw_bid::build())
+            .subcommand(add_bid::build())
+            .subcommand(delegate::build())
+            .subcommand(undelegate::build())
+            .subcommand(redelegate::build())
+            .subcommand(invocable_entity::build())
+            .subcommand(invocable_entity_alias::build())
+            .subcommand(package::build())
+            .subcommand(package_alias::build())
+            .subcommand(session::build())
+            .subcommand(transfer::build())
             .arg(creation_common::output::arg())
             .arg(common::force::arg(
                 creation_common::DisplayOrder::Force as usize,
@@ -38,33 +55,63 @@ impl ClientCommand for MakeTransaction {
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
-        let payment_amount = creation_common::payment_amount::get(matches)
-            .ok_or(CliError::InvalidArgument {
+        let payment_amount =
+            creation_common::payment_amount::get(matches).ok_or(CliError::InvalidArgument {
                 context: "Make Transaction",
-                error: "Missing payment amount".to_string()
+                error: "Missing payment amount".to_string(),
             })?;
 
+        let maybe_pricing_mode = creation_common::pricing_mode::get(matches);
 
-        let session_str_params = creation_common::session_str_params(matches);
+        let session_path = creation_common::transaction_path::get(matches);
+        let session_entry_point = creation_common::session_entry_point::get(matches);
+        let session_args_simple = arg_simple::session::get(matches);
+        let session_args_json = args_json::session::get(matches);
 
         let maybe_output_path = creation_common::output::get(matches).unwrap_or_default();
-        let session_account = creation_common::session_account::get(matches).unwrap_or_default();
+        let initiator_addr = creation_common::initiator_address::get(matches).unwrap_or_default();
 
         let force = common::force::get(matches);
 
-        casper_client::cli::make_transaction(
-            maybe_output_path,
-            TransactionStrParams {
-                secret_key,
-                timestamp,
-                ttl,
-                chain_name,
-                initiator_addr: &session_account,
-            },
-            session_str_params,
-            payment_amount,
-            force,
-        )
+        if let Some((subcommand, matches)) = matches.subcommand() {
+            let transaction_builder: TransactionV1Builder = match subcommand {
+                add_bid::NAME => add_bid::run(matches)?,
+                withdraw_bid::NAME => withdraw_bid::run(matches)?,
+                delegate::NAME => delegate::run(matches)?,
+                undelegate::NAME => undelegate::run(matches)?,
+                redelegate::NAME => redelegate::run(matches)?,
+                invocable_entity::NAME => invocable_entity::run(matches)?,
+                invocable_entity_alias::NAME => invocable_entity_alias::run(matches)?,
+                package::NAME => package::run(matches)?,
+                package_alias::NAME => package_alias::run(matches)?,
+                session::NAME => session::run(matches)?,
+                transfer::NAME => transfer::run(matches)?,
+                _ => {
+                    return Err(CliError::InvalidArgument {
+                        context: "Make Transaction",
+                        error: "failure to provide recognized subcommand".to_string(),
+                    })
+                }
+            };
+
+            casper_client::cli::make_transaction(
+                maybe_output_path,
+                transaction_builder,
+                TransactionStrParams {
+                    secret_key,
+                    timestamp,
+                    ttl,
+                    chain_name,
+                    initiator_addr,
+                    session_path,
+                    session_entry_point,
+                    session_args_simple,
+                    session_args_json,
+                    maybe_pricing_mode,
+                },
+                payment_amount,
+                force,
+            )
             .map(|_| {
                 Success::Output(if maybe_output_path.is_empty() {
                     String::new()
@@ -72,5 +119,11 @@ impl ClientCommand for MakeTransaction {
                     format!("Wrote the deploy to {}", maybe_output_path)
                 })
             })
+        } else {
+            return Err(CliError::InvalidArgument {
+                context: "Make Transaction",
+                error: "Failure to supply subcommand".to_string(),
+            });
+        }
     }
 }
