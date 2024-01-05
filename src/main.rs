@@ -1,3 +1,5 @@
+extern crate core;
+
 mod account_address;
 mod block;
 mod command;
@@ -50,9 +52,7 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
-use transaction::{
-    MakeTransaction
-};
+use transaction::MakeTransaction;
 
 const APP_NAME: &str = "Casper client";
 
@@ -108,7 +108,9 @@ fn cli() -> Command {
         .about("A client for interacting with the Casper network")
         .subcommand(PutDeploy::build(DisplayOrder::PutDeploy as usize))
         .subcommand(MakeDeploy::build(DisplayOrder::MakeDeploy as usize))
-        .subcommand(MakeTransaction::build(DisplayOrder::MakeTransaction as usize))
+        .subcommand(MakeTransaction::build(
+            DisplayOrder::MakeTransaction as usize,
+        ))
         .subcommand(SignDeploy::build(DisplayOrder::SignDeploy as usize))
         .subcommand(SendDeploy::build(DisplayOrder::SendDeploy as usize))
         .subcommand(Transfer::build(DisplayOrder::Transfer as usize))
