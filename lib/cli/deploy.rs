@@ -4,9 +4,8 @@ use casper_types::{
 };
 
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
-use crate::{MAX_SERIALIZED_SIZE_OF_DEPLOY, SuccessResponse};
 use crate::rpcs::results::{PutDeployResult, SpeculativeExecResult};
-
+use crate::{SuccessResponse, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 
 /// Creates a [`Deploy`] and sends it to the network for execution.
 ///
@@ -22,8 +21,7 @@ pub async fn put_deploy(
 ) -> Result<SuccessResponse<PutDeployResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy =
-        with_payment_and_session(deploy_params, payment_params, session_params, false)?;
+    let deploy = with_payment_and_session(deploy_params, payment_params, session_params, false)?;
     crate::put_deploy(rpc_id, node_address, verbosity, deploy)
         .await
         .map_err(CliError::from)
@@ -44,8 +42,7 @@ pub async fn speculative_put_deploy(
 ) -> Result<SuccessResponse<SpeculativeExecResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy =
-        with_payment_and_session(deploy_params, payment_params, session_params, false)?;
+    let deploy = with_payment_and_session(deploy_params, payment_params, session_params, false)?;
     let speculative_exec = parse::block_identifier(maybe_block_id)?;
     crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
         .await
@@ -68,8 +65,7 @@ pub fn make_deploy(
     force: bool,
 ) -> Result<(), CliError> {
     let output = parse::output_kind(maybe_output_path, force);
-    let deploy =
-        with_payment_and_session(deploy_params, payment_params, session_params, true)?;
+    let deploy = with_payment_and_session(deploy_params, payment_params, session_params, true)?;
     crate::output_deploy(output, &deploy).map_err(CliError::from)
 }
 
@@ -234,8 +230,6 @@ pub fn make_transfer(
     )?;
     crate::output_deploy(output, &deploy).map_err(CliError::from)
 }
-
-
 
 /// Creates new Deploy with specified payment and session data.
 pub fn with_payment_and_session(
