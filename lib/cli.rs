@@ -36,7 +36,8 @@ mod transaction;
 mod transaction_builder_params;
 mod transaction_str_params;
 
-use openapi::models::VerificationResult;
+use openapi::models::VerificationDetails;
+#[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
 use casper_hashing::Digest;
@@ -600,16 +601,16 @@ pub async fn get_era_info(
 pub async fn verify_contract(
     deploy_hash: &str,
     public_key: PublicKey,
-    verbosity_level: u64,
     verification_url_base_path: &str,
-) -> Result<VerificationResult, CliError> {
-    let verbosity = parse::verbosity(verbosity_level);
+    verbosity_level: u64,
+) -> Result<VerificationDetails, CliError> {
     let deploy_hash = parse::deploy_hash(deploy_hash)?;
+    let verbosity = parse::verbosity(verbosity_level);
     crate::verify_contract(
         deploy_hash,
         public_key,
-        verbosity,
         verification_url_base_path,
+        verbosity,
     )
     .await
     .map_err(CliError::from)
