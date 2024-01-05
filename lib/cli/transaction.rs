@@ -1,23 +1,20 @@
-use casper_types::{InitiatorAddr, TransactionSessionKind, TransactionV1, TransactionV1Builder};
-use crate::cli::{CliError, parse, SessionStrParams, transaction, TransactionStrParams};
-use crate::Error;
+use crate::cli::{parse, CliError, TransactionStrParams};
+use casper_types::{InitiatorAddr, TransactionV1, TransactionV1Builder};
 
 pub fn with_payment_and_session(
+    builder: TransactionV1Builder,
     transaction_params: TransactionStrParams,
     payment_amount: &str,
-    session_params: SessionStrParams,
     allow_unsigned_deploy: bool,
 ) -> Result<TransactionV1, CliError> {
     let chain_name = transaction_params.chain_name.to_string();
-    let entry_point = session_params.session_entry_point.to_string();
-    let payment_amount = payment_amount.parse::<u64>().map_err( |error|
-        CliError::FailedToParseInt { context: "with_payment_and_session", error }
-    )?; // move this parsing to a module in parse for cleanliness here.
-
-    // The below function should be a proper parsing function for the generic session params
-    // it should have checks in place to ensure proper params have been supplied and should do more
-    // than return bytes for the session
-    let session = parse::temp_transaction_module_bytes(session_params.session_path)?;
+    let payment_amount =
+        payment_amount
+            .parse::<u64>()
+            .map_err(|error| CliError::FailedToParseInt {
+                context: "with_payment_and_session",
+                error,
+            })?; // move this parsing to a module in parse for cleanliness here.
 
     let maybe_secret_key = if allow_unsigned_deploy && transaction_params.secret_key.is_empty() {
         None
@@ -37,8 +34,8 @@ pub fn with_payment_and_session(
     let ttl = parse::ttl(transaction_params.ttl)?;
     let maybe_session_account = parse::session_account(transaction_params.initiator_addr)?;
 
-    let mut transaction_builder = TransactionV1Builder::new_session(TransactionSessionKind::Standard, session, entry_point)
-        .with_payment_amount(payment_amount.into())
+    let mut transaction_builder = builder
+        .with_payment_amount(payment_amount)
         .with_timestamp(timestamp)
         .with_ttl(ttl)
         .with_chain_name(chain_name);
@@ -47,7 +44,8 @@ pub fn with_payment_and_session(
         transaction_builder = transaction_builder.with_secret_key(secret_key);
     }
     if let Some(account) = maybe_session_account {
-        transaction_builder = transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
+        transaction_builder =
+            transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
     }
 
     let txn = transaction_builder.build().map_err(crate::Error::from)?;
@@ -65,13 +63,12 @@ pub fn with_payment_and_session(
 /// and the file will not be written.
 pub fn make_transaction(
     maybe_output_path: &str,
+    builder: TransactionV1Builder,
     transaction_params: TransactionStrParams<'_>,
-    session_params: SessionStrParams<'_>,
     payment_amount: &str,
     force: bool,
-) -> Result<(), CliError>{
+) -> Result<(), CliError> {
     let output = parse::output_kind(maybe_output_path, force);
-    let deploy =
-        transaction::with_payment_and_session(transaction_params, payment_amount, session_params, true)?;
-    crate::output_transaction(output, &deploy).map_err(CliError::from)
+    let transaction = with_payment_and_session(builder, transaction_params, payment_amount, true)?;
+    crate::output_transaction(output, &transaction).map_err(CliError::from)
 }
