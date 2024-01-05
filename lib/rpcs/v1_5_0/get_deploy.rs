@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{Deploy, ProtocolVersion, BlockHash};
+use casper_types::{BlockHash, Deploy, ProtocolVersion};
 
 pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_METHOD};
 use crate::types::LegacyExecutionResult;
