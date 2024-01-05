@@ -7,11 +7,10 @@ use rand::Rng;
 use serde::{self, Deserialize};
 
 use casper_types::{
-    account::AccountHash, bytesrepr, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
+    account::AccountHash, bytesrepr::{self, Bytes}, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
     Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey,
     TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
-use casper_types::bytesrepr::Bytes;
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
@@ -500,13 +499,23 @@ pub(super) fn session_executable_deploy_item(
         args: session_args,
     })
 }
-
-pub(super) fn temp_transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError>{
+/// Parse a transaction file into Bytes to be used in crafting a new session transaction
+pub fn temp_transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
     let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
         context: format!("unable to read session file at '{}'", session_path),
         error,
     })?;
     Ok(Bytes::from(module_bytes))
+}
+/// Parses a URef from a formatted string for the purposes of creating transactions.
+pub fn uref(uref_str: &str) -> Result<URef, CliError> {
+    match URef::from_formatted_str(uref_str) {
+        Ok(uref) => Ok(uref),
+        Err(err) => Err(CliError::FailedToParseURef {
+            context: "Failed to parse URef for transaction",
+            error: err,
+        }),
+    }
 }
 
 pub(super) fn payment_executable_deploy_item(
@@ -1356,7 +1365,7 @@ mod tests {
             #[test]
             pub fn with_hash() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    SessionStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "", "").try_into();
+                    SessionStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByHash { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1372,7 +1381,7 @@ mod tests {
             #[test]
             pub fn with_name() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    SessionStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "", "").try_into();
+                    SessionStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByName { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1393,7 +1402,6 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
-                        "",
                         "",
                     )
                     .try_into();
@@ -1417,7 +1425,6 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
-                        "",
                         "",
                     )
                     .try_into();
@@ -1458,7 +1465,7 @@ mod tests {
             #[test]
             pub fn with_hash() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    PaymentStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "", "").try_into();
+                    PaymentStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByHash { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1474,7 +1481,7 @@ mod tests {
             #[test]
             pub fn with_name() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    PaymentStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "", "").try_into();
+                    PaymentStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByName { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1495,7 +1502,6 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
-                        "",
                         "",
                     )
                     .try_into();
@@ -1519,7 +1525,6 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
-                        "",
                         "",
                     )
                     .try_into();
