@@ -26,14 +26,14 @@ mod deploy_str_params;
 mod dictionary_item_str_params;
 mod error;
 mod json_args;
-mod parse;
+pub mod parse;
 mod payment_str_params;
 mod session_str_params;
 mod simple_args;
 #[cfg(test)]
 mod tests;
-mod transaction_str_params;
 mod transaction;
+mod transaction_str_params;
 
 use serde::Serialize;
 
@@ -47,8 +47,8 @@ use crate::{
             GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
             GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
             GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
-            GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
-            QueryBalanceResult, QueryGlobalStateResult,
+            GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, QueryBalanceResult,
+            QueryGlobalStateResult,
         },
         DictionaryItemIdentifier,
     },
@@ -59,8 +59,8 @@ use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
 #[cfg(doc)]
 use casper_types::PublicKey;
 pub use deploy::{
-    put_deploy, speculative_put_deploy, make_deploy, sign_deploy_file, send_deploy_file,
-    speculative_send_deploy_file, transfer, speculative_transfer, make_transfer
+    make_deploy, make_transfer, put_deploy, send_deploy_file, sign_deploy_file,
+    speculative_put_deploy, speculative_send_deploy_file, speculative_transfer, transfer,
 };
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
@@ -72,10 +72,8 @@ pub use json_args::{
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
 pub use simple_args::help as simple_args_help;
+pub use transaction::make_transaction;
 pub use transaction_str_params::TransactionStrParams;
-pub use transaction::{
-    make_transaction
-};
 
 /// Retrieves a [`Deploy`] from the network.
 ///
