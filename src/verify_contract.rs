@@ -83,14 +83,14 @@ impl ClientCommand for VerifyContract {
                 error,
             }
         })?;
-        let verbosity_level = common::verbose::get(matches);
         let verification_url_base_path = verification_url_base_path::get(matches);
+        let verbosity_level = common::verbose::get(matches);
 
         casper_client::cli::verify_contract(
             deploy_hash,
             public_key,
-            verbosity_level,
             verification_url_base_path,
+            verbosity_level,
         )
         .await
         .map(Success::from)

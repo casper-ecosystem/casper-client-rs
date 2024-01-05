@@ -1,13 +1,38 @@
 use std::path::Path;
 
 use bytes::{BufMut, Bytes, BytesMut};
+use casper_types::PublicKey;
 use flate2::{write::GzEncoder, Compression};
+use openapi::{
+    apis::{
+        configuration::Configuration,
+        default_api::{
+            verification_deploy_hash_details_get, verification_deploy_hash_status_get,
+            verification_post,
+        },
+    },
+    models::{VerificationDetails, VerificationRequest, VerificationStatus},
+};
 use tar::Builder as TarBuilder;
+
+use crate::{types::DeployHash, Error, Verbosity};
 
 static GIT_DIR_NAME: &str = ".git";
 static TARGET_DIR_NAME: &str = "target";
 
-/// Build tar-gzip archive from files in the provided path.
+/// Builds an archive from the specified path.
+///
+/// This function creates a compressed tar archive from the files and directories located at the
+/// specified path. It excludes the `.git` and `target` directories from the archive.
+///
+/// # Arguments
+///
+/// * `path` - The path to the directory containing the files and directories to be archived.
+///
+/// # Returns
+///
+/// The compressed tar archive as a `Bytes` object, or an `std::io::Error` if an error occurs during
+/// the archiving process.
 pub fn build_archive(path: &Path) -> Result<Bytes, std::io::Error> {
     let buffer = BytesMut::new().writer();
     let encoder = GzEncoder::new(buffer, Compression::best());
@@ -30,4 +55,93 @@ pub fn build_archive(path: &Path) -> Result<Bytes, std::io::Error> {
     let encoder = archive.into_inner()?;
     let buffer = encoder.finish()?;
     Ok(buffer.into_inner().freeze())
+}
+
+/// Verifies the smart contract code against the one deployed at deploy hash.
+///
+/// Sends a verification request to the specified verification URL base path, including the deploy hash,
+/// public key, and code archive.
+///
+/// # Arguments
+///
+/// * `deploy_hash` - The hash of the deployed contract.
+/// * `public_key` - The public key associated with the contract.
+/// * `verification_url_base_path` - The base path of the verification URL.
+/// * `verbosity` - The verbosity level of the verification process.
+///
+/// # Returns
+///
+/// The verification details of the contract.
+pub async fn send_verification_request(
+    deploy_hash: DeployHash,
+    public_key: PublicKey,
+    verification_url_base_path: &str,
+    archive_base64: String,
+    verbosity: Verbosity,
+) -> Result<VerificationDetails, Error> {
+    let verification_request = VerificationRequest {
+        deploy_hash: Some(deploy_hash.to_string()),
+        public_key: Some(public_key.to_account_hash().to_string()),
+        code_archive: Some(archive_base64),
+    };
+
+    let mut configuration = Configuration::default();
+    configuration.base_path = verification_url_base_path.to_string();
+
+    if verbosity == Verbosity::High {
+        println!("Sending verfication request to {}", configuration.base_path);
+    }
+
+    let mut verification_result = verification_post(&configuration, Some(verification_request))
+        .await
+        .expect("Cannot send verification request");
+
+    if verbosity == Verbosity::High {
+        println!(
+            "Sent verification request - status {}",
+            verification_result.status.unwrap().to_string()
+        );
+    }
+
+    let mut verification_status = verification_result.status.unwrap();
+
+    if verbosity == Verbosity::High {
+        println!("Waiting for verification to finish...",);
+    }
+
+    while verification_status != VerificationStatus::Verified
+        && verification_status != VerificationStatus::Failed
+    {
+        verification_result =
+            verification_deploy_hash_status_get(&configuration, deploy_hash.to_string().as_str())
+                .await
+                .expect("Cannot get verification status");
+
+        verification_status = verification_result.status.unwrap();
+    }
+
+    if verbosity == Verbosity::High {
+        println!(
+            "Verification finished - status {}",
+            verification_status.to_string()
+        );
+    }
+
+    if verbosity == Verbosity::High {
+        println!("Getting verification details...");
+    }
+
+    let verification_details =
+        verification_deploy_hash_details_get(&configuration, deploy_hash.to_string().as_str())
+            .await;
+
+    match verification_details {
+        Ok(verification_details) => Ok(verification_details),
+        Err(error) => {
+            if verbosity == Verbosity::High {
+                println!("Cannot get verification details: {:?}", error);
+            }
+            Err(Error::ContractVerificationFailed)
+        }
+    }
 }

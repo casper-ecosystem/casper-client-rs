@@ -58,6 +58,7 @@ use std::{
     path::Path,
 };
 
+use openapi::models::VerificationDetails;
 #[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
@@ -71,13 +72,6 @@ use casper_types::{Key, PublicKey, URef};
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
-use openapi::{
-    apis::{
-        configuration::Configuration,
-        default_api::{verification_address_status_get, verification_post},
-    },
-    models::{VerificationRequest, VerificationResult, VerificationStatus},
-};
 #[cfg(feature = "std-fs-io")]
 pub use output_kind::OutputKind;
 use rpcs::{
@@ -120,7 +114,7 @@ use types::{Account, Block, StoredValue};
 use types::{Deploy, DeployHash};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
-pub use verification::build_archive;
+pub use verification::{build_archive, send_verification_request};
 
 use base64::{engine::general_purpose, Engine as _};
 
@@ -571,13 +565,16 @@ pub async fn get_era_info(
 pub async fn verify_contract(
     deploy_hash: DeployHash,
     public_key: PublicKey,
-    verbosity: Verbosity,
     verification_url_base_path: &str,
-) -> Result<VerificationResult, Error> {
+    verbosity: Verbosity,
+) -> Result<VerificationDetails, Error> {
     if verbosity == Verbosity::High {
         println!("Deploy hash: {}", deploy_hash.to_string());
         println!("Public key: {}", public_key.to_account_hash());
-        println!("Verification URL base path: {}", verification_url_base_path);
+        println!(
+            "Verification service base path: {}",
+            verification_url_base_path
+        );
     }
 
     let project_path = current_dir().expect("Error getting current directory");
@@ -589,65 +586,17 @@ pub async fn verify_contract(
     let archive = build_archive(&project_path).expect("Cannot create project archive");
 
     if verbosity == Verbosity::High {
-        println!("Created project archive - size: {}", archive.len());
+        println!("Created project archive (size: {})", archive.len());
     }
 
     let archive_base64 = general_purpose::STANDARD.encode(&archive);
 
-    let verification_request = VerificationRequest {
-        deploy_hash: Some(deploy_hash.to_string()),
-        public_key: Some(public_key.to_account_hash().to_string()),
-        code_archive: Some(archive_base64),
-    };
-
-    let mut configuration = Configuration::default();
-    configuration.base_path = verification_url_base_path.to_string();
-
-    if verbosity == Verbosity::High {
-        println!("Sending verfication request to {}", configuration.base_path);
-    }
-
-    let mut verification_result = verification_post(&configuration, Some(verification_request))
-        .await
-        .expect("Cannot send verification request");
-
-    if verbosity == Verbosity::High {
-        println!(
-            "Sent verification request - status {}",
-            verification_result.status.unwrap().to_string()
-        );
-    }
-
-    let mut verification_status = verification_result.status.unwrap();
-
-    if verbosity == Verbosity::High {
-        print!("Waiting for verification to finish...",);
-    }
-
-    while verification_status != VerificationStatus::Verified
-        && verification_status != VerificationStatus::Failed
-    {
-        verification_result =
-            verification_address_status_get(&configuration, deploy_hash.to_string().as_str())
-                .await
-                .unwrap();
-        verification_status = verification_result.status.unwrap();
-
-        if verbosity == Verbosity::High {
-            print!(".",);
-        }
-    }
-
-    if verbosity == Verbosity::High {
-        println!("");
-    }
-
-    if verbosity == Verbosity::High {
-        println!(
-            "Verification finished - status {}",
-            verification_status.to_string()
-        );
-    }
-
-    Ok(verification_result)
+    send_verification_request(
+        deploy_hash,
+        public_key,
+        verification_url_base_path,
+        archive_base64,
+        verbosity,
+    )
+    .await
 }
