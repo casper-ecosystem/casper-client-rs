@@ -290,15 +290,14 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     Ok(runtime_args)
 }
 
-fn args_from_simple_or_json_or_complex(
+fn args_from_simple_or_json(
     simple: Option<RuntimeArgs>,
     json: Option<RuntimeArgs>,
-    complex: Option<RuntimeArgs>,
 ) -> RuntimeArgs {
     // We can have exactly zero or one of the two as `Some`.
-    match (simple, json, complex) {
-        (Some(args), None, None) | (None, Some(args), None) | (None, None, Some(args)) => args,
-        (None, None, None) => RuntimeArgs::new(),
+    match (simple, json) {
+        (Some(args), None) | (None, Some(args)) => args,
+        (None, None) => RuntimeArgs::new(),
         _ => unreachable!("should not have more than one of simple, json or complex args"),
     }
 }
@@ -407,7 +406,6 @@ pub(super) fn session_executable_deploy_item(
         session_path,
         ref session_args_simple,
         session_args_json,
-        session_args_complex,
         session_version,
         session_entry_point,
         is_session_transfer: session_transfer,
@@ -430,17 +428,10 @@ pub(super) fn session_executable_deploy_item(
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
     );
-    if !session_args_simple.is_empty() && !session_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_session_info",
-            args: vec!["session_args".to_owned(), "session_args_complex".to_owned()],
-        });
-    }
 
-    let session_args = args_from_simple_or_json_or_complex(
+    let session_args = args_from_simple_or_json(
         arg_simple::session::parse(session_args_simple)?,
         args_json::session::parse(session_args_json)?,
-        args_complex::session::parse(session_args_complex)?,
     );
     if session_transfer {
         if session_args.is_empty() {
@@ -530,7 +521,6 @@ pub(super) fn payment_executable_deploy_item(
         payment_path,
         ref payment_args_simple,
         payment_args_json,
-        payment_args_complex,
         payment_version,
         payment_entry_point,
     } = params;
@@ -548,15 +538,6 @@ pub(super) fn payment_executable_deploy_item(
             requires[payment_entry_point] requires_empty[],
         (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
     );
-    if !payment_args_simple.is_empty() && !payment_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_payment_info",
-            args: vec![
-                "payment_args_simple".to_owned(),
-                "payment_args_complex".to_owned(),
-            ],
-        });
-    }
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
@@ -570,10 +551,9 @@ pub(super) fn payment_executable_deploy_item(
         error: payment_entry_point.to_string(),
     };
 
-    let payment_args = args_from_simple_or_json_or_complex(
+    let payment_args = args_from_simple_or_json(
         arg_simple::payment::parse(payment_args_simple)?,
         args_json::payment::parse(payment_args_json)?,
-        args_complex::payment::parse(payment_args_complex)?,
     );
 
     if let Some(payment_name) = name(payment_name) {
