@@ -1,4 +1,25 @@
 /// Container for `Transaction` construction options.
+///
+///
+/// ## `session_args_simple`
+///
+/// For methods taking `session_args_simple`, this parameter is the session contract arguments, in
+/// the form `<NAME:TYPE='VALUE'>` or `<NAME:TYPE=null>`.
+///
+/// There are further details in
+/// [the docs for the equivalent
+/// `payment_args_simple`](struct.PaymentStrParams.html#payment_args_simple).
+///
+/// ## `session_args_json`
+///
+/// For methods taking `session_args_json`, this parameter is the session contract arguments, as a
+/// JSON-encoded Array of JSON Objects of the form:
+/// ```json
+/// [{"name":<String>,"type":<VALUE>,"value":<VALUE>}]
+/// ```
+///
+/// There are further details in
+/// [the docs for the equivalent `payment_args_json`](struct.PaymentStrParams.html#payment_args_json).
 #[derive(Default, Debug)]
 pub struct TransactionStrParams<'a> {
     /// Path to secret key file.
@@ -29,4 +50,14 @@ pub struct TransactionStrParams<'a> {
     /// If `initiator_addr` is empty, the initiator address will be derived from the provided
     /// `secret_key`.  It is an error for both fields to be empty.
     pub initiator_addr: &'a str,
+    /// The path to a file containing compiled wasm session code.
+    pub session_path: &'a str,
+    /// The name of the session code entry point to call.
+    pub session_entry_point: &'a str,
+    /// Simple session args for use in the transaction
+    pub session_args_simple: Vec<&'a str>,
+    /// Session args in json for use with the transaction
+    pub session_args_json: &'a str,
+    /// The pricing mode to use with the transaction
+    pub maybe_pricing_mode: Option<&'a str>,
 }
