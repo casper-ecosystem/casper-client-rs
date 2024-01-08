@@ -568,7 +568,7 @@ pub async fn verify_contract(
     verification_url_base_path: &str,
     verbosity: Verbosity,
 ) -> Result<VerificationDetails, Error> {
-    if verbosity == Verbosity::High {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!("Deploy hash: {}", deploy_hash.to_string());
         println!("Public key: {}", public_key.to_account_hash());
         println!(
@@ -587,10 +587,9 @@ pub async fn verify_contract(
 
     let archive = match build_archive(&project_path) {
         Ok(archive) => {
-            if verbosity == Verbosity::High {
+            if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
                 println!("Created project archive (size: {})", archive.len());
             }
-
             archive
         }
         Err(error) => {
