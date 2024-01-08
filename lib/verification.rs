@@ -14,6 +14,7 @@ use openapi::{
     models::{VerificationDetails, VerificationRequest, VerificationStatus},
 };
 use tar::Builder as TarBuilder;
+use tokio::time::{sleep, Duration};
 
 use crate::{types::DeployHash, Error, Verbosity};
 
@@ -92,9 +93,14 @@ pub async fn send_verification_request(
         println!("Sending verfication request to {}", configuration.base_path);
     }
 
-    let mut verification_result = verification_post(&configuration, Some(verification_request))
-        .await
-        .expect("Cannot send verification request");
+    let mut verification_result =
+        match verification_post(&configuration, Some(verification_request)).await {
+            Ok(verification_result) => verification_result,
+            Err(error) => {
+                eprintln!("Cannot send verification request: {:?}", error);
+                return Err(Error::ContractVerificationFailed);
+            }
+        };
 
     if verbosity == Verbosity::High {
         println!(
@@ -103,7 +109,13 @@ pub async fn send_verification_request(
         );
     }
 
-    let mut verification_status = verification_result.status.unwrap();
+    let mut verification_status = match verification_result.status {
+        Some(verification_status) => verification_status,
+        None => {
+            eprintln!("Verification status not found");
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
 
     if verbosity == Verbosity::High {
         println!("Waiting for verification to finish...",);
@@ -112,12 +124,28 @@ pub async fn send_verification_request(
     while verification_status != VerificationStatus::Verified
         && verification_status != VerificationStatus::Failed
     {
-        verification_result =
-            verification_deploy_hash_status_get(&configuration, deploy_hash.to_string().as_str())
-                .await
-                .expect("Cannot get verification status");
+        verification_result = match verification_deploy_hash_status_get(
+            &configuration,
+            deploy_hash.to_string().as_str(),
+        )
+        .await
+        {
+            Ok(verification_result) => verification_result,
+            Err(error) => {
+                eprintln!("Cannot get verification status: {:?}", error);
+                return Err(Error::ContractVerificationFailed);
+            }
+        };
 
-        verification_status = verification_result.status.unwrap();
+        verification_status = match verification_result.status {
+            Some(verification_status) => verification_status,
+            None => {
+                eprintln!("Verification status not found");
+                return Err(Error::ContractVerificationFailed);
+            }
+        };
+
+        sleep(Duration::from_millis(100)).await;
     }
 
     if verbosity == Verbosity::High {
@@ -131,16 +159,12 @@ pub async fn send_verification_request(
         println!("Getting verification details...");
     }
 
-    let verification_details =
-        verification_deploy_hash_details_get(&configuration, deploy_hash.to_string().as_str())
-            .await;
-
-    match verification_details {
+    match verification_deploy_hash_details_get(&configuration, deploy_hash.to_string().as_str())
+        .await
+    {
         Ok(verification_details) => Ok(verification_details),
         Err(error) => {
-            if verbosity == Verbosity::High {
-                println!("Cannot get verification details: {:?}", error);
-            }
+            eprintln!("Cannot get verification details: {:?}", error);
             Err(Error::ContractVerificationFailed)
         }
     }

@@ -577,17 +577,27 @@ pub async fn verify_contract(
         );
     }
 
-    let project_path = current_dir().expect("Error getting current directory");
+    let project_path = match current_dir() {
+        Ok(path) => path,
+        Err(error) => {
+            eprintln!("Cannot get current directory: {}", error);
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
 
-    if verbosity == Verbosity::High {
-        println!("Project path: {}", project_path.display());
-    }
+    let archive = match build_archive(&project_path) {
+        Ok(archive) => {
+            if verbosity == Verbosity::High {
+                println!("Created project archive (size: {})", archive.len());
+            }
 
-    let archive = build_archive(&project_path).expect("Cannot create project archive");
-
-    if verbosity == Verbosity::High {
-        println!("Created project archive (size: {})", archive.len());
-    }
+            archive
+        }
+        Err(error) => {
+            eprintln!("Cannot create project archive: {}", error);
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
 
     let archive_base64 = general_purpose::STANDARD.encode(&archive);
 
