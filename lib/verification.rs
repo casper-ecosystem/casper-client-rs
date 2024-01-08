@@ -89,7 +89,7 @@ pub async fn send_verification_request(
     let mut configuration = Configuration::default();
     configuration.base_path = verification_url_base_path.to_string();
 
-    if verbosity == Verbosity::High {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!("Sending verfication request to {}", configuration.base_path);
     }
 
@@ -102,7 +102,7 @@ pub async fn send_verification_request(
             }
         };
 
-    if verbosity == Verbosity::High {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!(
             "Sent verification request - status {}",
             verification_result.status.unwrap().to_string()
@@ -117,7 +117,7 @@ pub async fn send_verification_request(
         }
     };
 
-    if verbosity == Verbosity::High {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!("Waiting for verification to finish...",);
     }
 
@@ -148,14 +148,14 @@ pub async fn send_verification_request(
         sleep(Duration::from_millis(100)).await;
     }
 
-    if verbosity == Verbosity::High {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!(
             "Verification finished - status {}",
             verification_status.to_string()
         );
     }
 
-    if verbosity == Verbosity::High {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!("Getting verification details...");
     }
 
