@@ -86,11 +86,18 @@ pub async fn send_verification_request(
         code_archive: Some(archive_base64),
     };
 
-    let mut configuration = Configuration::default();
-    configuration.base_path = verification_url_base_path.to_string();
+    let configuration = Configuration {
+        base_path: verification_url_base_path.to_string(),
+        user_agent: Some("casper-client-rs".to_owned()),
+        client: reqwest::Client::new(),
+        basic_auth: None,
+        oauth_access_token: None,
+        bearer_access_token: None,
+        api_key: None,
+    };
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!("Sending verfication request to {}", configuration.base_path);
+        println!("Sending verification request to {}", configuration.base_path);
     }
 
     let verification_result =
@@ -102,11 +109,19 @@ pub async fn send_verification_request(
             }
         };
 
-    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!(
-            "Sent verification request - status {}",
-            verification_result.status.unwrap().to_string()
-        );
+    match verification_result.status {
+        Some(verification_status) => {
+            if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+                println!(
+                    "Sent verification request - status {}",
+                    verification_status.to_string()
+                );
+            }        
+        },
+        None => {
+            eprintln!("Verification status not found");
+            return Err(Error::ContractVerificationFailed);
+        }
     }
 
     wait_for_verification_finished(&configuration, deploy_hash, verbosity).await;
@@ -126,6 +141,7 @@ pub async fn send_verification_request(
     }
 }
 
+/// Waits for the verification process to finish.
 async fn wait_for_verification_finished(
     configuration: &Configuration,
     deploy_hash: DeployHash,
@@ -162,6 +178,7 @@ async fn wait_for_verification_finished(
     }
 }
 
+/// Gets the verification status of the contract.
 async fn get_verification_status(
     configuration: &Configuration,
     deploy_hash: DeployHash,
