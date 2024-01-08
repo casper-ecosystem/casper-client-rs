@@ -93,7 +93,7 @@ pub async fn send_verification_request(
         println!("Sending verfication request to {}", configuration.base_path);
     }
 
-    let mut verification_result =
+    let verification_result =
         match verification_post(&configuration, Some(verification_request)).await {
             Ok(verification_result) => verification_result,
             Err(error) => {
@@ -109,51 +109,7 @@ pub async fn send_verification_request(
         );
     }
 
-    let mut verification_status = match verification_result.status {
-        Some(verification_status) => verification_status,
-        None => {
-            eprintln!("Verification status not found");
-            return Err(Error::ContractVerificationFailed);
-        }
-    };
-
-    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!("Waiting for verification to finish...",);
-    }
-
-    while verification_status != VerificationStatus::Verified
-        && verification_status != VerificationStatus::Failed
-    {
-        verification_result = match verification_deploy_hash_status_get(
-            &configuration,
-            deploy_hash.to_string().as_str(),
-        )
-        .await
-        {
-            Ok(verification_result) => verification_result,
-            Err(error) => {
-                eprintln!("Cannot get verification status: {:?}", error);
-                return Err(Error::ContractVerificationFailed);
-            }
-        };
-
-        verification_status = match verification_result.status {
-            Some(verification_status) => verification_status,
-            None => {
-                eprintln!("Verification status not found");
-                return Err(Error::ContractVerificationFailed);
-            }
-        };
-
-        sleep(Duration::from_millis(100)).await;
-    }
-
-    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!(
-            "Verification finished - status {}",
-            verification_status.to_string()
-        );
-    }
+    wait_for_verification_finished(&configuration, deploy_hash, verbosity).await;
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!("Getting verification details...");
@@ -165,6 +121,66 @@ pub async fn send_verification_request(
         Ok(verification_details) => Ok(verification_details),
         Err(error) => {
             eprintln!("Cannot get verification details: {:?}", error);
+            Err(Error::ContractVerificationFailed)
+        }
+    }
+}
+
+async fn wait_for_verification_finished(
+    configuration: &Configuration,
+    deploy_hash: DeployHash,
+    verbosity: Verbosity,
+) {
+    let mut verification_status = match get_verification_status(configuration, deploy_hash).await {
+        Ok(verification_status) => verification_status,
+        Err(error) => {
+            eprintln!("Cannot get verification status: {:?}", error);
+            return;
+        }
+    };
+
+    while verification_status != VerificationStatus::Verified
+        && verification_status != VerificationStatus::Failed
+    {
+        verification_status = match get_verification_status(configuration, deploy_hash).await {
+            Ok(verification_status) => verification_status,
+            Err(error) => {
+                eprintln!("Cannot get verification status: {:?}", error);
+                return;
+            }
+        };
+
+        sleep(Duration::from_millis(100)).await;
+        // TODO: Add backoff with limited retries.
+    }
+
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+        println!(
+            "Verification finished - status {}",
+            verification_status.to_string()
+        );
+    }
+}
+
+async fn get_verification_status(
+    configuration: &Configuration,
+    deploy_hash: DeployHash,
+) -> Result<VerificationStatus, Error> {
+    let verification_status =
+        match verification_deploy_hash_status_get(&configuration, deploy_hash.to_string().as_str())
+            .await
+        {
+            Ok(verification_result) => verification_result,
+            Err(error) => {
+                eprintln!("Failed to fetch verification status: {:?}", error);
+                return Err(Error::ContractVerificationFailed);
+            }
+        };
+
+    match verification_status.status {
+        Some(verification_status) => Ok(verification_status),
+        None => {
+            eprintln!("Verification status not found");
             Err(Error::ContractVerificationFailed)
         }
     }
