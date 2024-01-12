@@ -1,8 +1,7 @@
 use async_trait::async_trait;
-use casper_types::TransactionV1Builder;
 use clap::{ArgMatches, Command};
 
-use casper_client::cli::{CliError, TransactionStrParams};
+use casper_client::cli::{CliError, TransactionBuilderParams, TransactionStrParams};
 
 use super::creation_common::{
     self, add_bid, arg_simple, args_json, delegate, invocable_entity, invocable_entity_alias,
@@ -74,7 +73,7 @@ impl ClientCommand for MakeTransaction {
         let force = common::force::get(matches);
 
         if let Some((subcommand, matches)) = matches.subcommand() {
-            let transaction_builder: TransactionV1Builder = match subcommand {
+            let transaction_builder_params: TransactionBuilderParams = match subcommand {
                 add_bid::NAME => add_bid::run(matches)?,
                 withdraw_bid::NAME => withdraw_bid::run(matches)?,
                 delegate::NAME => delegate::run(matches)?,
@@ -96,7 +95,7 @@ impl ClientCommand for MakeTransaction {
 
             casper_client::cli::make_transaction(
                 maybe_output_path,
-                transaction_builder,
+                transaction_builder_params,
                 TransactionStrParams {
                     secret_key,
                     timestamp,
