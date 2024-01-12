@@ -7,9 +7,11 @@ use rand::Rng;
 use serde::{self, Deserialize};
 
 use casper_types::{
-    account::AccountHash, bytesrepr::{self, Bytes}, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
-    Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey,
-    TimeDiff, Timestamp, UIntParseError, URef, U512,
+    account::AccountHash,
+    bytesrepr::{self, Bytes},
+    crypto, AsymmetricType, BlockHash, CLValue, DeployHash, Digest, ExecutableDeployItem, HashAddr,
+    Key, NamedArg, PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, UIntParseError, URef,
+    U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -290,10 +292,7 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     Ok(runtime_args)
 }
 
-fn args_from_simple_or_json(
-    simple: Option<RuntimeArgs>,
-    json: Option<RuntimeArgs>,
-) -> RuntimeArgs {
+fn args_from_simple_or_json(simple: Option<RuntimeArgs>, json: Option<RuntimeArgs>) -> RuntimeArgs {
     // We can have exactly zero or one of the two as `Some`.
     match (simple, json) {
         (Some(args), None) | (None, Some(args)) => args,
@@ -491,7 +490,7 @@ pub(super) fn session_executable_deploy_item(
     })
 }
 /// Parse a transaction file into Bytes to be used in crafting a new session transaction
-pub fn temp_transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
+pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
     let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
         context: format!("unable to read session file at '{}'", session_path),
         error,
@@ -836,49 +835,6 @@ mod tests {
     }
 
     #[test]
-    fn should_fail_to_parse_conflicting_arg_types() {
-        assert!(matches!(
-            session_executable_deploy_item(SessionStrParams {
-                session_hash: "",
-                session_name: "name",
-                session_package_hash: "",
-                session_package_name: "",
-                session_path: "",
-                session_args_simple: vec!["something:u32='0'"],
-                session_args_json: "",
-                session_args_complex: "path_to/file",
-                session_version: "",
-                session_entry_point: "entrypoint",
-                is_session_transfer: false
-            }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
-                ..
-            })
-        ));
-
-        assert!(matches!(
-            payment_executable_deploy_item(PaymentStrParams {
-                payment_amount: "",
-                payment_hash: "name",
-                payment_name: "",
-                payment_package_hash: "",
-                payment_package_name: "",
-                payment_path: "",
-                payment_args_simple: vec!["something:u32='0'"],
-                payment_args_json: "",
-                payment_args_complex: "path_to/file",
-                payment_version: "",
-                payment_entry_point: "entrypoint",
-            }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
-                ..
-            })
-        ));
-    }
-
-    #[test]
     fn should_fail_to_parse_conflicting_session_parameters() {
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
@@ -889,7 +845,6 @@ mod tests {
                 session_path: PATH,
                 session_args_simple: vec![],
                 session_args_json: "",
-                session_args_complex: "",
                 session_version: "",
                 session_entry_point: "",
                 is_session_transfer: false
@@ -913,7 +868,6 @@ mod tests {
                 payment_path: PATH,
                 payment_args_simple: vec![],
                 payment_args_json: "",
-                payment_args_complex: "",
                 payment_version: "",
                 payment_entry_point: "",
             }),
@@ -921,54 +875,6 @@ mod tests {
                 context: "parse_payment_info",
                 ..
             })
-        ));
-    }
-
-    #[test]
-    fn should_fail_to_parse_bad_session_args_complex() {
-        let missing_file = "missing/file";
-        assert!(matches!(
-            session_executable_deploy_item(SessionStrParams {
-                session_hash: HASH,
-                session_name: "",
-                session_package_hash: "",
-                session_package_name: "",
-                session_path: "",
-                session_args_simple: vec![],
-                session_args_json: "",
-                session_args_complex: missing_file,
-                session_version: "",
-                session_entry_point: "entrypoint",
-                is_session_transfer: false,
-            }),
-            Err(CliError::Core(crate::Error::IoError {
-                context,
-                ..
-            })) if context == format!("error reading session file at '{}'", missing_file)
-        ));
-    }
-
-    #[test]
-    fn should_fail_to_parse_bad_payment_args_complex() {
-        let missing_file = "missing/file";
-        assert!(matches!(
-            payment_executable_deploy_item(PaymentStrParams {
-                payment_amount: "",
-                payment_hash: HASH,
-                payment_name: "",
-                payment_package_hash: "",
-                payment_package_name: "",
-                payment_path: "",
-                payment_args_simple: vec![],
-                payment_args_json: "",
-                payment_args_complex: missing_file,
-                payment_version: "",
-                payment_entry_point: "entrypoint",
-            }),
-            Err(CliError::Core(crate::Error::IoError {
-                context,
-                ..
-            })) if context == format!("error reading payment file at '{}'", missing_file)
         ));
     }
 
@@ -1559,4 +1465,12 @@ mod tests {
             assert!(parsed.is_err());
         }
     }
+    /*mod transaction_builders{
+        use super::*;
+        #[test]
+        pub fn should_parse_uref(){
+            let test: URef
+            let uref_str =
+        }
+    }*/
 }
