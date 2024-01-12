@@ -33,6 +33,7 @@ mod simple_args;
 #[cfg(test)]
 mod tests;
 mod transaction;
+mod transaction_builder_params;
 mod transaction_str_params;
 
 use serde::Serialize;
@@ -73,8 +74,8 @@ pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
 pub use simple_args::help as simple_args_help;
 pub use transaction::make_transaction;
+pub use transaction_builder_params::TransactionBuilderParams;
 pub use transaction_str_params::TransactionStrParams;
-
 /// Retrieves a [`Deploy`] from the network.
 ///
 /// `deploy_hash` must be a hex-encoded, 32-byte hash digest.  For details of the other parameters,
