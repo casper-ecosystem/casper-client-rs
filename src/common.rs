@@ -94,7 +94,6 @@ pub mod rpc_id {
     }
 }
 
-
 /// Handles providing the arg for and retrieval of the secret key.
 pub mod secret_key {
     use super::*;
