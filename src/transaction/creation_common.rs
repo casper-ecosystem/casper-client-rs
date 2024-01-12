@@ -893,8 +893,7 @@ mod transaction_amount {
 
 pub(super) mod add_bid {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "add-bid";
 
@@ -903,7 +902,7 @@ pub(super) mod add_bid {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
@@ -912,8 +911,13 @@ pub(super) mod add_bid {
 
         let amount_str = transaction_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
-        let builder = TransactionV1Builder::new_add_bid(public_key, delegation_rate, amount)?;
-        Ok(builder)
+
+        let params = TransactionBuilderParams::AddBid {
+            public_key,
+            delegation_rate,
+            amount,
+        };
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -925,8 +929,8 @@ pub(super) mod add_bid {
 }
 pub(super) mod withdraw_bid {
     use super::*;
+    use crate::cli::TransactionBuilderParams;
     use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
 
     pub const NAME: &str = "withdraw-bid";
 
@@ -935,14 +939,16 @@ pub(super) mod withdraw_bid {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
         let amount_str = transaction_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
-        let builder = TransactionV1Builder::new_withdraw_bid(public_key, amount)?;
-        Ok(builder)
+
+        let params = TransactionBuilderParams::WithdrawBid { public_key, amount };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -953,8 +959,7 @@ pub(super) mod withdraw_bid {
 }
 pub(super) mod delegate {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "delegate";
 
@@ -964,17 +969,23 @@ pub(super) mod delegate {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
-        let public_key_str = public_key::get(matches)?;
-        let delegator = public_key::parse_public_key(&public_key_str)?;
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+        let delegator_str = delegator::get(matches);
+        let delegator = public_key::parse_public_key(&delegator_str)?;
 
         let validator_str = validator::get(matches);
         let validator = public_key::parse_public_key(validator_str)?;
 
         let amount_str = transaction_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
-        let builder = TransactionV1Builder::new_delegate(delegator, validator, amount)?;
-        Ok(builder)
+
+        let params = TransactionBuilderParams::Delegate {
+            delegator,
+            validator,
+            amount,
+        };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -987,8 +998,7 @@ pub(super) mod delegate {
 
 pub(super) mod undelegate {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "undelegate";
 
@@ -998,17 +1008,22 @@ pub(super) mod undelegate {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
-        let public_key_str = public_key::get(matches)?;
-        let delegator = public_key::parse_public_key(&public_key_str)?;
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+        let delegator_str = delegator::get(matches);
+        let delegator = public_key::parse_public_key(&delegator_str)?;
 
         let validator_str = validator::get(matches);
         let validator = public_key::parse_public_key(validator_str)?;
 
         let amount_str = transaction_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
-        let builder = TransactionV1Builder::new_undelegate(delegator, validator, amount)?;
-        Ok(builder)
+
+        let params = TransactionBuilderParams::Undelegate {
+            delegator,
+            validator,
+            amount,
+        };
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1019,8 +1034,7 @@ pub(super) mod undelegate {
 }
 pub(super) mod redelegate {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "redelegate";
 
@@ -1030,7 +1044,7 @@ pub(super) mod redelegate {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1043,9 +1057,13 @@ pub(super) mod redelegate {
         let amount_str = transaction_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
 
-        let builder =
-            TransactionV1Builder::new_redelegate(delegator, validator, amount, new_validator)?;
-        Ok(builder)
+        let params = TransactionBuilderParams::Redelegate {
+            delegator,
+            validator,
+            new_validator,
+            amount,
+        };
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1058,8 +1076,7 @@ pub(super) mod redelegate {
 
 pub(super) mod invocable_entity {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "invocable-entity";
 
@@ -1069,15 +1086,18 @@ pub(super) mod invocable_entity {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let entity_addr_str = entity_addr::get(matches)?;
         let entity_addr = entity_addr::parse_entity_addr(entity_addr_str)?;
 
         let entry_point = session_entry_point::get(matches);
 
-        let builder =
-            TransactionV1Builder::new_targeting_invocable_entity(entity_addr, entry_point);
-        Ok(builder)
+        let params = TransactionBuilderParams::InvocableEntity {
+            entity_addr,
+            entry_point,
+        };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1088,8 +1108,7 @@ pub(super) mod invocable_entity {
 }
 pub(super) mod invocable_entity_alias {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "invocable-entity-alias";
 
@@ -1099,16 +1118,17 @@ pub(super) mod invocable_entity_alias {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let entity_alias = entity_alias_arg::get(matches);
 
         let entry_point = session_entry_point::get(matches);
 
-        let builder = TransactionV1Builder::new_targeting_invocable_entity_via_alias(
+        let params = TransactionBuilderParams::InvocableEntityAlias {
             entity_alias,
             entry_point,
-        );
-        Ok(builder)
+        };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1119,8 +1139,7 @@ pub(super) mod invocable_entity_alias {
 }
 pub(super) mod package {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "package";
 
@@ -1130,16 +1149,20 @@ pub(super) mod package {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let package_addr = package_addr::get(matches)?;
 
-        let entity_version = session_version::get(matches);
+        let maybe_entity_version = session_version::get(matches);
 
         let entry_point = session_entry_point::get(matches);
 
-        let builder =
-            TransactionV1Builder::new_targeting_package(package_addr, entity_version, entry_point);
-        Ok(builder)
+        let params = TransactionBuilderParams::Package {
+            package_addr,
+            maybe_entity_version,
+            entry_point,
+        };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1151,8 +1174,7 @@ pub(super) mod package {
 }
 pub(super) mod package_alias {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "package-alias";
 
@@ -1162,19 +1184,20 @@ pub(super) mod package_alias {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
-        let package_alias_str = package_alias_arg::get(matches);
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+        let package_alias = package_alias_arg::get(matches);
 
-        let maybe_version = session_version::get(matches);
+        let maybe_entity_version = session_version::get(matches);
 
-        let entry_point_str = session_entry_point::get(matches);
+        let entry_point = session_entry_point::get(matches);
 
-        let builder = TransactionV1Builder::new_targeting_package_via_alias(
-            package_alias_str,
-            maybe_version,
-            entry_point_str,
-        );
-        Ok(builder)
+        let params = TransactionBuilderParams::PackageAlias {
+            package_alias,
+            maybe_entity_version,
+            entry_point,
+        };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1187,8 +1210,7 @@ pub(super) mod package_alias {
 pub(super) mod session {
     use super::*;
     use crate::cli::parse;
-    use casper_client::cli::CliError;
-    use casper_types::{TransactionSessionKind, TransactionV1Builder};
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "session";
 
@@ -1198,18 +1220,18 @@ pub(super) mod session {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let transaction_path_str = transaction_path::get(matches);
-        let transaction_session_code = parse::temp_transaction_module_bytes(transaction_path_str)?;
+        let transaction_bytes = parse::transaction_module_bytes(transaction_path_str)?;
 
         let entry_point = session_entry_point::get(matches);
 
-        let builder = TransactionV1Builder::new_session(
-            TransactionSessionKind::Standard,
-            transaction_session_code,
+        let params = TransactionBuilderParams::Session {
+            transaction_bytes,
             entry_point,
-        );
-        Ok(builder)
+        };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1224,8 +1246,7 @@ pub(super) mod session {
 pub(super) mod transfer {
     use super::*;
     use crate::cli::parse;
-    use casper_client::cli::CliError;
-    use casper_types::TransactionV1Builder;
+    use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "transfer";
 
@@ -1235,12 +1256,12 @@ pub(super) mod transfer {
         add_args(Command::new(NAME).about(ABOUT))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionV1Builder, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
         let source_str = source::get(matches);
         let source_uref = parse::uref(source_str)?;
 
         let target_str = target::get(matches);
-        let taraget_uref = parse::uref(target_str)?;
+        let target_uref = parse::uref(target_str)?;
 
         let amount = transfer_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount)?;
@@ -1250,14 +1271,15 @@ pub(super) mod transfer {
 
         let maybe_id = transfer_id::get(matches);
 
-        let builder = TransactionV1Builder::new_transfer(
+        let params = TransactionBuilderParams::Transfer {
             source_uref,
-            taraget_uref,
+            target_uref,
             amount,
             maybe_to,
             maybe_id,
-        )?;
-        Ok(builder)
+        };
+
+        Ok(params)
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
