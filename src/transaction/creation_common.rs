@@ -5,7 +5,7 @@ use std::process;
 
 use clap::{Arg, ArgAction, ArgGroup, ArgMatches, Command};
 
-use casper_client::cli::{json_args_help, simple_args_help};
+use casper_client::cli::{json_args_help, simple_args_help, TransactionStrParams};
 
 use crate::common;
 
@@ -361,6 +361,7 @@ pub(super) mod pricing_mode {
             .get_one::<String>(payment_amount::ARG_NAME)
             .map(String::as_str)
     }
+
 }
 
 pub(super) mod initiator_address {
@@ -428,7 +429,12 @@ pub(super) fn apply_common_creation_options(
         .arg(timestamp::arg())
         .arg(ttl::arg())
         .arg(chain_name::arg())
-        .arg(public_key::arg(DisplayOrder::PublicKey as usize));
+        .arg(public_key::arg(DisplayOrder::PublicKey as usize))
+        .arg(output::arg())
+        .arg(common::force::arg(
+            DisplayOrder::Force as usize,
+            true,
+        ));
     subcommand
 }
 
@@ -893,16 +899,19 @@ mod transaction_amount {
 
 pub(super) mod add_bid {
     use super::*;
-    use casper_client::cli::{CliError, TransactionBuilderParams};
+    use casper_client::cli::{CliError, TransactionBuilderParams, TransactionStrParams};
 
     pub const NAME: &str = "add-bid";
 
     const ABOUT: &str = "Creates a new add-bid transaction";
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
+
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
@@ -917,7 +926,10 @@ pub(super) mod add_bid {
             delegation_rate,
             amount,
         };
-        Ok(params)
+
+        let transaction_str_params = build_transaction_str_params(matches);
+
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -936,10 +948,13 @@ pub(super) mod withdraw_bid {
 
     const ABOUT: &str = "Creates a new withdraw-bid transaction";
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
+
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
@@ -947,8 +962,9 @@ pub(super) mod withdraw_bid {
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
 
         let params = TransactionBuilderParams::WithdrawBid { public_key, amount };
+        let transaction_str_params = build_transaction_str_params(matches);
 
-        Ok(params)
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -966,12 +982,15 @@ pub(super) mod delegate {
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams),  CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
+
         let delegator_str = delegator::get(matches);
-        let delegator = public_key::parse_public_key(&delegator_str)?;
+        let delegator = public_key::parse_public_key(delegator_str)?;
 
         let validator_str = validator::get(matches);
         let validator = public_key::parse_public_key(validator_str)?;
@@ -984,8 +1003,9 @@ pub(super) mod delegate {
             validator,
             amount,
         };
+        let transaction_str_params = build_transaction_str_params(matches);
 
-        Ok(params)
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1005,12 +1025,15 @@ pub(super) mod undelegate {
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
+
         let delegator_str = delegator::get(matches);
-        let delegator = public_key::parse_public_key(&delegator_str)?;
+        let delegator = public_key::parse_public_key(delegator_str)?;
 
         let validator_str = validator::get(matches);
         let validator = public_key::parse_public_key(validator_str)?;
@@ -1023,7 +1046,8 @@ pub(super) mod undelegate {
             validator,
             amount,
         };
-        Ok(params)
+        let transaction_str_params = build_transaction_str_params(matches);
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1041,10 +1065,13 @@ pub(super) mod redelegate {
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
+
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1063,7 +1090,8 @@ pub(super) mod redelegate {
             new_validator,
             amount,
         };
-        Ok(params)
+        let transaction_str_params = build_transaction_str_params(matches);
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1083,10 +1111,13 @@ pub(super) mod invocable_entity {
     const ABOUT: &str = "Creates a new transaction targeting an invocable entity";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
+
         let entity_addr_str = entity_addr::get(matches)?;
         let entity_addr = entity_addr::parse_entity_addr(entity_addr_str)?;
 
@@ -1096,8 +1127,8 @@ pub(super) mod invocable_entity {
             entity_addr,
             entry_point,
         };
-
-        Ok(params)
+        let transaction_str_params = build_transaction_str_params(matches);
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1115,10 +1146,12 @@ pub(super) mod invocable_entity_alias {
     const ABOUT: &str = "Creates a new transaction targeting an invocable entity via its alias";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
         let entity_alias = entity_alias_arg::get(matches);
 
         let entry_point = session_entry_point::get(matches);
@@ -1127,8 +1160,8 @@ pub(super) mod invocable_entity_alias {
             entity_alias,
             entry_point,
         };
-
-        Ok(params)
+        let transaction_str_params = build_transaction_str_params(matches);
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1146,10 +1179,12 @@ pub(super) mod package {
     const ABOUT: &str = "Creates a new transaction targeting a package";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
         let package_addr = package_addr::get(matches)?;
 
         let maybe_entity_version = session_version::get(matches);
@@ -1161,8 +1196,8 @@ pub(super) mod package {
             maybe_entity_version,
             entry_point,
         };
-
-        Ok(params)
+        let transaction_str_params = build_transaction_str_params(matches);
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1181,10 +1216,12 @@ pub(super) mod package_alias {
     const ABOUT: &str = "Creates a new transaction targeting package via its alias";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
         let package_alias = package_alias_arg::get(matches);
 
         let maybe_entity_version = session_version::get(matches);
@@ -1196,8 +1233,8 @@ pub(super) mod package_alias {
             maybe_entity_version,
             entry_point,
         };
-
-        Ok(params)
+        let transaction_str_params = build_transaction_str_params(matches);
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1217,10 +1254,12 @@ pub(super) mod session {
     const ABOUT: &str = "Creates a new transaction for running session logic";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
         let transaction_path_str = transaction_path::get(matches);
         let transaction_bytes = parse::transaction_module_bytes(transaction_path_str)?;
 
@@ -1230,8 +1269,8 @@ pub(super) mod session {
             transaction_bytes,
             entry_point,
         };
-
-        Ok(params)
+        let transaction_str_params = build_transaction_str_params(matches);
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1253,10 +1292,13 @@ pub(super) mod transfer {
     const ABOUT: &str = "Creates a new transaction for the native transfer transaction";
 
     pub fn build() -> Command {
-        add_args(Command::new(NAME).about(ABOUT))
+        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<TransactionBuilderParams, CliError> {
+    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+        show_simple_arg_examples_and_exit_if_required(matches);
+        show_json_args_examples_and_exit_if_required(matches);
+
         let source_str = source::get(matches);
         let source_uref = parse::uref(source_str)?;
 
@@ -1278,8 +1320,9 @@ pub(super) mod transfer {
             maybe_to,
             maybe_id,
         };
+        let transaction_str_params = build_transaction_str_params(matches);
 
-        Ok(params)
+        Ok((params, transaction_str_params))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1405,5 +1448,35 @@ pub(super) mod destination_account {
                 error: err,
             }),
         }
+    }
+}
+pub(super) fn apply_common_args(subcommand: Command) -> Command{
+    let subcommand = apply_common_session_options(subcommand);
+    let subcommand = apply_common_payment_options(subcommand);
+    apply_common_creation_options(subcommand, false, false)
+}
+
+pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionStrParams{
+    let secret_key = common::secret_key::get(matches).unwrap_or_default();
+    let timestamp = timestamp::get(matches);
+    let ttl = ttl::get(matches);
+    let chain_name = chain_name::get(matches);
+    let maybe_pricing_mode = pricing_mode::get(matches);
+
+    let session_args_simple = arg_simple::session::get(matches);
+    let session_args_json = args_json::session::get(matches);
+
+    let maybe_output_path = output::get(matches).unwrap_or_default();
+    let initiator_addr = initiator_address::get(matches).unwrap_or_default();
+    TransactionStrParams{
+        secret_key,
+        timestamp,
+        ttl,
+        chain_name,
+        initiator_addr,
+        session_args_simple,
+        session_args_json,
+        maybe_pricing_mode,
+        maybe_output_path,
     }
 }
