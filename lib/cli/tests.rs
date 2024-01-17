@@ -432,9 +432,8 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
 
 mod transaction {
     use super::*;
-    use casper_types::{bytesrepr::Bytes, PackageAddr, TransactionEntryPoint,
-                       TransactionInvocationTarget, TransactionRuntime, TransactionSessionKind,
-                       TransactionTarget};
+    use casper_types::{bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget, TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError};
+    use crate::Error::TransactionBuild;
 
     #[test]
     fn should_create_add_bid_transaction() {
@@ -451,11 +450,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "add-bid-test",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -512,11 +510,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "delegate",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Delegate {
@@ -574,11 +571,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "withdraw-bid",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params =
@@ -627,11 +623,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "undelegate",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Undelegate {
@@ -695,11 +690,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "redelegate",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Redelegate {
@@ -766,11 +760,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "invocable-entity",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
@@ -808,11 +801,11 @@ mod transaction {
             ttl: "30min",
             chain_name: "invocable-entity-alias",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
+
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
@@ -854,11 +847,11 @@ mod transaction {
             ttl: "30min",
             chain_name: "package",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
+
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Package {
@@ -898,11 +891,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "package",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::PackageAlias {
@@ -938,11 +930,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "session",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
@@ -980,11 +971,10 @@ mod transaction {
             ttl: "30min",
             chain_name: "transfer",
             initiator_addr: SAMPLE_ACCOUNT,
-            session_path: "",
-            session_entry_point: "",
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
+            maybe_output_path: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
@@ -1027,5 +1017,99 @@ mod transaction {
                 .unwrap(),
                 target_uref_cl
         );
+    }
+    #[test]
+    fn should_fail_to_create_transaction_with_no_secret_or_public_key(){
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "no-secret",
+            initiator_addr: "",
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            maybe_output_path: "",
+        };
+        let transaction_builder_params = TransactionBuilderParams::Transfer {
+            source_uref: Default::default(),
+            target_uref: Default::default(),
+            amount: Default::default(),
+            maybe_to: None,
+            maybe_id: None,
+        };
+        let transaction = create_transaction(
+            transaction_builder_params,
+            transaction_string_params,
+            "100",
+            true,
+        );
+        assert!(transaction.is_err());
+        assert!(matches!(
+            transaction.unwrap_err(),
+            CliError::Core(TransactionBuild(TransactionV1BuilderError::MissingInitiatorAddr))
+        ));
+    }
+    #[test]
+    fn should_create_transaction_with_secret_key_but_no_initiator_addr(){
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "resources/test.pem",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "has-secret",
+            initiator_addr: "",
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            maybe_output_path: "",
+        };
+        let transaction_builder_params = TransactionBuilderParams::AddBid {
+            public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
+            delegation_rate: 0,
+            amount: U512::from(10),
+        };
+        let transaction = create_transaction(
+            transaction_builder_params,
+            transaction_string_params,
+            "100",
+            true,
+        );
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        println!("{:?}", transaction);
+    }
+
+    #[test]
+    fn should_fail_to_create_transaction_with_no_secret_and_no_unsigned_transactions(){
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "no-secret-must-be-signed",
+            initiator_addr: SAMPLE_ACCOUNT,
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            maybe_output_path: "",
+        };
+        let transaction_builder_params = TransactionBuilderParams::AddBid {
+            public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
+            delegation_rate: 0,
+            amount: U512::from(10),
+        };
+        let transaction = create_transaction(
+            transaction_builder_params,
+            transaction_string_params,
+            "100",
+            false,
+        );
+        assert!(transaction.is_err(), "{:?}", transaction);
+        println!("{:?}", transaction);
+        assert!(matches!(
+            transaction.unwrap_err(),
+            CliError::InvalidArgument {
+                context: "create_transaction (secret_key, allow_unsigned_deploy)",
+                error: _
+            }
+        ));
     }
 }
