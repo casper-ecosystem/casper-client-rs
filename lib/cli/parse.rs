@@ -1343,12 +1343,4 @@ mod tests {
             assert!(parsed.is_err());
         }
     }
-    /*mod transaction_builders{
-        use super::*;
-        #[test]
-        pub fn should_parse_uref(){
-            let test: URef
-            let uref_str =
-        }
-    }*/
 }
