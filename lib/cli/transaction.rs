@@ -45,6 +45,7 @@ pub fn create_transaction(
     if let Some(secret_key) = &maybe_secret_key {
         transaction_builder = transaction_builder.with_secret_key(secret_key);
     }
+
     if let Some(account) = maybe_session_account {
         transaction_builder =
             transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
@@ -64,13 +65,12 @@ pub fn create_transaction(
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 pub fn make_transaction(
-    maybe_output_path: &str,
     builder: TransactionBuilderParams,
     transaction_params: TransactionStrParams<'_>,
     payment_amount: &str,
     force: bool,
 ) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    let output = parse::output_kind(transaction_params.maybe_output_path, force);
     let transaction = create_transaction(builder, transaction_params, payment_amount, true)?;
     crate::output_transaction(output, &transaction).map_err(CliError::from)
 }
