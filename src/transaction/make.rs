@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use clap::{ArgMatches, Command};
 
-use casper_client::cli::{CliError, TransactionBuilderParams, TransactionStrParams};
+use casper_client::cli::CliError;
 
 use super::creation_common::{
-    self, add_bid, arg_simple, args_json, delegate, invocable_entity, invocable_entity_alias,
+    self, add_bid, delegate, invocable_entity, invocable_entity_alias,
     package, package_alias, redelegate, session, transfer, undelegate, withdraw_bid,
 };
 
@@ -21,7 +21,7 @@ impl ClientCommand for MakeTransaction {
         for execution using the 'send-transaction' subcommand";
 
     fn build(display_order: usize) -> Command {
-        let subcommand = Command::new(Self::NAME)
+        Command::new(Self::NAME)
             .about(Self::ABOUT)
             .subcommand_required(true)
             .subcommand(withdraw_bid::build())
@@ -35,45 +35,22 @@ impl ClientCommand for MakeTransaction {
             .subcommand(package_alias::build())
             .subcommand(session::build())
             .subcommand(transfer::build())
-            .arg(creation_common::output::arg())
-            .arg(common::force::arg(
-                creation_common::DisplayOrder::Force as usize,
-                true,
-            ))
-            .display_order(display_order);
-        let subcommand = creation_common::apply_common_session_options(subcommand);
-        let subcommand = creation_common::apply_common_payment_options(subcommand);
-        creation_common::apply_common_creation_options(subcommand, false, false)
+            .display_order(display_order)
+
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        creation_common::show_simple_arg_examples_and_exit_if_required(matches);
-        creation_common::show_json_args_examples_and_exit_if_required(matches);
 
-        let secret_key = common::secret_key::get(matches).unwrap_or_default();
-        let timestamp = creation_common::timestamp::get(matches);
-        let ttl = creation_common::ttl::get(matches);
-        let chain_name = creation_common::chain_name::get(matches);
         let payment_amount =
             creation_common::payment_amount::get(matches).ok_or(CliError::InvalidArgument {
                 context: "Make Transaction",
                 error: "Missing payment amount".to_string(),
             })?;
 
-        let maybe_pricing_mode = creation_common::pricing_mode::get(matches);
-
-        let session_path = creation_common::transaction_path::get(matches);
-        let session_entry_point = creation_common::session_entry_point::get(matches);
-        let session_args_simple = arg_simple::session::get(matches);
-        let session_args_json = args_json::session::get(matches);
-
-        let maybe_output_path = creation_common::output::get(matches).unwrap_or_default();
-        let initiator_addr = creation_common::initiator_address::get(matches).unwrap_or_default();
-
         let force = common::force::get(matches);
 
         if let Some((subcommand, matches)) = matches.subcommand() {
-            let transaction_builder_params: TransactionBuilderParams = match subcommand {
+            let (transaction_builder_params, transaction_str_params)= match subcommand {
                 add_bid::NAME => add_bid::run(matches)?,
                 withdraw_bid::NAME => withdraw_bid::run(matches)?,
                 delegate::NAME => delegate::run(matches)?,
@@ -92,30 +69,19 @@ impl ClientCommand for MakeTransaction {
                     })
                 }
             };
+            let output_path = transaction_str_params.maybe_output_path;
 
             casper_client::cli::make_transaction(
-                maybe_output_path,
                 transaction_builder_params,
-                TransactionStrParams {
-                    secret_key,
-                    timestamp,
-                    ttl,
-                    chain_name,
-                    initiator_addr,
-                    session_path,
-                    session_entry_point,
-                    session_args_simple,
-                    session_args_json,
-                    maybe_pricing_mode,
-                },
+                transaction_str_params,
                 payment_amount,
                 force,
             )
             .map(|_| {
-                Success::Output(if maybe_output_path.is_empty() {
+                Success::Output(if output_path.is_empty() {
                     String::new()
                 } else {
-                    format!("Wrote the deploy to {}", maybe_output_path)
+                    format!("Wrote the deploy to {}", output_path)
                 })
             })
         } else {
