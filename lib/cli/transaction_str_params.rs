@@ -50,14 +50,12 @@ pub struct TransactionStrParams<'a> {
     /// If `initiator_addr` is empty, the initiator address will be derived from the provided
     /// `secret_key`.  It is an error for both fields to be empty.
     pub initiator_addr: &'a str,
-    /// The path to a file containing compiled wasm session code.
-    pub session_path: &'a str,
-    /// The name of the session code entry point to call.
-    pub session_entry_point: &'a str,
     /// Simple session args for use in the transaction
     pub session_args_simple: Vec<&'a str>,
     /// Session args in json for use with the transaction
     pub session_args_json: &'a str,
     /// The pricing mode to use with the transaction
     pub maybe_pricing_mode: Option<&'a str>,
+    /// The optional output path for the transaction, if writing it to a file.
+    pub maybe_output_path: &'a str
 }
