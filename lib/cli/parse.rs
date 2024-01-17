@@ -1,15 +1,14 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use std::{convert::TryInto, fs, io, path::Path, str::FromStr};
+use std::{fs, path::Path, str::FromStr};
 
 use rand::Rng;
-use serde::{self, Deserialize};
 
 use casper_types::{
     account::AccountHash,
-    bytesrepr::{self, Bytes},
-    crypto, AsymmetricType, BlockHash, CLValue, DeployHash, Digest, ExecutableDeployItem, HashAddr,
+    bytesrepr::Bytes,
+    crypto, AsymmetricType, BlockHash, DeployHash, Digest, ExecutableDeployItem, HashAddr,
     Key, NamedArg, PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, UIntParseError, URef,
     U512,
 };
@@ -156,127 +155,6 @@ mod args_json {
     }
 }
 
-/// Handles providing the arg for and retrieval of complex session and payment args. These are read
-/// in from a file.
-mod args_complex {
-    use std::{
-        fmt::{self, Formatter},
-        result::Result as StdResult,
-    };
-
-    use serde::de::{Deserializer, Error as SerdeError, Visitor};
-
-    use casper_types::checksummed_hex;
-
-    use super::*;
-
-    #[derive(Debug, Deserialize)]
-    #[serde(rename_all = "snake_case")]
-    enum DeployArgValue {
-        /// Contains `CLValue` serialized into bytes in base16 form.
-        #[serde(deserialize_with = "deserialize_raw_bytes")]
-        RawBytes(Vec<u8>),
-    }
-
-    fn deserialize_raw_bytes<'de, D: Deserializer<'de>>(
-        deserializer: D,
-    ) -> StdResult<Vec<u8>, D::Error> {
-        struct HexStrVisitor;
-
-        impl<'de> Visitor<'de> for HexStrVisitor {
-            type Value = Vec<u8>;
-
-            fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
-                write!(formatter, "a hex encoded string")
-            }
-
-            fn visit_str<E: SerdeError>(
-                self,
-                hex_encoded_input: &str,
-            ) -> StdResult<Self::Value, E> {
-                checksummed_hex::decode(hex_encoded_input).map_err(SerdeError::custom)
-            }
-
-            fn visit_borrowed_str<E: SerdeError>(
-                self,
-                hex_encoded_input: &'de str,
-            ) -> StdResult<Self::Value, E> {
-                checksummed_hex::decode(hex_encoded_input).map_err(SerdeError::custom)
-            }
-        }
-
-        deserializer.deserialize_str(HexStrVisitor)
-    }
-
-    #[derive(Debug, Deserialize)]
-    #[serde(rename_all = "snake_case")]
-    struct DeployArg {
-        /// Deploy argument's name.
-        name: String,
-        value: DeployArgValue,
-    }
-
-    impl From<DeployArgValue> for CLValue {
-        fn from(value: DeployArgValue) -> Self {
-            match value {
-                DeployArgValue::RawBytes(bytes) => bytesrepr::deserialize(bytes)
-                    .unwrap_or_else(|error| panic!("should deserialize deploy arg: {}", error)),
-            }
-        }
-    }
-
-    impl From<DeployArg> for NamedArg {
-        fn from(deploy_arg: DeployArg) -> Self {
-            let cl_value = deploy_arg
-                .value
-                .try_into()
-                .unwrap_or_else(|error| panic!("should serialize deploy arg: {}", error));
-            NamedArg::new(deploy_arg.name, cl_value)
-        }
-    }
-
-    pub mod session {
-        use super::*;
-
-        pub fn parse(path: &str) -> Result<Option<RuntimeArgs>, CliError> {
-            if path.is_empty() {
-                return Ok(None);
-            }
-            let runtime_args = get(path).map_err(|error| crate::Error::IoError {
-                context: format!("error reading session file at '{}'", path),
-                error,
-            })?;
-            Ok(Some(runtime_args))
-        }
-    }
-
-    pub mod payment {
-        use super::*;
-
-        pub fn parse(path: &str) -> Result<Option<RuntimeArgs>, CliError> {
-            if path.is_empty() {
-                return Ok(None);
-            }
-            let runtime_args = get(path).map_err(|error| crate::Error::IoError {
-                context: format!("error reading payment file at '{}'", path),
-                error,
-            })?;
-            Ok(Some(runtime_args))
-        }
-    }
-
-    fn get(path: &str) -> io::Result<RuntimeArgs> {
-        let bytes = fs::read(path)?;
-        // Received structured args in JSON format.
-        let args: Vec<DeployArg> = serde_json::from_slice(&bytes)?;
-        // Convert JSON deploy args into vector of named args.
-        let mut named_args = Vec::with_capacity(args.len());
-        for arg in args {
-            named_args.push(arg.into());
-        }
-        Ok(RuntimeArgs::from(named_args))
-    }
-}
 
 const STANDARD_PAYMENT_ARG_NAME: &str = "amount";
 fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
