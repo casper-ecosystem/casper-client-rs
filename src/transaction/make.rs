@@ -4,8 +4,8 @@ use clap::{ArgMatches, Command};
 use casper_client::cli::CliError;
 
 use super::creation_common::{
-    self, add_bid, delegate, invocable_entity, invocable_entity_alias,
-    package, package_alias, redelegate, session, transfer, undelegate, withdraw_bid,
+    self, add_bid, delegate, invocable_entity, invocable_entity_alias, package, package_alias,
+    redelegate, session, transfer, undelegate, withdraw_bid,
 };
 
 use crate::{command::ClientCommand, common, Success};
@@ -36,11 +36,9 @@ impl ClientCommand for MakeTransaction {
             .subcommand(session::build())
             .subcommand(transfer::build())
             .display_order(display_order)
-
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-
         let payment_amount =
             creation_common::payment_amount::get(matches).ok_or(CliError::InvalidArgument {
                 context: "Make Transaction",
@@ -50,7 +48,7 @@ impl ClientCommand for MakeTransaction {
         let force = common::force::get(matches);
 
         if let Some((subcommand, matches)) = matches.subcommand() {
-            let (transaction_builder_params, transaction_str_params)= match subcommand {
+            let (transaction_builder_params, transaction_str_params) = match subcommand {
                 add_bid::NAME => add_bid::run(matches)?,
                 withdraw_bid::NAME => withdraw_bid::run(matches)?,
                 delegate::NAME => delegate::run(matches)?,

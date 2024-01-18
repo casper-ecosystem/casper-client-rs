@@ -57,5 +57,5 @@ pub struct TransactionStrParams<'a> {
     /// The pricing mode to use with the transaction
     pub maybe_pricing_mode: Option<&'a str>,
     /// The optional output path for the transaction, if writing it to a file.
-    pub maybe_output_path: &'a str
+    pub maybe_output_path: &'a str,
 }

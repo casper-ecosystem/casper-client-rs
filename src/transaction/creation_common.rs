@@ -361,7 +361,6 @@ pub(super) mod pricing_mode {
             .get_one::<String>(payment_amount::ARG_NAME)
             .map(String::as_str)
     }
-
 }
 
 pub(super) mod initiator_address {
@@ -431,10 +430,7 @@ pub(super) fn apply_common_creation_options(
         .arg(chain_name::arg())
         .arg(public_key::arg(DisplayOrder::PublicKey as usize))
         .arg(output::arg())
-        .arg(common::force::arg(
-            DisplayOrder::Force as usize,
-            true,
-        ));
+        .arg(common::force::arg(DisplayOrder::Force as usize, true));
     subcommand
 }
 
@@ -908,7 +904,9 @@ pub(super) mod add_bid {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
 
@@ -951,7 +949,9 @@ pub(super) mod withdraw_bid {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
 
@@ -985,7 +985,9 @@ pub(super) mod delegate {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams),  CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
 
@@ -1028,7 +1030,9 @@ pub(super) mod undelegate {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
 
@@ -1068,7 +1072,9 @@ pub(super) mod redelegate {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
 
@@ -1114,7 +1120,9 @@ pub(super) mod invocable_entity {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
 
@@ -1149,7 +1157,9 @@ pub(super) mod invocable_entity_alias {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
         let entity_alias = entity_alias_arg::get(matches);
@@ -1182,7 +1192,9 @@ pub(super) mod package {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
         let package_addr = package_addr::get(matches)?;
@@ -1219,7 +1231,9 @@ pub(super) mod package_alias {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
         let package_alias = package_alias_arg::get(matches);
@@ -1257,7 +1271,9 @@ pub(super) mod session {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
         let transaction_path_str = transaction_path::get(matches);
@@ -1295,7 +1311,9 @@ pub(super) mod transfer {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
-    pub fn run(matches: &ArgMatches) -> Result<(TransactionBuilderParams,TransactionStrParams), CliError> {
+    pub fn run(
+        matches: &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
 
@@ -1450,13 +1468,13 @@ pub(super) mod destination_account {
         }
     }
 }
-pub(super) fn apply_common_args(subcommand: Command) -> Command{
+pub(super) fn apply_common_args(subcommand: Command) -> Command {
     let subcommand = apply_common_session_options(subcommand);
     let subcommand = apply_common_payment_options(subcommand);
     apply_common_creation_options(subcommand, false, false)
 }
 
-pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionStrParams{
+pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionStrParams {
     let secret_key = common::secret_key::get(matches).unwrap_or_default();
     let timestamp = timestamp::get(matches);
     let ttl = ttl::get(matches);
@@ -1468,7 +1486,7 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionS
 
     let maybe_output_path = output::get(matches).unwrap_or_default();
     let initiator_addr = initiator_address::get(matches).unwrap_or_default();
-    TransactionStrParams{
+    TransactionStrParams {
         secret_key,
         timestamp,
         ttl,

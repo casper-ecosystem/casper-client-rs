@@ -432,8 +432,11 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
 
 mod transaction {
     use super::*;
-    use casper_types::{bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget, TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError};
     use crate::Error::TransactionBuild;
+    use casper_types::{
+        bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget,
+        TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError,
+    };
 
     #[test]
     fn should_create_add_bid_transaction() {
@@ -947,10 +950,7 @@ mod transaction {
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
-        assert_eq!(
-            transaction.as_ref().unwrap().chain_name(),
-            "session"
-        );
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "session");
         assert_eq!(
             transaction.as_ref().unwrap().body().entry_point(),
             &TransactionEntryPoint::Custom("entry-point-session".to_string())
@@ -959,8 +959,14 @@ mod transaction {
     }
     #[test]
     fn should_create_transfer_transaction() {
-        let source_uref = URef::from_formatted_str("uref-0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007").unwrap();
-        let target_uref = URef::from_formatted_str("uref-0202030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007").unwrap();
+        let source_uref = URef::from_formatted_str(
+            "uref-0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007",
+        )
+        .unwrap();
+        let target_uref = URef::from_formatted_str(
+            "uref-0202030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007",
+        )
+        .unwrap();
 
         let source_uref_cl = &CLValue::from_t(&source_uref).unwrap();
         let target_uref_cl = &CLValue::from_t(&target_uref).unwrap();
@@ -991,35 +997,22 @@ mod transaction {
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
-        assert_eq!(
-            transaction.as_ref().unwrap().chain_name(),
-            "transfer"
-        );
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "transfer");
         assert_eq!(
             transaction.as_ref().unwrap().body().entry_point(),
             &TransactionEntryPoint::Transfer
         );
         assert_eq!(
-            transaction
-                .as_ref()
-                .unwrap()
-                .args()
-                .get("source")
-                .unwrap(),
-                source_uref_cl
+            transaction.as_ref().unwrap().args().get("source").unwrap(),
+            source_uref_cl
         );
         assert_eq!(
-            transaction
-                .as_ref()
-                .unwrap()
-                .args()
-                .get("target")
-                .unwrap(),
-                target_uref_cl
+            transaction.as_ref().unwrap().args().get("target").unwrap(),
+            target_uref_cl
         );
     }
     #[test]
-    fn should_fail_to_create_transaction_with_no_secret_or_public_key(){
+    fn should_fail_to_create_transaction_with_no_secret_or_public_key() {
         let transaction_string_params = TransactionStrParams {
             secret_key: "",
             timestamp: "",
@@ -1047,11 +1040,13 @@ mod transaction {
         assert!(transaction.is_err());
         assert!(matches!(
             transaction.unwrap_err(),
-            CliError::Core(TransactionBuild(TransactionV1BuilderError::MissingInitiatorAddr))
+            CliError::Core(TransactionBuild(
+                TransactionV1BuilderError::MissingInitiatorAddr
+            ))
         ));
     }
     #[test]
-    fn should_create_transaction_with_secret_key_but_no_initiator_addr(){
+    fn should_create_transaction_with_secret_key_but_no_initiator_addr() {
         let transaction_string_params = TransactionStrParams {
             secret_key: "resources/test.pem",
             timestamp: "",
@@ -1079,7 +1074,7 @@ mod transaction {
     }
 
     #[test]
-    fn should_fail_to_create_transaction_with_no_secret_and_no_unsigned_transactions(){
+    fn should_fail_to_create_transaction_with_no_secret_and_no_unsigned_transactions() {
         let transaction_string_params = TransactionStrParams {
             secret_key: "",
             timestamp: "",

@@ -6,11 +6,9 @@ use std::{fs, path::Path, str::FromStr};
 use rand::Rng;
 
 use casper_types::{
-    account::AccountHash,
-    bytesrepr::Bytes,
-    crypto, AsymmetricType, BlockHash, DeployHash, Digest, ExecutableDeployItem, HashAddr,
-    Key, NamedArg, PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, UIntParseError, URef,
-    U512,
+    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
+    ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey, TimeDiff,
+    Timestamp, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -155,7 +153,6 @@ pub(crate) mod args_json {
     }
 }
 
-
 const STANDARD_PAYMENT_ARG_NAME: &str = "amount";
 fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     if value.is_empty() {
@@ -170,7 +167,10 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     Ok(runtime_args)
 }
 
-pub(crate) fn args_from_simple_or_json(simple: Option<RuntimeArgs>, json: Option<RuntimeArgs>) -> RuntimeArgs {
+pub(crate) fn args_from_simple_or_json(
+    simple: Option<RuntimeArgs>,
+    json: Option<RuntimeArgs>,
+) -> RuntimeArgs {
     // We can have exactly zero or one of the two as `Some`.
     match (simple, json) {
         (Some(args), None) | (None, Some(args)) => args,
