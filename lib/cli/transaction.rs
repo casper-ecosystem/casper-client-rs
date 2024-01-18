@@ -42,6 +42,12 @@ pub fn create_transaction(
         .with_ttl(ttl)
         .with_chain_name(chain_name);
 
+    let maybe_json_args = parse::args_json::session::parse(transaction_params.session_args_json)?;
+    let maybe_simple_args = parse::arg_simple::session::parse(&transaction_params.session_args_simple)?;
+
+    let args = parse::args_from_simple_or_json(maybe_simple_args, maybe_json_args);
+    transaction_builder = transaction_builder.with_runtime_args(args);
+
     if let Some(secret_key) = &maybe_secret_key {
         transaction_builder = transaction_builder.with_secret_key(secret_key);
     }

@@ -86,7 +86,7 @@ pub(super) fn session_account(value: &str) -> Result<Option<PublicKey>, CliError
 }
 
 /// Handles providing the arg for and retrieval of simple session and payment args.
-mod arg_simple {
+pub(crate) mod arg_simple {
     use super::*;
 
     pub(crate) mod session {
@@ -122,7 +122,7 @@ mod arg_simple {
     }
 }
 
-mod args_json {
+pub(crate) mod args_json {
     use super::*;
     use crate::cli::JsonArg;
 
@@ -170,7 +170,7 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     Ok(runtime_args)
 }
 
-fn args_from_simple_or_json(simple: Option<RuntimeArgs>, json: Option<RuntimeArgs>) -> RuntimeArgs {
+pub(crate) fn args_from_simple_or_json(simple: Option<RuntimeArgs>, json: Option<RuntimeArgs>) -> RuntimeArgs {
     // We can have exactly zero or one of the two as `Some`.
     match (simple, json) {
         (Some(args), None) | (None, Some(args)) => args,
