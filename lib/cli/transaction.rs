@@ -4,17 +4,22 @@ use casper_types::{InitiatorAddr, TransactionSessionKind, TransactionV1, Transac
 pub fn create_transaction(
     builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams,
-    payment_amount: &str,
     allow_unsigned_deploy: bool,
 ) -> Result<TransactionV1, CliError> {
     let chain_name = transaction_params.chain_name.to_string();
-    let payment_amount =
-        payment_amount
-            .parse::<u64>()
-            .map_err(|error| CliError::FailedToParseInt {
-                context: "create_transaction",
-                error,
-            })?;
+    if transaction_params.payment_amount.is_empty(){
+        return Err(CliError::InvalidArgument {
+            context: "create_transaction (payment_amount)",
+            error: "payment_amount is required".to_string(),
+        });
+    }
+    let payment_amount = transaction_params
+        .payment_amount
+        .parse::<u64>()
+        .map_err(|error| CliError::FailedToParseInt {
+            context: "payment_amount",
+            error,
+        })?;
 
     let maybe_secret_key = if allow_unsigned_deploy && transaction_params.secret_key.is_empty() {
         None
@@ -32,7 +37,7 @@ pub fn create_transaction(
 
     let timestamp = parse::timestamp(transaction_params.timestamp)?;
     let ttl = parse::ttl(transaction_params.ttl)?;
-    let maybe_session_account = parse::session_account(transaction_params.initiator_addr)?;
+    let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
 
     let mut transaction_builder = make_transaction_builder(builder_params)?;
 
@@ -47,12 +52,16 @@ pub fn create_transaction(
         parse::arg_simple::session::parse(&transaction_params.session_args_simple)?;
 
     let args = parse::args_from_simple_or_json(maybe_simple_args, maybe_json_args);
-    transaction_builder = transaction_builder.with_runtime_args(args);
-
+    if !args.is_empty() {
+        transaction_builder = transaction_builder.with_runtime_args(args);
+    }
     if let Some(secret_key) = &maybe_secret_key {
         transaction_builder = transaction_builder.with_secret_key(secret_key);
     }
-
+    if let Some(pricing_mode) = transaction_params.maybe_pricing_mode {
+        let pricing_mode = parse::pricing_mode(pricing_mode)?;
+        transaction_builder = transaction_builder.with_pricing_mode(pricing_mode);
+    }
     if let Some(account) = maybe_session_account {
         transaction_builder =
             transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
@@ -72,13 +81,12 @@ pub fn create_transaction(
 /// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 pub fn make_transaction(
-    builder: TransactionBuilderParams,
+    builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams<'_>,
-    payment_amount: &str,
     force: bool,
 ) -> Result<(), CliError> {
     let output = parse::output_kind(transaction_params.maybe_output_path, force);
-    let transaction = create_transaction(builder, transaction_params, payment_amount, true)?;
+    let transaction = create_transaction(builder_params, transaction_params, true)?;
     crate::output_transaction(output, &transaction).map_err(CliError::from)
 }
 

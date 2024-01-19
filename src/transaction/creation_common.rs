@@ -11,6 +11,8 @@ use crate::common;
 
 const SESSION_ARG_GROUP: &str = "session-args";
 
+const INITIATOR_ARG_GROUP: &str = "initiator";
+
 /// This struct defines the order in which the args are shown for this subcommand's help message.
 pub(super) enum DisplayOrder {
     ShowSimpleArgExamples,
@@ -309,8 +311,10 @@ pub(super) mod payment_amount {
             .display_order(DisplayOrder::PaymentAmount as usize)
     }
 
-    pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.get_one::<String>(ARG_NAME).map(String::as_str)
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str).unwrap_or_default()
     }
 }
 
@@ -326,7 +330,7 @@ pub(super) mod transfer_amount {
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required(false)
+            .required(true)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferAmount as usize)
@@ -336,7 +340,7 @@ pub(super) mod transfer_amount {
         matches
             .get_one::<String>(ARG_NAME)
             .map(String::as_str)
-            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
+            .unwrap_or_default()
     }
 }
 
@@ -357,9 +361,7 @@ pub(super) mod pricing_mode {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches
-            .get_one::<String>(payment_amount::ARG_NAME)
-            .map(String::as_str)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -381,10 +383,13 @@ pub(super) mod initiator_address {
             .display_order(DisplayOrder::PricingMode as usize)
     }
 
-    pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches
-            .get_one::<String>(payment_amount::ARG_NAME)
+    pub fn get(matches: &ArgMatches) -> String {
+        let value = matches
+            .get_one::<String>(ARG_NAME)
             .map(String::as_str)
+            .unwrap_or_default();
+        common::public_key::try_read_from_file(value)
+            .unwrap_or_else(|_| panic!("should have {} arg", ARG_NAME))
     }
 }
 
@@ -425,16 +430,23 @@ pub(super) fn apply_common_creation_options(
 
     subcommand = subcommand
         .arg(secret_key_arg)
+        .arg(initiator_address::arg())
+        .group(
+            ArgGroup::new(INITIATOR_ARG_GROUP)
+                .arg(common::secret_key::ARG_NAME)
+                .arg(initiator_address::ARG_NAME)
+                .required(true),
+        )
         .arg(timestamp::arg())
         .arg(ttl::arg())
         .arg(chain_name::arg())
-        .arg(public_key::arg(DisplayOrder::PublicKey as usize))
         .arg(output::arg())
-        .arg(common::force::arg(DisplayOrder::Force as usize, true));
+        .arg(payment_amount::arg())
+        .arg(pricing_mode::arg());
     subcommand
 }
 
-pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
+pub(super) fn apply_common_args_options(subcommand: Command) -> Command {
     subcommand
         .arg(arg_simple::session::arg())
         .arg(args_json::session::arg())
@@ -445,8 +457,6 @@ pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
                 .arg(args_json::session::ARG_NAME)
                 .required(false),
         )
-        .arg(session_entry_point::arg())
-        .arg(session_version::arg())
         .group(
             ArgGroup::new("session")
                 .arg(show_simple_arg_examples::ARG_NAME)
@@ -460,15 +470,8 @@ pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
                 .arg(show_simple_arg_examples::ARG_NAME)
                 .arg(show_json_args_examples::ARG_NAME)
                 .multiple(true)
-                .required(true),
+                .required(false),
         )
-}
-
-pub(crate) fn apply_common_payment_options(subcommand: Command) -> Command {
-    subcommand
-        .arg(payment_amount::arg())
-        .arg(pricing_mode::arg())
-        .arg(initiator_address::arg())
 }
 
 pub(super) fn show_simple_arg_examples_and_exit_if_required(matches: &ArgMatches) {
@@ -622,11 +625,10 @@ pub(super) mod entity_addr {
 
 pub(super) mod package_addr {
     use super::*;
-    use casper_client::cli::CliError;
-    use casper_client::Error;
-    use casper_types::{EntityAddr, Key, PackageAddr};
+    use casper_client::{Error, cli::CliError};
+    use casper_types::{Key, PackageAddr};
 
-    pub const ARG_NAME: &str = "entity-address";
+    pub const ARG_NAME: &str = "package-address";
     const ARG_VALUE_NAME: &str = "FORMATTED STRING or PATH";
     const ARG_HELP: &str = "The formatted string representing an addressable entity address.";
 
@@ -639,25 +641,29 @@ pub(super) mod package_addr {
             .display_order(DisplayOrder::PackageAddr as usize)
     }
 
-    pub fn get(matches: &ArgMatches) -> Result<PackageAddr, CliError> {
+    pub fn get(matches: &ArgMatches) -> Option<&str> {
         matches
-            .get_one::<&str>(ARG_NAME)
-            .map(parse_package_addr)
-            .ok_or(CliError::FailedToParsePackageAddr)?
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
     }
 
-    pub(super) fn parse_package_addr(value: &&str) -> Result<EntityAddr, CliError> {
-        let package_addr =
-            Key::from_formatted_str(value).map_err(|error| CliError::FailedToParseKey {
-                context: "package address",
-                error,
-            })?;
-        match package_addr {
-            Key::Package(package_addr) => Ok(package_addr),
-            _ => Err(CliError::Core(Error::InvalidKeyVariant {
-                expected_variant: "Package Address".to_string(),
-                actual: package_addr,
-            })),
+    pub(super) fn parse_package_addr(value: Option<&str>) -> Result<PackageAddr, CliError> {
+        match value{
+            None => {return Err(CliError::FailedToParsePackageAddr)}
+            Some(value) => {
+                let package_addr =
+                    Key::from_formatted_str(value).map_err(|error| CliError::FailedToParseKey {
+                        context: "package address",
+                        error,
+                    })?;
+                match package_addr {
+                    Key::Package(package_addr) => Ok(package_addr),
+                    _ => Err(CliError::Core(Error::InvalidKeyVariant {
+                        expected_variant: "Package Address".to_string(),
+                        actual: package_addr,
+                    })),
+                }
+            }
         }
     }
 }
@@ -674,7 +680,7 @@ pub(super) mod session_entry_point {
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
-            .required(false)
+            .required(true)
             .display_order(DisplayOrder::SessionEntryPoint as usize)
     }
 
@@ -748,7 +754,7 @@ mod entity_alias_arg {
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
-            .required(false)
+            .required(true)
             .display_order(DisplayOrder::EntityAlias as usize)
     }
 
@@ -797,7 +803,7 @@ mod validator {
     use super::*;
     pub const ARG_NAME: &str = "validator";
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
-    const ARG_HELP: &str = "the validator for the delegate transaction";
+    const ARG_HELP: &str = "the validator's public key (as a formatted string) for the delegate transaction";
 
     pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -818,7 +824,7 @@ mod validator {
 
 mod new_validator {
     use super::*;
-    pub const ARG_NAME: &str = "validator";
+    pub const ARG_NAME: &str = "new-validator";
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
     const ARG_HELP: &str = "the validator for the delegate transaction";
 
@@ -843,7 +849,7 @@ mod delegator {
     use super::*;
     pub const ARG_NAME: &str = "delegator";
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
-    const ARG_HELP: &str = "the validator for the delegate transaction";
+    const ARG_HELP: &str = "the delegators public key (as a formatted string) for the delegate transaction";
 
     pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -888,8 +894,16 @@ mod transaction_amount {
     }
 
     pub(super) fn parse_transaction_amount(value: &str) -> Result<U512, CliError> {
-        U512::from_dec_str(value)
+        if !value.is_empty(){
+            U512::from_dec_str(value)
             .map_err(|_| CliError::InvalidCLValue("Failed to parse U512 for add-bid".to_string()))
+        }
+        else{
+            Err(CliError::InvalidArgument{
+                context: "parse_transaction_amount",
+                error: "Transaction amount cannot be empty".to_string()
+            })
+        }
     }
 }
 
@@ -1056,7 +1070,8 @@ pub(super) mod undelegate {
 
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
-            .arg(public_key::arg(DisplayOrder::PublicKey as usize))
+            .arg(delegator::arg())
+            .arg(validator::arg())
             .arg(transaction_amount::arg())
     }
 }
@@ -1102,9 +1117,10 @@ pub(super) mod redelegate {
 
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
-            .arg(public_key::arg(DisplayOrder::PublicKey as usize))
-            .arg(transaction_amount::arg())
+            .arg(delegator::arg())
+            .arg(validator::arg())
             .arg(new_validator::arg())
+            .arg(transaction_amount::arg())
     }
 }
 
@@ -1162,8 +1178,8 @@ pub(super) mod invocable_entity_alias {
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
-        let entity_alias = entity_alias_arg::get(matches);
 
+        let entity_alias = entity_alias_arg::get(matches);
         let entry_point = session_entry_point::get(matches);
 
         let params = TransactionBuilderParams::InvocableEntityAlias {
@@ -1197,8 +1213,8 @@ pub(super) mod package {
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
-        let package_addr = package_addr::get(matches)?;
-
+        let maybe_package_addr_str = package_addr::get(matches);
+        let package_addr = package_addr::parse_package_addr(maybe_package_addr_str)?;
         let maybe_entity_version = session_version::get(matches);
 
         let entry_point = session_entry_point::get(matches);
@@ -1293,8 +1309,6 @@ pub(super) mod session {
         add_bid_subcommand
             .arg(transaction_path::arg())
             .arg(session_entry_point::arg())
-            .arg(arg_simple::session::arg())
-            .arg(args_json::session::arg())
     }
 }
 
@@ -1305,7 +1319,7 @@ pub(super) mod transfer {
 
     pub const NAME: &str = "transfer";
 
-    const ABOUT: &str = "Creates a new transaction for the native transfer transaction";
+    const ABOUT: &str = "Creates a new native transfer transaction";
 
     pub fn build() -> Command {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
@@ -1326,8 +1340,11 @@ pub(super) mod transfer {
         let amount = transfer_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount)?;
 
-        let maybe_to = destination_account::get(matches);
-        let maybe_to = destination_account::parse_account_hash(maybe_to)?;
+        let maybe_to_str = destination_account::get(matches);
+        let mut maybe_to = None;
+        if !maybe_to_str.is_empty(){
+            maybe_to = destination_account::parse_account_hash(maybe_to_str)?;
+        }
 
         let maybe_id = transfer_id::get(matches);
 
@@ -1416,8 +1433,7 @@ pub(super) mod transfer_id {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required_unless_present(ARG_NAME)
-            .required_unless_present(ARG_NAME)
+            .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::TransferId as usize)
@@ -1443,8 +1459,7 @@ pub(super) mod destination_account {
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required_unless_present(ARG_NAME)
-            .required_unless_present(ARG_NAME)
+            .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::DestinationAccount as usize)
@@ -1462,15 +1477,14 @@ pub(super) mod destination_account {
         match AccountHash::from_formatted_str(maybe_account) {
             Ok(account) => Ok(Some(account)),
             Err(err) => Err(CliError::FailedToParseAccountHash {
-                context: "Failed to parse account hash while creating a transaction",
+                context: "destination-account",
                 error: err,
             }),
         }
     }
 }
 pub(super) fn apply_common_args(subcommand: Command) -> Command {
-    let subcommand = apply_common_session_options(subcommand);
-    let subcommand = apply_common_payment_options(subcommand);
+    let subcommand = apply_common_args_options(subcommand);
     apply_common_creation_options(subcommand, false, false)
 }
 
@@ -1480,12 +1494,13 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionS
     let ttl = ttl::get(matches);
     let chain_name = chain_name::get(matches);
     let maybe_pricing_mode = pricing_mode::get(matches);
+    let payment_amount = payment_amount::get(matches);
 
     let session_args_simple = arg_simple::session::get(matches);
     let session_args_json = args_json::session::get(matches);
 
     let maybe_output_path = output::get(matches).unwrap_or_default();
-    let initiator_addr = initiator_address::get(matches).unwrap_or_default();
+    let initiator_addr = initiator_address::get(matches);
     TransactionStrParams {
         secret_key,
         timestamp,
@@ -1496,5 +1511,6 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionS
         session_args_json,
         maybe_pricing_mode,
         maybe_output_path,
+        payment_amount,
     }
 }

@@ -49,7 +49,7 @@ pub struct TransactionStrParams<'a> {
     ///
     /// If `initiator_addr` is empty, the initiator address will be derived from the provided
     /// `secret_key`.  It is an error for both fields to be empty.
-    pub initiator_addr: &'a str,
+    pub initiator_addr: String,
     /// Simple session args for use in the transaction
     pub session_args_simple: Vec<&'a str>,
     /// Session args in json for use with the transaction
@@ -58,4 +58,6 @@ pub struct TransactionStrParams<'a> {
     pub maybe_pricing_mode: Option<&'a str>,
     /// The optional output path for the transaction, if writing it to a file.
     pub maybe_output_path: &'a str,
+    ///The payment amount for executing the transaction
+    pub payment_amount: &'a str,
 }

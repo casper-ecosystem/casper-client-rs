@@ -4,8 +4,8 @@ use clap::{ArgMatches, Command};
 use casper_client::cli::CliError;
 
 use super::creation_common::{
-    self, add_bid, delegate, invocable_entity, invocable_entity_alias, package, package_alias,
-    redelegate, session, transfer, undelegate, withdraw_bid,
+    add_bid, delegate, invocable_entity, invocable_entity_alias, package, package_alias,
+    redelegate, session, transfer, undelegate, withdraw_bid, DisplayOrder,
 };
 
 use crate::{command::ClientCommand, common, Success};
@@ -35,16 +35,11 @@ impl ClientCommand for MakeTransaction {
             .subcommand(package_alias::build())
             .subcommand(session::build())
             .subcommand(transfer::build())
+            .arg(common::force::arg(DisplayOrder::Force as usize, true))
             .display_order(display_order)
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        let payment_amount =
-            creation_common::payment_amount::get(matches).ok_or(CliError::InvalidArgument {
-                context: "Make Transaction",
-                error: "Missing payment amount".to_string(),
-            })?;
-
         let force = common::force::get(matches);
 
         if let Some((subcommand, matches)) = matches.subcommand() {
@@ -72,7 +67,6 @@ impl ClientCommand for MakeTransaction {
             casper_client::cli::make_transaction(
                 transaction_builder_params,
                 transaction_str_params,
-                payment_amount,
                 force,
             )
             .map(|_| {

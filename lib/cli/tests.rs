@@ -452,11 +452,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "add-bid-test",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -468,7 +469,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
 
@@ -512,11 +512,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "delegate",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Delegate {
@@ -528,7 +529,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
 
@@ -573,11 +573,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "withdraw-bid",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params =
@@ -586,7 +587,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
 
@@ -625,11 +625,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "undelegate",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Undelegate {
@@ -641,7 +642,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
 
@@ -692,11 +692,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "redelegate",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Redelegate {
@@ -708,7 +709,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
@@ -762,11 +762,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "invocable-entity",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
@@ -776,7 +777,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
 
@@ -803,12 +803,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "invocable-entity-alias",
-            initiator_addr: SAMPLE_ACCOUNT,
-
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
@@ -818,7 +818,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
@@ -849,12 +848,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "package",
-            initiator_addr: SAMPLE_ACCOUNT,
-
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Package {
@@ -865,7 +864,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
@@ -893,11 +891,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "package",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::PackageAlias {
@@ -908,7 +907,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
@@ -932,11 +930,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "session",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
@@ -946,7 +945,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
@@ -976,11 +974,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "transfer",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
@@ -993,7 +992,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
@@ -1018,11 +1016,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "no-secret",
-            initiator_addr: "",
+            initiator_addr: "".to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
             source_uref: Default::default(),
@@ -1034,7 +1033,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_err());
@@ -1052,11 +1050,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "has-secret",
-            initiator_addr: "",
+            initiator_addr: "".to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
@@ -1066,7 +1065,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             true,
         );
         assert!(transaction.is_ok(), "{:?}", transaction);
@@ -1080,11 +1078,12 @@ mod transaction {
             timestamp: "",
             ttl: "30min",
             chain_name: "no-secret-must-be-signed",
-            initiator_addr: SAMPLE_ACCOUNT,
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
             maybe_pricing_mode: None,
             maybe_output_path: "",
+            payment_amount: "100",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
@@ -1094,7 +1093,6 @@ mod transaction {
         let transaction = create_transaction(
             transaction_builder_params,
             transaction_string_params,
-            "100",
             false,
         );
         assert!(transaction.is_err(), "{:?}", transaction);

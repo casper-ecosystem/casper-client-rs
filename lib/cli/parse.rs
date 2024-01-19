@@ -7,8 +7,8 @@ use rand::Rng;
 
 use casper_types::{
     account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
-    ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey, TimeDiff,
-    Timestamp, UIntParseError, URef, U512,
+    ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, SecretKey,
+    TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -681,6 +681,23 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
     Ok(AccountIdentifier::PublicKey(public_key))
 }
 
+pub(super) fn pricing_mode(pricing_mode_str: &str) -> Result<PricingMode, CliError> {
+    match pricing_mode_str.to_lowercase().as_str() {
+        "fixed" => Ok(PricingMode::Fixed),
+        "reserved" => Ok(PricingMode::Reserved),
+        _ => {
+            if let Ok(number) = pricing_mode_str.trim().parse() {
+                Ok(PricingMode::GasPriceMultiplier(number))
+            } else {
+                Err(CliError::InvalidArgument {
+                    context: "pricing_mode",
+                    error: format!("Invalid pricing mode: {}", pricing_mode_str),
+                })
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
@@ -1204,7 +1221,6 @@ mod tests {
                 }
             }
         }
-
         /// Sample data creation methods for PaymentStrParams
         mod payment_params {
             use std::collections::BTreeMap;
@@ -1341,6 +1357,40 @@ mod tests {
             let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd26054bbb69b3c80";
             let parsed = account_identifier(public_key);
             assert!(parsed.is_err());
+        }
+    }
+    mod pricing_mode {
+        use super::*;
+        #[test]
+        fn should_parse_fixed_pricing_mode() {
+            let pricing_mode_str = "fixed";
+            let parsed = pricing_mode(pricing_mode_str).unwrap();
+            assert_eq!(parsed, PricingMode::Fixed);
+        }
+        #[test]
+        fn should_parse_reserved_pricing_mode() {
+            let pricing_mode_str = "reserved";
+            let parsed = pricing_mode(pricing_mode_str).unwrap();
+            assert_eq!(parsed, PricingMode::Reserved);
+        }
+        #[test]
+        fn should_parse_gas_price_multiplier_pricing_mode() {
+            let pricing_mode_str = "10";
+            let parsed = pricing_mode(pricing_mode_str).unwrap();
+            assert_eq!(parsed, PricingMode::GasPriceMultiplier(10));
+        }
+        #[test]
+        fn should_fail_to_parse_invalid_pricing_mode() {
+            let pricing_mode_str = "invalid";
+            let parsed = pricing_mode(pricing_mode_str);
+            assert!(parsed.is_err());
+            assert!(matches!(
+                parsed,
+                Err(CliError::InvalidArgument {
+                    context: "pricing_mode",
+                    ..
+                })
+            ));
         }
     }
 }
