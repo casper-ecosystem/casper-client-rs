@@ -88,6 +88,8 @@ pub async fn send_verification_request(
 
     let Ok(http_client) = ClientBuilder::new()
         .default_headers(headers)
+        // https://github.com/hyperium/hyper/issues/2136
+        .pool_max_idle_per_host(0)
         .user_agent("casper-client-rs")
         .build()
     else {
@@ -121,7 +123,7 @@ pub async fn send_verification_request(
         }
         status => {
             eprintln!("Verification failed with status {status}");
-            return Err(Error::ContractVerificationFailed);
+            // return Err(Error::ContractVerificationFailed);
         }
     }
 
@@ -131,7 +133,7 @@ pub async fn send_verification_request(
         println!("Getting verification details...");
     }
 
-    let url = base_url.to_string() + "/verification" + &key.to_formatted_string() + "/details";
+    let url = base_url.to_string() + "/verification/" + &key.to_formatted_string() + "/details";
     match http_client.get(url).send().await {
         Ok(response) => response.json().await.map_err(|err| {
             eprintln!("Failed to parse JSON {err}");
@@ -151,31 +153,28 @@ async fn wait_for_verification_finished(
     key: Key,
     verbosity: Verbosity,
 ) {
-    let mut verification_status = match get_verification_status(base_url, http_client, key).await {
-        Ok(verification_status) => verification_status,
-        Err(error) => {
-            eprintln!("Cannot get verification status: {error:?}");
-            return;
-        }
-    };
+    let delay = Duration::from_secs(1);
+    let mut retries = 30;
+    while retries != 0 {
+        sleep(delay).await;
+        // TODO: Back off with limited retries.
 
-    while verification_status != VerificationStatus::Verified
-        && verification_status != VerificationStatus::Failed
-    {
-        verification_status = match get_verification_status(base_url, http_client, key).await {
-            Ok(verification_status) => verification_status,
+        match get_verification_status(base_url, http_client, key).await {
+            Ok(status) => {
+                if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+                    println!("Verification finished with status: {status:?}");
+                }
+                if status == VerificationStatus::Verified || status == VerificationStatus::Failed {
+                    break;
+                }
+            }
             Err(error) => {
                 eprintln!("Cannot get verification status: {error:?}");
-                return;
+                break;
             }
         };
 
-        sleep(Duration::from_millis(100)).await;
-        // TODO: Add backoff with limited retries.
-    }
-
-    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!("Verification finished - status {verification_status:?}");
+        retries -= 1;
     }
 }
 
@@ -185,7 +184,7 @@ async fn get_verification_status(
     http_client: &Client,
     key: Key,
 ) -> Result<VerificationStatus, Error> {
-    let url = base_url.to_string() + "/verification" + &key.to_formatted_string() + "/status";
+    let url = base_url.to_string() + "/verification/" + &key.to_formatted_string() + "/status";
     let response = match http_client.get(url).send().await {
         Ok(response) => response,
         Err(error) => {
