@@ -94,11 +94,12 @@ pub async fn send_verification_request(
     };
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!("Sending verification request to {base_url}",);
+        println!("Sending verification request");
     }
 
+    let url = base_url.to_string() + "/verification";
     let response = match http_client
-        .post(base_url)
+        .post(url)
         .json(&verification_request)
         .send()
         .await
@@ -128,11 +129,8 @@ pub async fn send_verification_request(
         println!("Getting verification details...");
     }
 
-    match http_client
-        .get(base_url.to_string() + "/" + &key.to_formatted_string() + "/details")
-        .send()
-        .await
-    {
+    let url = base_url.to_string() + "/verification" + &key.to_formatted_string() + "/details";
+    match http_client.get(url).send().await {
         Ok(response) => response.json().await.map_err(|err| {
             eprintln!("Failed to parse JSON {err}");
             Error::ContractVerificationFailed
@@ -185,11 +183,8 @@ async fn get_verification_status(
     http_client: &Client,
     key: Key,
 ) -> Result<VerificationStatus, Error> {
-    let response = match http_client
-        .get(base_url.to_string() + "/" + &key.to_formatted_string() + "/status")
-        .send()
-        .await
-    {
+    let url = base_url.to_string() + "/verification" + &key.to_formatted_string() + "/status";
+    let response = match http_client.get(url).send().await {
         Ok(response) => response,
         Err(error) => {
             eprintln!("Failed to fetch verification status: {error:?}");

@@ -760,7 +760,7 @@ pub async fn verify_contract(
     let project_path = match current_dir() {
         Ok(path) => path,
         Err(error) => {
-            eprintln!("Cannot get current directory: {}", error);
+            eprintln!("Cannot get current directory: {error}");
             return Err(Error::ContractVerificationFailed);
         }
     };
@@ -773,12 +773,16 @@ pub async fn verify_contract(
             archive
         }
         Err(error) => {
-            eprintln!("Cannot create project archive: {}", error);
+            eprintln!("Cannot create project archive: {error}");
             return Err(Error::ContractVerificationFailed);
         }
     };
 
-    let archive_base64 = STANDARD.encode(&archive);
-
-    send_verification_request(key, verification_url_base_path, archive_base64, verbosity).await
+    send_verification_request(
+        key,
+        verification_url_base_path,
+        STANDARD.encode(&archive),
+        verbosity,
+    )
+    .await
 }
