@@ -11,7 +11,9 @@ use tar::Builder as TarBuilder;
 use tokio::time::{sleep, Duration};
 
 use crate::{
-    verification_types::{VerificationDetails, VerificationRequest, VerificationStatus},
+    verification_types::{
+        VerificationDetails, VerificationRequest, VerificationResult, VerificationStatus,
+    },
     Error, Verbosity,
 };
 
@@ -118,7 +120,7 @@ pub async fn send_verification_request(
             }
         }
         status => {
-            eprintln!("Verification faile with status {status}");
+            eprintln!("Verification failed with status {status}");
             return Err(Error::ContractVerificationFailed);
         }
     }
@@ -193,10 +195,13 @@ async fn get_verification_status(
     };
 
     match response.status() {
-        StatusCode::OK => response.json().await.map_err(|err| {
-            eprintln!("Failed to parse JSON for verification status, {err}");
-            Error::ContractVerificationFailed
-        }),
+        StatusCode::OK => {
+            let result: VerificationResult = response.json().await.map_err(|err| {
+                eprintln!("Failed to parse JSON for verification status, {err}");
+                Error::ContractVerificationFailed
+            })?;
+            Ok(result.status)
+        }
         status => {
             eprintln!("Verification status not found, {status}");
             Err(Error::ContractVerificationFailed)
