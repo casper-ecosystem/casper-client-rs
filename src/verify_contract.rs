@@ -14,7 +14,6 @@ pub struct VerifyContract;
 enum DisplayOrder {
     Verbose,
     DeployHash,
-    PublicKey,
     VerificationUrlBasePath,
 }
 
@@ -53,10 +52,6 @@ impl ClientCommand for VerifyContract {
             .display_order(display_order)
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
             .arg(common::deploy_hash::arg(DisplayOrder::DeployHash as usize))
-            .arg(common::public_key::arg(
-                DisplayOrder::PublicKey as usize,
-                true,
-            ))
             .arg(verification_url_base_path::arg(
                 DisplayOrder::VerificationUrlBasePath as usize,
             ))
