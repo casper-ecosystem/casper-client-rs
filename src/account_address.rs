@@ -29,7 +29,6 @@ impl ClientCommand for AccountAddress {
             .arg(common::public_key::arg(
                 DisplayOrder::PublicKey as usize,
                 PUBLIC_KEY_IS_REQUIRED,
-                false,
             ))
     }
 

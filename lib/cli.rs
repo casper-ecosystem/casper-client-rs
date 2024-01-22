@@ -36,7 +36,6 @@ mod transaction;
 mod transaction_builder_params;
 mod transaction_str_params;
 
-use openapi::models::VerificationDetails;
 #[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
@@ -57,6 +56,8 @@ use crate::{
         },
         DictionaryItemIdentifier,
     },
+    types::Deploy,
+    verification_types::VerificationDetails,
     SuccessResponse,
 };
 #[cfg(doc)]
@@ -599,19 +600,13 @@ pub async fn get_era_info(
 
 /// Verifies the smart contract code againt the one deployed at address.
 pub async fn verify_contract(
-    deploy_hash: &str,
-    public_key: PublicKey,
+    hash_str: &str,
     verification_url_base_path: &str,
     verbosity_level: u64,
 ) -> Result<VerificationDetails, CliError> {
-    let deploy_hash = parse::deploy_hash(deploy_hash)?;
+    let key = parse::key_for_query(hash_str)?;
     let verbosity = parse::verbosity(verbosity_level);
-    crate::verify_contract(
-        deploy_hash,
-        public_key,
-        verification_url_base_path,
-        verbosity,
-    )
-    .await
-    .map_err(CliError::from)
+    crate::verify_contract(key, verification_url_base_path, verbosity)
+        .await
+        .map_err(CliError::from)
 }

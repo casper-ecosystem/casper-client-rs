@@ -1,16 +1,10 @@
 use std::str;
 
 use async_trait::async_trait;
-use casper_types::{AsymmetricType, PublicKey};
+use casper_client::cli::CliError;
 use clap::{ArgMatches, Command};
 
-use casper_client::cli::CliError;
-
-use crate::{
-    command::ClientCommand,
-    common::{self},
-    Success,
-};
+use crate::{command::ClientCommand, common, Success};
 
 use clap::Arg;
 
@@ -27,20 +21,16 @@ enum DisplayOrder {
 pub mod verification_url_base_path {
     use super::*;
 
-    const ARG_NAME: &str = "verification-url-basepath";
-    const ARG_SHORT: char = 'u';
-    const ARG_VALUE_NAME: &str = "HOST:PORT";
-    const ARG_DEFAULT: &str = "http://localhost:8080";
-    const ARG_HELP: &str = "Hostname or IP and port of the verification API";
+    static ARG_NAME: &str = "verification-url-basepath";
 
     pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .short(ARG_SHORT)
+            .short('u')
             .required(false)
-            .default_value(ARG_DEFAULT)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
+            .default_value("http://localhost:8080")
+            .value_name("HOST:PORT")
+            .help("Hostname or IP and port of the verification API")
             .display_order(order)
     }
 
@@ -48,7 +38,7 @@ pub mod verification_url_base_path {
         matches
             .get_one::<String>(ARG_NAME)
             .map(String::as_str)
-            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
+            .unwrap_or_else(|| panic!("should have {ARG_NAME} arg"))
     }
 }
 
@@ -66,7 +56,6 @@ impl ClientCommand for VerifyContract {
             .arg(common::public_key::arg(
                 DisplayOrder::PublicKey as usize,
                 true,
-                true,
             ))
             .arg(verification_url_base_path::arg(
                 DisplayOrder::VerificationUrlBasePath as usize,
@@ -75,20 +64,11 @@ impl ClientCommand for VerifyContract {
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
         let deploy_hash = common::deploy_hash::get(matches);
-        let hex_public_key = common::public_key::get(matches, true)?;
-        let public_key = PublicKey::from_hex(&hex_public_key).map_err(|error| {
-            eprintln!("Can't parse {} as a public key: {}", hex_public_key, error);
-            CliError::FailedToParsePublicKey {
-                context: "account-address".to_string(),
-                error,
-            }
-        })?;
         let verification_url_base_path = verification_url_base_path::get(matches);
         let verbosity_level = common::verbose::get(matches);
 
         casper_client::cli::verify_contract(
             deploy_hash,
-            public_key,
             verification_url_base_path,
             verbosity_level,
         )

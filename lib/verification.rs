@@ -1,22 +1,19 @@
 use std::path::Path;
 
 use bytes::{BufMut, Bytes, BytesMut};
-use casper_types::PublicKey;
+use casper_types::Key;
 use flate2::{write::GzEncoder, Compression};
-use openapi::{
-    apis::{
-        configuration::Configuration,
-        default_api::{
-            verification_deploy_hash_details_get, verification_deploy_hash_status_get,
-            verification_post,
-        },
-    },
-    models::{VerificationDetails, VerificationRequest, VerificationStatus},
+use reqwest::{
+    header::{HeaderMap, HeaderValue, CONTENT_TYPE},
+    Client, ClientBuilder, StatusCode,
 };
 use tar::Builder as TarBuilder;
 use tokio::time::{sleep, Duration};
 
-use crate::{types::DeployHash, Error, Verbosity};
+use crate::{
+    verification_types::{VerificationDetails, VerificationRequest, VerificationStatus},
+    Error, Verbosity,
+};
 
 static GIT_DIR_NAME: &str = ".git";
 static TARGET_DIR_NAME: &str = "target";
@@ -67,75 +64,81 @@ pub fn build_archive(path: &Path) -> Result<Bytes, std::io::Error> {
 ///
 /// * `deploy_hash` - The hash of the deployed contract.
 /// * `public_key` - The public key associated with the contract.
-/// * `verification_url_base_path` - The base path of the verification URL.
+/// * `base_url` - The base path of the verification URL.
 /// * `verbosity` - The verbosity level of the verification process.
 ///
 /// # Returns
 ///
 /// The verification details of the contract.
 pub async fn send_verification_request(
-    deploy_hash: DeployHash,
-    public_key: PublicKey,
-    verification_url_base_path: &str,
-    archive_base64: String,
+    key: Key,
+    base_url: &str,
+    code_archive: String,
     verbosity: Verbosity,
 ) -> Result<VerificationDetails, Error> {
     let verification_request = VerificationRequest {
-        deploy_hash: Some(deploy_hash.to_string()),
-        public_key: Some(public_key.to_account_hash().to_string()),
-        code_archive: Some(archive_base64),
+        deploy_hash: key,
+        code_archive,
     };
 
-    let configuration = Configuration {
-        base_path: verification_url_base_path.to_string(),
-        user_agent: Some("casper-client-rs".to_owned()),
-        client: reqwest::Client::new(),
-        basic_auth: None,
-        oauth_access_token: None,
-        bearer_access_token: None,
-        api_key: None,
+    let mut headers = HeaderMap::new();
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+    let Ok(http_client) = ClientBuilder::new()
+        .default_headers(headers)
+        .user_agent("casper-client-rs")
+        .build()
+    else {
+        eprintln!("Failed to build HTTP client");
+        return Err(Error::ContractVerificationFailed); // FIXME: different error
     };
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!("Sending verification request to {}", configuration.base_path);
+        println!("Sending verification request to {base_url}",);
     }
 
-    let verification_result =
-        match verification_post(&configuration, Some(verification_request)).await {
-            Ok(verification_result) => verification_result,
-            Err(error) => {
-                eprintln!("Cannot send verification request: {:?}", error);
-                return Err(Error::ContractVerificationFailed);
-            }
-        };
+    let response = match http_client
+        .post(base_url)
+        .json(&verification_request)
+        .send()
+        .await
+    {
+        Ok(response) => response,
+        Err(error) => {
+            eprintln!("Cannot send verification request: {error:?}");
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
 
-    match verification_result.status {
-        Some(verification_status) => {
+    match response.status() {
+        StatusCode::OK => {
             if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-                println!(
-                    "Sent verification request - status {}",
-                    verification_status.to_string()
-                );
-            }        
-        },
-        None => {
-            eprintln!("Verification status not found");
+                println!("Sent verification request",);
+            }
+        }
+        status => {
+            eprintln!("Verification faile with status {status}");
             return Err(Error::ContractVerificationFailed);
         }
     }
 
-    wait_for_verification_finished(&configuration, deploy_hash, verbosity).await;
+    wait_for_verification_finished(base_url, &http_client, key, verbosity).await;
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!("Getting verification details...");
     }
 
-    match verification_deploy_hash_details_get(&configuration, deploy_hash.to_string().as_str())
+    match http_client
+        .get(base_url.to_string() + "/" + &key.to_formatted_string() + "/details")
+        .send()
         .await
     {
-        Ok(verification_details) => Ok(verification_details),
+        Ok(response) => response.json().await.map_err(|err| {
+            eprintln!("Failed to parse JSON {err}");
+            Error::ContractVerificationFailed
+        }),
         Err(error) => {
-            eprintln!("Cannot get verification details: {:?}", error);
+            eprintln!("Cannot get verification details: {error:?}");
             Err(Error::ContractVerificationFailed)
         }
     }
@@ -143,14 +146,15 @@ pub async fn send_verification_request(
 
 /// Waits for the verification process to finish.
 async fn wait_for_verification_finished(
-    configuration: &Configuration,
-    deploy_hash: DeployHash,
+    base_url: &str,
+    http_client: &Client,
+    key: Key,
     verbosity: Verbosity,
 ) {
-    let mut verification_status = match get_verification_status(configuration, deploy_hash).await {
+    let mut verification_status = match get_verification_status(base_url, http_client, key).await {
         Ok(verification_status) => verification_status,
         Err(error) => {
-            eprintln!("Cannot get verification status: {:?}", error);
+            eprintln!("Cannot get verification status: {error:?}");
             return;
         }
     };
@@ -158,10 +162,10 @@ async fn wait_for_verification_finished(
     while verification_status != VerificationStatus::Verified
         && verification_status != VerificationStatus::Failed
     {
-        verification_status = match get_verification_status(configuration, deploy_hash).await {
+        verification_status = match get_verification_status(base_url, http_client, key).await {
             Ok(verification_status) => verification_status,
             Err(error) => {
-                eprintln!("Cannot get verification status: {:?}", error);
+                eprintln!("Cannot get verification status: {error:?}");
                 return;
             }
         };
@@ -171,33 +175,35 @@ async fn wait_for_verification_finished(
     }
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!(
-            "Verification finished - status {}",
-            verification_status.to_string()
-        );
+        println!("Verification finished - status {verification_status:?}");
     }
 }
 
 /// Gets the verification status of the contract.
 async fn get_verification_status(
-    configuration: &Configuration,
-    deploy_hash: DeployHash,
+    base_url: &str,
+    http_client: &Client,
+    key: Key,
 ) -> Result<VerificationStatus, Error> {
-    let verification_status =
-        match verification_deploy_hash_status_get(&configuration, deploy_hash.to_string().as_str())
-            .await
-        {
-            Ok(verification_result) => verification_result,
-            Err(error) => {
-                eprintln!("Failed to fetch verification status: {:?}", error);
-                return Err(Error::ContractVerificationFailed);
-            }
-        };
+    let response = match http_client
+        .get(base_url.to_string() + "/" + &key.to_formatted_string() + "/status")
+        .send()
+        .await
+    {
+        Ok(response) => response,
+        Err(error) => {
+            eprintln!("Failed to fetch verification status: {error:?}");
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
 
-    match verification_status.status {
-        Some(verification_status) => Ok(verification_status),
-        None => {
-            eprintln!("Verification status not found");
+    match response.status() {
+        StatusCode::OK => response.json().await.map_err(|err| {
+            eprintln!("Failed to parse JSON for verification status, {err}");
+            Error::ContractVerificationFailed
+        }),
+        status => {
+            eprintln!("Verification status not found, {status}");
             Err(Error::ContractVerificationFailed)
         }
     }
