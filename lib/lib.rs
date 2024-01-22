@@ -49,6 +49,7 @@ pub mod types;
 mod validation;
 mod verbosity;
 mod verification;
+mod verification_types;
 
 use std::env::current_dir;
 #[cfg(feature = "std-fs-io")]
@@ -58,7 +59,6 @@ use std::{
     path::Path,
 };
 
-use openapi::models::VerificationDetails;
 #[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
@@ -67,7 +67,7 @@ use casper_hashing::Digest;
 use casper_types::SecretKey;
 #[cfg(doc)]
 use casper_types::Transfer;
-use casper_types::{Key, PublicKey, URef};
+use casper_types::{Key, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
@@ -115,8 +115,9 @@ use types::{Deploy, DeployHash};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
 pub use verification::{build_archive, send_verification_request};
+use verification_types::VerificationDetails;
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{engine::general_purpose::STANDARD, Engine};
 
 /// Puts a [`Deploy`] to the network for execution.
 ///
@@ -563,18 +564,13 @@ pub async fn get_era_info(
 
 /// Verifies the smart contract code againt the one deployed at deploy hash.
 pub async fn verify_contract(
-    deploy_hash: DeployHash,
-    public_key: PublicKey,
+    key: Key,
     verification_url_base_path: &str,
     verbosity: Verbosity,
 ) -> Result<VerificationDetails, Error> {
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!("Deploy hash: {}", deploy_hash.to_string());
-        println!("Public key: {}", public_key.to_account_hash());
-        println!(
-            "Verification service base path: {}",
-            verification_url_base_path
-        );
+        println!("Key: {key}");
+        println!("Verification service base path: {verification_url_base_path}",);
     }
 
     let project_path = match current_dir() {
@@ -598,14 +594,7 @@ pub async fn verify_contract(
         }
     };
 
-    let archive_base64 = general_purpose::STANDARD.encode(&archive);
+    let archive_base64 = STANDARD.encode(&archive);
 
-    send_verification_request(
-        deploy_hash,
-        public_key,
-        verification_url_base_path,
-        archive_base64,
-        verbosity,
-    )
-    .await
+    send_verification_request(key, verification_url_base_path, archive_base64, verbosity).await
 }

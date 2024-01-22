@@ -32,7 +32,6 @@ base64 = "0.21.5"
 bytes = "1.5.0"
 casper-hashing = "3.0.0"
 casper-types = { version = "4.0.1", features = ["std"] }
-openapi = { path = "../Casper-SCVS-Validator/openapi" }
 clap = { version = "4.4.10", optional = true, features = ["cargo", "deprecated", "wrap_help"] }
 clap_complete = { version = "4.4.4", optional = true }
 flate2 = "1.0.28"

@@ -226,21 +226,14 @@ pub(super) mod public_key {
         should be one of the two public key files generated via the `keygen` subcommand; \
         \"public_key_hex\" or \"public_key.pem\"";
 
-    pub fn arg(order: usize, is_required: bool, is_positional: bool) -> Arg {
-        match is_positional {
-            true => Arg::new(ARG_NAME)
-                .required(true)
-                .value_name(ARG_VALUE_NAME)
-                .help(ARG_HELP)
-                .display_order(order),
-            false => Arg::new(ARG_NAME)
-                .long(ARG_NAME)
-                .short(ARG_SHORT)
-                .required(is_required)
-                .value_name(ARG_VALUE_NAME)
-                .help(ARG_HELP)
-                .display_order(order),
-        }
+    pub fn arg(order: usize, is_required: bool) -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .required(is_required)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(order)
     }
 
     pub fn get(matches: &ArgMatches, is_required: bool) -> Result<String, CliError> {
