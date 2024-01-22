@@ -25,7 +25,7 @@ pub(crate) enum VerificationErrorCode {
     WrongCodeArchive,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 pub(crate) struct VerificationError {
     pub(crate) code: VerificationErrorCode,
     pub(crate) description: String,
@@ -39,7 +39,7 @@ pub(crate) struct VerificationRequest {
     pub(crate) code_archive: String,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 pub(crate) struct VerificationResult {
     pub(crate) status: VerificationStatus,
     #[serde(skip_serializing_if = "Option::is_none")]
