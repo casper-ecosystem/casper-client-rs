@@ -49,7 +49,6 @@ pub(crate) struct VerificationResult {
 #[derive(Deserialize, Serialize)]
 pub(crate) struct VerificationDetailsResult {
     // pub(crate) toolchain: Toolchain,
-    pub(crate) modules: Vec<Module>,
     pub(crate) binary_uri: String,
     pub(crate) logs_uri: String,
 }
@@ -67,9 +66,3 @@ pub struct VerificationDetails {
 //     pub(crate) targets: Vec<String>,
 //     pub(crate) profile: String,
 // }
-
-#[derive(Deserialize, Serialize)]
-pub(crate) struct Module {
-    pub(crate) name: String,
-    pub(crate) source_code_uri: String,
-}
