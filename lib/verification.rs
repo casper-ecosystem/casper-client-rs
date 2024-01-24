@@ -154,10 +154,9 @@ async fn wait_for_verification_finished(
     verbosity: Verbosity,
 ) {
     let delay = Duration::from_secs(1);
-    let mut retries = 30;
+    let mut retries = 10_000;
     while retries != 0 {
         sleep(delay).await;
-        // TODO: Back off with limited retries.
 
         match get_verification_status(base_url, http_client, key).await {
             Ok(status) => {
