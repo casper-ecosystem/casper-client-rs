@@ -153,8 +153,8 @@ async fn wait_for_verification_finished(
     key: Key,
     verbosity: Verbosity,
 ) {
-    let delay = Duration::from_secs(1);
-    let mut retries = 10_000;
+    let delay = Duration::from_secs(2);
+    let mut retries = 20_000;
     while retries != 0 {
         sleep(delay).await;
 
