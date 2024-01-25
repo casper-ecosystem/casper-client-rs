@@ -161,7 +161,7 @@ async fn wait_for_verification_finished(
         match get_verification_status(base_url, http_client, key).await {
             Ok(status) => {
                 if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-                    println!("Verification finished with status: {status:?}");
+                    println!("Verification status: {status:?}");
                 }
                 if status == VerificationStatus::Verified || status == VerificationStatus::Failed {
                     break;
