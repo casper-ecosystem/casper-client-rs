@@ -50,7 +50,7 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
-use transaction::MakeTransaction;
+use transaction::{MakeTransaction, SignTransaction};
 
 const APP_NAME: &str = "Casper client";
 
@@ -74,6 +74,7 @@ enum DisplayOrder {
     MakeDeploy,
     MakeTransaction,
     SignDeploy,
+    SignTransaction,
     SendDeploy,
     Transfer,
     MakeTransfer,
@@ -110,6 +111,9 @@ fn cli() -> Command {
             DisplayOrder::MakeTransaction as usize,
         ))
         .subcommand(SignDeploy::build(DisplayOrder::SignDeploy as usize))
+        .subcommand(SignTransaction::build(
+            DisplayOrder::SignTransaction as usize,
+        ))
         .subcommand(SendDeploy::build(DisplayOrder::SendDeploy as usize))
         .subcommand(Transfer::build(DisplayOrder::Transfer as usize))
         .subcommand(MakeTransfer::build(DisplayOrder::MakeTransfer as usize))
@@ -162,6 +166,7 @@ async fn main() {
         MakeDeploy::NAME => MakeDeploy::run(matches).await,
         MakeTransaction::NAME => MakeTransaction::run(matches).await,
         SignDeploy::NAME => SignDeploy::run(matches).await,
+        SignTransaction::NAME => SignTransaction::run(matches).await,
         SendDeploy::NAME => SendDeploy::run(matches).await,
         Transfer::NAME => Transfer::run(matches).await,
         MakeTransfer::NAME => MakeTransfer::run(matches).await,

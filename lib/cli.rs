@@ -73,7 +73,7 @@ pub use json_args::{
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
 pub use simple_args::help as simple_args_help;
-pub use transaction::make_transaction;
+pub use transaction::{make_transaction, sign_transaction_file};
 pub use transaction_builder_params::TransactionBuilderParams;
 pub use transaction_str_params::TransactionStrParams;
 /// Retrieves a [`Deploy`] from the network.
