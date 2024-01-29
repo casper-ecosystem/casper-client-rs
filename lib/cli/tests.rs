@@ -437,6 +437,80 @@ mod transaction {
         bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget,
         TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError,
     };
+    const SAMPLE_TRANSACTION: &str = r#"{
+  "hash": "f868596bbfd729547ffa25c3421df29d6650cec73e9fe3d0aff633fe2d6ac952",
+  "header": {
+    "chain_name": "test",
+    "timestamp": "2024-01-26T19:08:53.498Z",
+    "ttl": "30m",
+    "body_hash": "fb94fd83178e3acf22546beebf5f44692499d681c4381f6d145d85ff9b5fc152",
+    "pricing_mode": {
+      "GasPriceMultiplier": 1
+    },
+    "payment_amount": 10,
+    "initiator_addr": {
+      "PublicKey": "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d"
+    }
+  },
+  "body": {
+    "args": [
+      [
+        "source",
+        {
+          "cl_type": "URef",
+          "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
+          "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
+        }
+      ],
+      [
+        "target",
+        {
+          "cl_type": "URef",
+          "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
+          "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
+        }
+      ],
+      [
+        "amount",
+        {
+          "cl_type": "U512",
+          "bytes": "010a",
+          "parsed": "10"
+        }
+      ]
+    ],
+    "target": "Native",
+    "entry_point": "Transfer",
+    "scheduling": "Standard"
+  },
+  "approvals": []
+}
+"#;
+
+    #[test]
+    fn should_sign_transaction() {
+        let bytes = SAMPLE_TRANSACTION.as_bytes();
+        let transaction = crate::read_transaction(bytes).unwrap();
+        assert_eq!(
+            transaction.approvals().len(),
+            0,
+            "Sample transaction should have 0 approvals."
+        );
+
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("deploy.json");
+
+        crate::output_transaction(OutputKind::file(&path, false), &transaction).unwrap();
+
+        let secret_key = SecretKey::generate_ed25519().unwrap();
+        crate::sign_transaction_file(&path, &secret_key, OutputKind::file(&path, true)).unwrap();
+        let signed_transaction = crate::read_transaction_file(&path).unwrap();
+
+        assert_eq!(
+            signed_transaction.approvals().len(),
+            transaction.approvals().len() + 1,
+        );
+    }
 
     #[test]
     fn should_create_add_bid_transaction() {
