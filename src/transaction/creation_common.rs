@@ -1510,7 +1510,7 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionS
         session_args_simple,
         session_args_json,
         maybe_pricing_mode,
-        maybe_output_path,
+        output_path: maybe_output_path,
         payment_amount,
     }
 }

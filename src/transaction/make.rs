@@ -62,7 +62,7 @@ impl ClientCommand for MakeTransaction {
                     })
                 }
             };
-            let output_path = transaction_str_params.maybe_output_path;
+            let output_path = transaction_str_params.output_path;
 
             casper_client::cli::make_transaction(
                 transaction_builder_params,

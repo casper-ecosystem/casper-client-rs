@@ -85,7 +85,7 @@ pub fn make_transaction(
     transaction_params: TransactionStrParams<'_>,
     force: bool,
 ) -> Result<(), CliError> {
-    let output = parse::output_kind(transaction_params.maybe_output_path, force);
+    let output = parse::output_kind(transaction_params.output_path, force);
     let transaction = create_transaction(builder_params, transaction_params, true)?;
     crate::output_transaction(output, &transaction).map_err(CliError::from)
 }
