@@ -1,4 +1,4 @@
-extern crate core;
+
 
 mod account_address;
 mod block;
