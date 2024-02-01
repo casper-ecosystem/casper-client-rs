@@ -7,7 +7,7 @@ pub fn create_transaction(
     allow_unsigned_deploy: bool,
 ) -> Result<TransactionV1, CliError> {
     let chain_name = transaction_params.chain_name.to_string();
-    if transaction_params.payment_amount.is_empty(){
+    if transaction_params.payment_amount.is_empty() {
         return Err(CliError::InvalidArgument {
             context: "create_transaction (payment_amount)",
             error: "payment_amount is required".to_string(),

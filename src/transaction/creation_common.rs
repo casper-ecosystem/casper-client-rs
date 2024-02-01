@@ -314,7 +314,8 @@ pub(super) mod payment_amount {
     pub fn get(matches: &ArgMatches) -> &str {
         matches
             .get_one::<String>(ARG_NAME)
-            .map(String::as_str).unwrap_or_default()
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -625,7 +626,7 @@ pub(super) mod entity_addr {
 
 pub(super) mod package_addr {
     use super::*;
-    use casper_client::{Error, cli::CliError};
+    use casper_client::{cli::CliError, Error};
     use casper_types::{Key, PackageAddr};
 
     pub const ARG_NAME: &str = "package-address";
@@ -642,14 +643,12 @@ pub(super) mod package_addr {
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 
     pub(super) fn parse_package_addr(value: Option<&str>) -> Result<PackageAddr, CliError> {
-        match value{
-            None => {return Err(CliError::FailedToParsePackageAddr)}
+        match value {
+            None => Err(CliError::FailedToParsePackageAddr),
             Some(value) => {
                 let package_addr =
                     Key::from_formatted_str(value).map_err(|error| CliError::FailedToParseKey {
@@ -803,7 +802,8 @@ mod validator {
     use super::*;
     pub const ARG_NAME: &str = "validator";
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
-    const ARG_HELP: &str = "the validator's public key (as a formatted string) for the delegate transaction";
+    const ARG_HELP: &str =
+        "the validator's public key (as a formatted string) for the delegate transaction";
 
     pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -849,7 +849,8 @@ mod delegator {
     use super::*;
     pub const ARG_NAME: &str = "delegator";
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
-    const ARG_HELP: &str = "the delegators public key (as a formatted string) for the delegate transaction";
+    const ARG_HELP: &str =
+        "the delegators public key (as a formatted string) for the delegate transaction";
 
     pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -894,14 +895,14 @@ mod transaction_amount {
     }
 
     pub(super) fn parse_transaction_amount(value: &str) -> Result<U512, CliError> {
-        if !value.is_empty(){
-            U512::from_dec_str(value)
-            .map_err(|_| CliError::InvalidCLValue("Failed to parse U512 for add-bid".to_string()))
-        }
-        else{
-            Err(CliError::InvalidArgument{
+        if !value.is_empty() {
+            U512::from_dec_str(value).map_err(|_| {
+                CliError::InvalidCLValue("Failed to parse U512 for add-bid".to_string())
+            })
+        } else {
+            Err(CliError::InvalidArgument {
                 context: "parse_transaction_amount",
-                error: "Transaction amount cannot be empty".to_string()
+                error: "Transaction amount cannot be empty".to_string(),
             })
         }
     }
@@ -1342,7 +1343,7 @@ pub(super) mod transfer {
 
         let maybe_to_str = destination_account::get(matches);
         let mut maybe_to = None;
-        if !maybe_to_str.is_empty(){
+        if !maybe_to_str.is_empty() {
             maybe_to = destination_account::parse_account_hash(maybe_to_str)?;
         }
 

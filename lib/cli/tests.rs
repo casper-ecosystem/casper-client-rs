@@ -466,11 +466,8 @@ mod transaction {
             amount,
         };
 
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
 
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "add-bid-test");
@@ -526,11 +523,8 @@ mod transaction {
             amount,
         };
 
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
 
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "delegate");
@@ -584,11 +578,8 @@ mod transaction {
         let transaction_builder_params =
             TransactionBuilderParams::WithdrawBid { public_key, amount };
 
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
 
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "withdraw-bid");
@@ -639,11 +630,8 @@ mod transaction {
             amount,
         };
 
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
 
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "undelegate");
@@ -706,11 +694,8 @@ mod transaction {
             amount,
             new_validator: PublicKey::from(&new_validator_secret_key),
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "redelegate");
         assert_eq!(
@@ -774,11 +759,8 @@ mod transaction {
             entity_addr,
             entry_point: "test-entry-point",
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
 
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(
@@ -815,11 +797,8 @@ mod transaction {
             entity_alias: "alias",
             entry_point: "entry-point-alias",
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(
             transaction.as_ref().unwrap().chain_name(),
@@ -861,11 +840,8 @@ mod transaction {
             entry_point,
             maybe_entity_version,
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "package");
         assert_eq!(
@@ -904,11 +880,8 @@ mod transaction {
             entry_point,
             maybe_entity_version,
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "package");
         assert_eq!(
@@ -942,11 +915,8 @@ mod transaction {
             transaction_bytes,
             entry_point: "entry-point-session",
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "session");
         assert_eq!(
@@ -989,11 +959,8 @@ mod transaction {
             maybe_to: None,
             maybe_id: None,
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "transfer");
         assert_eq!(
@@ -1030,11 +997,8 @@ mod transaction {
             maybe_to: None,
             maybe_id: None,
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_err());
         assert!(matches!(
             transaction.unwrap_err(),
@@ -1062,11 +1026,8 @@ mod transaction {
             delegation_rate: 0,
             amount: U512::from(10),
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            true,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         println!("{:?}", transaction);
     }
@@ -1090,11 +1051,8 @@ mod transaction {
             delegation_rate: 0,
             amount: U512::from(10),
         };
-        let transaction = create_transaction(
-            transaction_builder_params,
-            transaction_string_params,
-            false,
-        );
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, false);
         assert!(transaction.is_err(), "{:?}", transaction);
         println!("{:?}", transaction);
         assert!(matches!(

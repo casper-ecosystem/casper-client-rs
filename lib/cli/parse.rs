@@ -167,6 +167,43 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     Ok(runtime_args)
 }
 
+/// Checks if conflicting arguments are provided for parsing session information.
+///
+/// # Arguments
+///
+/// * `context` - A string indicating the context in which the arguments are checked.
+/// * `simple` - A vector of strings representing simple arguments.
+/// * `json` - A string representing JSON-formatted arguments.
+/// * `complex` - A string representing complex arguments.
+///
+/// # Returns
+///
+/// Returns a `Result` with an empty `Ok(())` variant if no conflicting arguments are found. If
+/// conflicting arguments are provided, an `Err` variant with a `CliError::ConflictingArguments` is
+/// returned.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError::ConflictingArguments` if conflicting arguments are
+/// provided.
+///
+/// # Original Author
+/// This function was modified from one of the same name written by Gregory Roussac for the 1.6 SDK
+fn check_no_conflicting_arg_types(simple: &Vec<&str>, json: &str) -> Result<(), CliError> {
+    let count = [!simple.is_empty(), !json.is_empty()]
+        .iter()
+        .filter(|&&x| x)
+        .count();
+
+    if count > 1 {
+        return Err(CliError::ConflictingArguments {
+            context: "Conflicting args (simple, and json) were provided",
+            args: vec![simple.join(", "), json.to_owned()],
+        });
+    }
+    Ok(())
+}
+
 pub(crate) fn args_from_simple_or_json(
     simple: Option<RuntimeArgs>,
     json: Option<RuntimeArgs>,
@@ -306,6 +343,8 @@ pub(super) fn session_executable_deploy_item(
             requires[] requires_empty[session_entry_point, session_version]
     );
 
+    check_no_conflicting_arg_types(session_args_simple, session_args_json)?;
+
     let session_args = args_from_simple_or_json(
         arg_simple::session::parse(session_args_simple)?,
         args_json::session::parse(session_args_json)?,
@@ -427,6 +466,9 @@ pub(super) fn payment_executable_deploy_item(
         context: "payment_entry_point",
         error: payment_entry_point.to_string(),
     };
+
+    //Check that we only have one of simple or json args, this is relevant for the SDK, but not in the context of the client.
+    check_no_conflicting_arg_types(payment_args_simple, payment_args_json)?;
 
     let payment_args = args_from_simple_or_json(
         arg_simple::payment::parse(payment_args_simple)?,
