@@ -916,7 +916,7 @@ pub(super) mod add_bid {
 
     const ABOUT: &str = "Creates a new add-bid transaction";
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
     pub fn run(
@@ -961,7 +961,7 @@ pub(super) mod withdraw_bid {
 
     const ABOUT: &str = "Creates a new withdraw-bid transaction";
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
     pub fn run(
@@ -997,7 +997,7 @@ pub(super) mod delegate {
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
     pub fn run(
@@ -1042,7 +1042,7 @@ pub(super) mod undelegate {
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
     pub fn run(
@@ -1085,7 +1085,7 @@ pub(super) mod redelegate {
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
     pub fn run(
@@ -1323,7 +1323,7 @@ pub(super) mod transfer {
     const ABOUT: &str = "Creates a new native transfer transaction";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
     pub fn run(
