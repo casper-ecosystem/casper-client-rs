@@ -922,8 +922,6 @@ pub(super) mod add_bid {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-        show_simple_arg_examples_and_exit_if_required(matches);
-        show_json_args_examples_and_exit_if_required(matches);
 
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
@@ -967,8 +965,6 @@ pub(super) mod withdraw_bid {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-        show_simple_arg_examples_and_exit_if_required(matches);
-        show_json_args_examples_and_exit_if_required(matches);
 
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
@@ -1003,8 +999,6 @@ pub(super) mod delegate {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-        show_simple_arg_examples_and_exit_if_required(matches);
-        show_json_args_examples_and_exit_if_required(matches);
 
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
@@ -1048,8 +1042,6 @@ pub(super) mod undelegate {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-        show_simple_arg_examples_and_exit_if_required(matches);
-        show_json_args_examples_and_exit_if_required(matches);
 
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
@@ -1091,8 +1083,6 @@ pub(super) mod redelegate {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-        show_simple_arg_examples_and_exit_if_required(matches);
-        show_json_args_examples_and_exit_if_required(matches);
 
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
@@ -1214,6 +1204,7 @@ pub(super) mod package {
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
+
         let maybe_package_addr_str = package_addr::get(matches);
         let package_addr = package_addr::parse_package_addr(maybe_package_addr_str)?;
         let maybe_entity_version = session_version::get(matches);
@@ -1253,6 +1244,7 @@ pub(super) mod package_alias {
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
+
         let package_alias = package_alias_arg::get(matches);
 
         let maybe_entity_version = session_version::get(matches);
@@ -1293,6 +1285,7 @@ pub(super) mod session {
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
         show_simple_arg_examples_and_exit_if_required(matches);
         show_json_args_examples_and_exit_if_required(matches);
+
         let transaction_path_str = transaction_path::get(matches);
         let transaction_bytes = parse::transaction_module_bytes(transaction_path_str)?;
 
@@ -1329,8 +1322,6 @@ pub(super) mod transfer {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-        show_simple_arg_examples_and_exit_if_required(matches);
-        show_json_args_examples_and_exit_if_required(matches);
 
         let source_str = source::get(matches);
         let source_uref = parse::uref(source_str)?;
