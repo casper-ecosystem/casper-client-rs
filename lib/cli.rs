@@ -45,13 +45,12 @@ use casper_types::{Digest, URef};
 use crate::{
     rpcs::{
         results::{
-            GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
-            GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
-            GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
-            GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, QueryBalanceResult,
-            QueryGlobalStateResult,
+            GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
+            GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
+            GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
+            GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
+            QueryBalanceResult, QueryGlobalStateResult,
         },
-        v2_0_0::get_entity::GetAddressableEntityResult,
         DictionaryItemIdentifier,
     },
     SuccessResponse,
