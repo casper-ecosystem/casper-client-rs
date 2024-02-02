@@ -1,14 +1,13 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use std::{convert::TryInto, fs, io, path::Path, str::FromStr};
+use std::{fs, path::Path, str::FromStr};
 
 use rand::Rng;
-use serde::{self, Deserialize};
 
 use casper_types::{
-    account::AccountHash, bytesrepr, crypto, AsymmetricType, BlockHash, CLValue, DeployHash,
-    Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PublicKey, RuntimeArgs, SecretKey,
+    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
+    ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, SecretKey,
     TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
 
@@ -85,7 +84,7 @@ pub(super) fn session_account(value: &str) -> Result<Option<PublicKey>, CliError
 }
 
 /// Handles providing the arg for and retrieval of simple session and payment args.
-mod arg_simple {
+pub(crate) mod arg_simple {
     use super::*;
 
     pub(crate) mod session {
@@ -121,7 +120,7 @@ mod arg_simple {
     }
 }
 
-mod args_json {
+pub(crate) mod args_json {
     use super::*;
     use crate::cli::JsonArg;
 
@@ -154,128 +153,6 @@ mod args_json {
     }
 }
 
-/// Handles providing the arg for and retrieval of complex session and payment args. These are read
-/// in from a file.
-mod args_complex {
-    use std::{
-        fmt::{self, Formatter},
-        result::Result as StdResult,
-    };
-
-    use serde::de::{Deserializer, Error as SerdeError, Visitor};
-
-    use casper_types::checksummed_hex;
-
-    use super::*;
-
-    #[derive(Debug, Deserialize)]
-    #[serde(rename_all = "snake_case")]
-    enum DeployArgValue {
-        /// Contains `CLValue` serialized into bytes in base16 form.
-        #[serde(deserialize_with = "deserialize_raw_bytes")]
-        RawBytes(Vec<u8>),
-    }
-
-    fn deserialize_raw_bytes<'de, D: Deserializer<'de>>(
-        deserializer: D,
-    ) -> StdResult<Vec<u8>, D::Error> {
-        struct HexStrVisitor;
-
-        impl<'de> Visitor<'de> for HexStrVisitor {
-            type Value = Vec<u8>;
-
-            fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
-                write!(formatter, "a hex encoded string")
-            }
-
-            fn visit_str<E: SerdeError>(
-                self,
-                hex_encoded_input: &str,
-            ) -> StdResult<Self::Value, E> {
-                checksummed_hex::decode(hex_encoded_input).map_err(SerdeError::custom)
-            }
-
-            fn visit_borrowed_str<E: SerdeError>(
-                self,
-                hex_encoded_input: &'de str,
-            ) -> StdResult<Self::Value, E> {
-                checksummed_hex::decode(hex_encoded_input).map_err(SerdeError::custom)
-            }
-        }
-
-        deserializer.deserialize_str(HexStrVisitor)
-    }
-
-    #[derive(Debug, Deserialize)]
-    #[serde(rename_all = "snake_case")]
-    struct DeployArg {
-        /// Deploy argument's name.
-        name: String,
-        value: DeployArgValue,
-    }
-
-    impl From<DeployArgValue> for CLValue {
-        fn from(value: DeployArgValue) -> Self {
-            match value {
-                DeployArgValue::RawBytes(bytes) => bytesrepr::deserialize(bytes)
-                    .unwrap_or_else(|error| panic!("should deserialize deploy arg: {}", error)),
-            }
-        }
-    }
-
-    impl From<DeployArg> for NamedArg {
-        fn from(deploy_arg: DeployArg) -> Self {
-            let cl_value = deploy_arg
-                .value
-                .try_into()
-                .unwrap_or_else(|error| panic!("should serialize deploy arg: {}", error));
-            NamedArg::new(deploy_arg.name, cl_value)
-        }
-    }
-
-    pub mod session {
-        use super::*;
-
-        pub fn parse(path: &str) -> Result<Option<RuntimeArgs>, CliError> {
-            if path.is_empty() {
-                return Ok(None);
-            }
-            let runtime_args = get(path).map_err(|error| crate::Error::IoError {
-                context: format!("error reading session file at '{}'", path),
-                error,
-            })?;
-            Ok(Some(runtime_args))
-        }
-    }
-
-    pub mod payment {
-        use super::*;
-
-        pub fn parse(path: &str) -> Result<Option<RuntimeArgs>, CliError> {
-            if path.is_empty() {
-                return Ok(None);
-            }
-            let runtime_args = get(path).map_err(|error| crate::Error::IoError {
-                context: format!("error reading payment file at '{}'", path),
-                error,
-            })?;
-            Ok(Some(runtime_args))
-        }
-    }
-
-    fn get(path: &str) -> io::Result<RuntimeArgs> {
-        let bytes = fs::read(path)?;
-        // Received structured args in JSON format.
-        let args: Vec<DeployArg> = serde_json::from_slice(&bytes)?;
-        // Convert JSON deploy args into vector of named args.
-        let mut named_args = Vec::with_capacity(args.len());
-        for arg in args {
-            named_args.push(arg.into());
-        }
-        Ok(RuntimeArgs::from(named_args))
-    }
-}
-
 const STANDARD_PAYMENT_ARG_NAME: &str = "amount";
 fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     if value.is_empty() {
@@ -290,15 +167,51 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
     Ok(runtime_args)
 }
 
-fn args_from_simple_or_json_or_complex(
+/// Checks if conflicting arguments are provided for parsing session information.
+///
+/// # Arguments
+///
+/// * `context` - A string indicating the context in which the arguments are checked.
+/// * `simple` - A vector of strings representing simple arguments.
+/// * `json` - A string representing JSON-formatted arguments.
+/// * `complex` - A string representing complex arguments.
+///
+/// # Returns
+///
+/// Returns a `Result` with an empty `Ok(())` variant if no conflicting arguments are found. If
+/// conflicting arguments are provided, an `Err` variant with a `CliError::ConflictingArguments` is
+/// returned.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError::ConflictingArguments` if conflicting arguments are
+/// provided.
+///
+/// # Original Author
+/// This function was modified from one of the same name written by Gregory Roussac for the 1.6 SDK
+fn check_no_conflicting_arg_types(simple: &Vec<&str>, json: &str) -> Result<(), CliError> {
+    let count = [!simple.is_empty(), !json.is_empty()]
+        .iter()
+        .filter(|&&x| x)
+        .count();
+
+    if count > 1 {
+        return Err(CliError::ConflictingArguments {
+            context: "Conflicting args (simple, and json) were provided",
+            args: vec![simple.join(", "), json.to_owned()],
+        });
+    }
+    Ok(())
+}
+
+pub(crate) fn args_from_simple_or_json(
     simple: Option<RuntimeArgs>,
     json: Option<RuntimeArgs>,
-    complex: Option<RuntimeArgs>,
 ) -> RuntimeArgs {
     // We can have exactly zero or one of the two as `Some`.
-    match (simple, json, complex) {
-        (Some(args), None, None) | (None, Some(args), None) | (None, None, Some(args)) => args,
-        (None, None, None) => RuntimeArgs::new(),
+    match (simple, json) {
+        (Some(args), None) | (None, Some(args)) => args,
+        (None, None) => RuntimeArgs::new(),
         _ => unreachable!("should not have more than one of simple, json or complex args"),
     }
 }
@@ -407,7 +320,6 @@ pub(super) fn session_executable_deploy_item(
         session_path,
         ref session_args_simple,
         session_args_json,
-        session_args_complex,
         session_version,
         session_entry_point,
         is_session_transfer: session_transfer,
@@ -430,17 +342,12 @@ pub(super) fn session_executable_deploy_item(
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
     );
-    if !session_args_simple.is_empty() && !session_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_session_info",
-            args: vec!["session_args".to_owned(), "session_args_complex".to_owned()],
-        });
-    }
 
-    let session_args = args_from_simple_or_json_or_complex(
+    check_no_conflicting_arg_types(session_args_simple, session_args_json)?;
+
+    let session_args = args_from_simple_or_json(
         arg_simple::session::parse(session_args_simple)?,
         args_json::session::parse(session_args_json)?,
-        args_complex::session::parse(session_args_complex)?,
     );
     if session_transfer {
         if session_args.is_empty() {
@@ -499,6 +406,24 @@ pub(super) fn session_executable_deploy_item(
         args: session_args,
     })
 }
+/// Parse a transaction file into Bytes to be used in crafting a new session transaction
+pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
+    let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
+        context: format!("unable to read session file at '{}'", session_path),
+        error,
+    })?;
+    Ok(Bytes::from(module_bytes))
+}
+/// Parses a URef from a formatted string for the purposes of creating transactions.
+pub fn uref(uref_str: &str) -> Result<URef, CliError> {
+    match URef::from_formatted_str(uref_str) {
+        Ok(uref) => Ok(uref),
+        Err(err) => Err(CliError::FailedToParseURef {
+            context: "Failed to parse URef for transaction",
+            error: err,
+        }),
+    }
+}
 
 pub(super) fn payment_executable_deploy_item(
     params: PaymentStrParams,
@@ -512,7 +437,6 @@ pub(super) fn payment_executable_deploy_item(
         payment_path,
         ref payment_args_simple,
         payment_args_json,
-        payment_args_complex,
         payment_version,
         payment_entry_point,
     } = params;
@@ -530,15 +454,6 @@ pub(super) fn payment_executable_deploy_item(
             requires[payment_entry_point] requires_empty[],
         (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
     );
-    if !payment_args_simple.is_empty() && !payment_args_complex.is_empty() {
-        return Err(CliError::ConflictingArguments {
-            context: "parse_payment_info",
-            args: vec![
-                "payment_args_simple".to_owned(),
-                "payment_args_complex".to_owned(),
-            ],
-        });
-    }
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
@@ -552,10 +467,12 @@ pub(super) fn payment_executable_deploy_item(
         error: payment_entry_point.to_string(),
     };
 
-    let payment_args = args_from_simple_or_json_or_complex(
+    //Check that we only have one of simple or json args, this is relevant for the SDK, but not in the context of the client.
+    check_no_conflicting_arg_types(payment_args_simple, payment_args_json)?;
+
+    let payment_args = args_from_simple_or_json(
         arg_simple::payment::parse(payment_args_simple)?,
         args_json::payment::parse(payment_args_json)?,
-        args_complex::payment::parse(payment_args_complex)?,
     );
 
     if let Some(payment_name) = name(payment_name) {
@@ -806,6 +723,23 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
     Ok(AccountIdentifier::PublicKey(public_key))
 }
 
+pub(super) fn pricing_mode(pricing_mode_str: &str) -> Result<PricingMode, CliError> {
+    match pricing_mode_str.to_lowercase().as_str() {
+        "fixed" => Ok(PricingMode::Fixed),
+        "reserved" => Ok(PricingMode::Reserved),
+        _ => {
+            if let Ok(number) = pricing_mode_str.trim().parse() {
+                Ok(PricingMode::GasPriceMultiplier(number))
+            } else {
+                Err(CliError::InvalidArgument {
+                    context: "pricing_mode",
+                    error: format!("Invalid pricing mode: {}", pricing_mode_str),
+                })
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
@@ -838,49 +772,6 @@ mod tests {
     }
 
     #[test]
-    fn should_fail_to_parse_conflicting_arg_types() {
-        assert!(matches!(
-            session_executable_deploy_item(SessionStrParams {
-                session_hash: "",
-                session_name: "name",
-                session_package_hash: "",
-                session_package_name: "",
-                session_path: "",
-                session_args_simple: vec!["something:u32='0'"],
-                session_args_json: "",
-                session_args_complex: "path_to/file",
-                session_version: "",
-                session_entry_point: "entrypoint",
-                is_session_transfer: false
-            }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
-                ..
-            })
-        ));
-
-        assert!(matches!(
-            payment_executable_deploy_item(PaymentStrParams {
-                payment_amount: "",
-                payment_hash: "name",
-                payment_name: "",
-                payment_package_hash: "",
-                payment_package_name: "",
-                payment_path: "",
-                payment_args_simple: vec!["something:u32='0'"],
-                payment_args_json: "",
-                payment_args_complex: "path_to/file",
-                payment_version: "",
-                payment_entry_point: "entrypoint",
-            }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
-                ..
-            })
-        ));
-    }
-
-    #[test]
     fn should_fail_to_parse_conflicting_session_parameters() {
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
@@ -891,7 +782,6 @@ mod tests {
                 session_path: PATH,
                 session_args_simple: vec![],
                 session_args_json: "",
-                session_args_complex: "",
                 session_version: "",
                 session_entry_point: "",
                 is_session_transfer: false
@@ -915,7 +805,6 @@ mod tests {
                 payment_path: PATH,
                 payment_args_simple: vec![],
                 payment_args_json: "",
-                payment_args_complex: "",
                 payment_version: "",
                 payment_entry_point: "",
             }),
@@ -923,54 +812,6 @@ mod tests {
                 context: "parse_payment_info",
                 ..
             })
-        ));
-    }
-
-    #[test]
-    fn should_fail_to_parse_bad_session_args_complex() {
-        let missing_file = "missing/file";
-        assert!(matches!(
-            session_executable_deploy_item(SessionStrParams {
-                session_hash: HASH,
-                session_name: "",
-                session_package_hash: "",
-                session_package_name: "",
-                session_path: "",
-                session_args_simple: vec![],
-                session_args_json: "",
-                session_args_complex: missing_file,
-                session_version: "",
-                session_entry_point: "entrypoint",
-                is_session_transfer: false,
-            }),
-            Err(CliError::Core(crate::Error::IoError {
-                context,
-                ..
-            })) if context == format!("error reading session file at '{}'", missing_file)
-        ));
-    }
-
-    #[test]
-    fn should_fail_to_parse_bad_payment_args_complex() {
-        let missing_file = "missing/file";
-        assert!(matches!(
-            payment_executable_deploy_item(PaymentStrParams {
-                payment_amount: "",
-                payment_hash: HASH,
-                payment_name: "",
-                payment_package_hash: "",
-                payment_package_name: "",
-                payment_path: "",
-                payment_args_simple: vec![],
-                payment_args_json: "",
-                payment_args_complex: missing_file,
-                payment_version: "",
-                payment_entry_point: "entrypoint",
-            }),
-            Err(CliError::Core(crate::Error::IoError {
-                context,
-                ..
-            })) if context == format!("error reading payment file at '{}'", missing_file)
         ));
     }
 
@@ -1347,7 +1188,7 @@ mod tests {
             #[test]
             pub fn with_hash() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    SessionStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "", "").try_into();
+                    SessionStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByHash { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1363,7 +1204,7 @@ mod tests {
             #[test]
             pub fn with_name() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    SessionStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "", "").try_into();
+                    SessionStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByName { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1384,7 +1225,6 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
-                        "",
                         "",
                     )
                     .try_into();
@@ -1409,7 +1249,6 @@ mod tests {
                         ENTRYPOINT,
                         args_simple(),
                         "",
-                        "",
                     )
                     .try_into();
                 match params {
@@ -1424,7 +1263,6 @@ mod tests {
                 }
             }
         }
-
         /// Sample data creation methods for PaymentStrParams
         mod payment_params {
             use std::collections::BTreeMap;
@@ -1449,7 +1287,7 @@ mod tests {
             #[test]
             pub fn with_hash() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    PaymentStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "", "").try_into();
+                    PaymentStrParams::with_hash(HASH, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByHash { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1465,7 +1303,7 @@ mod tests {
             #[test]
             pub fn with_name() {
                 let params: Result<ExecutableDeployItem, CliError> =
-                    PaymentStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "", "").try_into();
+                    PaymentStrParams::with_name(NAME, ENTRYPOINT, args_simple(), "").try_into();
                 match params {
                     Ok(item @ ExecutableDeployItem::StoredContractByName { .. }) => {
                         let actual: BTreeMap<String, CLValue> = item.args().clone().into();
@@ -1486,7 +1324,6 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
-                        "",
                         "",
                     )
                     .try_into();
@@ -1510,7 +1347,6 @@ mod tests {
                         VERSION,
                         ENTRYPOINT,
                         args_simple(),
-                        "",
                         "",
                     )
                     .try_into();
@@ -1563,6 +1399,40 @@ mod tests {
             let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd26054bbb69b3c80";
             let parsed = account_identifier(public_key);
             assert!(parsed.is_err());
+        }
+    }
+    mod pricing_mode {
+        use super::*;
+        #[test]
+        fn should_parse_fixed_pricing_mode() {
+            let pricing_mode_str = "fixed";
+            let parsed = pricing_mode(pricing_mode_str).unwrap();
+            assert_eq!(parsed, PricingMode::Fixed);
+        }
+        #[test]
+        fn should_parse_reserved_pricing_mode() {
+            let pricing_mode_str = "reserved";
+            let parsed = pricing_mode(pricing_mode_str).unwrap();
+            assert_eq!(parsed, PricingMode::Reserved);
+        }
+        #[test]
+        fn should_parse_gas_price_multiplier_pricing_mode() {
+            let pricing_mode_str = "10";
+            let parsed = pricing_mode(pricing_mode_str).unwrap();
+            assert_eq!(parsed, PricingMode::GasPriceMultiplier(10));
+        }
+        #[test]
+        fn should_fail_to_parse_invalid_pricing_mode() {
+            let pricing_mode_str = "invalid";
+            let parsed = pricing_mode(pricing_mode_str);
+            assert!(parsed.is_err());
+            assert!(matches!(
+                parsed,
+                Err(CliError::InvalidArgument {
+                    context: "pricing_mode",
+                    ..
+                })
+            ));
         }
     }
 }

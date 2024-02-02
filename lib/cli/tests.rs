@@ -1,7 +1,9 @@
 use casper_types::{
-    AsymmetricType, DeployExcessiveSizeError, ExecutableDeployItem, PublicKey, SecretKey,
+    AsymmetricType, CLValue, DeployExcessiveSizeError, EntityAddr, ExecutableDeployItem, PublicKey,
+    SecretKey, U512,
 };
 
+use crate::cli::transaction::create_transaction;
 use crate::{Error, OutputKind, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 
 use super::*;
@@ -118,9 +120,9 @@ fn args_simple() -> Vec<&'static str> {
 fn should_create_deploy() {
     let deploy_params = deploy_params();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
     let session_params =
-        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
 
     let mut output = Vec::new();
 
@@ -151,7 +153,7 @@ fn should_create_deploy() {
 fn should_fail_to_create_large_deploy() {
     let deploy_params = deploy_params();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
     // Create a string arg of 1048576 letter 'a's to ensure the deploy is greater than 1048576
     // bytes.
     let large_args_simple = format!("name_01:string='{:a<1048576}'", "");
@@ -161,7 +163,6 @@ fn should_fail_to_create_large_deploy() {
         VERSION,
         ENTRYPOINT,
         vec![large_args_simple.as_str()],
-        "",
         "",
     );
 
@@ -297,9 +298,9 @@ fn should_fail_to_create_transfer_with_bad_args() {
 fn should_create_unsigned_deploy() {
     let deploy_params = deploy_params_without_secret_key();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
     let session_params =
-        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
 
     let deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, true)
@@ -316,9 +317,9 @@ fn should_create_unsigned_deploy() {
 fn should_fail_to_create_deploy_with_no_session_account() {
     let deploy_params = deploy_params_without_account();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
     let session_params =
-        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
 
     let deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, true);
@@ -381,7 +382,7 @@ fn should_fail_to_create_transfer_without_account() {
 fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned_deploy() {
     let deploy_params = deploy_params_without_secret_key();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
 
     // with public key.
     let secret_key = SecretKey::generate_ed25519().unwrap();
@@ -412,9 +413,9 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
 ) {
     let deploy_params = deploy_params_without_secret_key();
     let payment_params =
-        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
     let session_params =
-        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "", "");
+        SessionStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
 
     let transfer_deploy =
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, false);
@@ -427,4 +428,639 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
             error: _
         }
     ));
+}
+
+mod transaction {
+    use super::*;
+    use crate::Error::TransactionBuild;
+    use casper_types::{
+        bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget,
+        TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError,
+    };
+
+    #[test]
+    fn should_create_add_bid_transaction() {
+        let secret_key = SecretKey::generate_ed25519().unwrap();
+        let amount = U512::from(1000);
+        let public_key = PublicKey::from(&secret_key);
+
+        let amount_cl = &CLValue::from_t(amount).unwrap();
+        let public_key_cl = &CLValue::from_t(&public_key).unwrap();
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "add-bid-test",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::AddBid {
+            public_key,
+            delegation_rate: 0,
+            amount,
+        };
+
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "add-bid-test");
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("public_key")
+                .unwrap(),
+            public_key_cl
+        );
+        assert!(transaction
+            .as_ref()
+            .unwrap()
+            .args()
+            .get("delegation_rate")
+            .is_some());
+        assert_eq!(
+            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            amount_cl
+        );
+    }
+    #[test]
+    fn should_create_delegate_transaction() {
+        let delegator_secret_key = SecretKey::generate_ed25519().unwrap();
+        let validator_secret_key = SecretKey::generate_ed25519().unwrap();
+
+        let delegator_public_key = PublicKey::from(&delegator_secret_key);
+        let validator_public_key = PublicKey::from(&validator_secret_key);
+        let amount = U512::from(2000);
+
+        let delegator_public_key_cl = &CLValue::from_t(&delegator_public_key).unwrap();
+        let validator_public_key_cl = &CLValue::from_t(&validator_public_key).unwrap();
+        let amount_cl = &CLValue::from_t(amount).unwrap();
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "delegate",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::Delegate {
+            delegator: PublicKey::from(&delegator_secret_key),
+            validator: PublicKey::from(&validator_secret_key),
+            amount,
+        };
+
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "delegate");
+        assert_eq!(
+            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            amount_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("delegator")
+                .unwrap(),
+            delegator_public_key_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("validator")
+                .unwrap(),
+            validator_public_key_cl
+        );
+    }
+
+    #[test]
+    fn should_create_withdraw_bid_transaction() {
+        let secret_key = SecretKey::generate_ed25519().unwrap();
+
+        let public_key = PublicKey::from(&secret_key);
+        let amount = U512::from(3000);
+
+        let public_key_cl = &CLValue::from_t(&public_key).unwrap();
+        let amount_cl = &CLValue::from_t(amount).unwrap();
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "withdraw-bid",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params =
+            TransactionBuilderParams::WithdrawBid { public_key, amount };
+
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "withdraw-bid");
+        assert_eq!(
+            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            amount_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("public_key")
+                .unwrap(),
+            public_key_cl
+        );
+    }
+
+    #[test]
+    fn should_create_undelegatge_transaction() {
+        let delegator_secret_key = SecretKey::generate_ed25519().unwrap();
+        let validator_secret_key = SecretKey::generate_ed25519().unwrap();
+
+        let amount = U512::from(4000);
+        let delegator_public_key = PublicKey::from(&delegator_secret_key);
+        let validator_public_key = PublicKey::from(&validator_secret_key);
+
+        let amount_cl = &CLValue::from_t(amount).unwrap();
+        let delegator_public_key_cl = &CLValue::from_t(&delegator_public_key).unwrap();
+        let validator_public_key_cl = &CLValue::from_t(&validator_public_key).unwrap();
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "undelegate",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::Undelegate {
+            delegator: PublicKey::from(&delegator_secret_key),
+            validator: PublicKey::from(&validator_secret_key),
+            amount,
+        };
+
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "undelegate");
+        assert_eq!(
+            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            amount_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("delegator")
+                .unwrap(),
+            delegator_public_key_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("validator")
+                .unwrap(),
+            validator_public_key_cl
+        );
+    }
+
+    #[test]
+    fn should_create_redelegatge_transaction() {
+        let delegator_secret_key = SecretKey::generate_ed25519().unwrap();
+        let validator_secret_key = SecretKey::generate_ed25519().unwrap();
+        let new_validator_secret_key = SecretKey::generate_ed25519().unwrap();
+
+        let delegator_public_key = PublicKey::from(&delegator_secret_key);
+        let validator_public_key = PublicKey::from(&validator_secret_key);
+        let new_validator_public_key = PublicKey::from(&new_validator_secret_key);
+        let amount = U512::from(5000);
+
+        let delegator_public_key_cl = &CLValue::from_t(&delegator_public_key).unwrap();
+        let validator_public_key_cl = &CLValue::from_t(&validator_public_key).unwrap();
+        let new_validator_public_key_cl = &CLValue::from_t(&new_validator_public_key).unwrap();
+        let amount_cl = &CLValue::from_t(amount).unwrap();
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "redelegate",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::Redelegate {
+            delegator: PublicKey::from(&delegator_secret_key),
+            validator: PublicKey::from(&validator_secret_key),
+            amount,
+            new_validator: PublicKey::from(&new_validator_secret_key),
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "redelegate");
+        assert_eq!(
+            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            amount_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("delegator")
+                .unwrap(),
+            delegator_public_key_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("validator")
+                .unwrap(),
+            validator_public_key_cl
+        );
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .get("new_validator")
+                .unwrap(),
+            new_validator_public_key_cl
+        );
+    }
+
+    #[test]
+    fn should_create_invocable_entity_transaction() {
+        let entity_addr: EntityAddr = vec![0u8; 32].as_slice().try_into().unwrap();
+        let entry_point = String::from("test-entry-point");
+        let target = &TransactionTarget::Stored {
+            id: TransactionInvocationTarget::InvocableEntity(entity_addr),
+            runtime: TransactionRuntime::VmCasperV1,
+        };
+
+        let entry_point_ref = &TransactionEntryPoint::Custom(entry_point);
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "invocable-entity",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
+            entity_addr,
+            entry_point: "test-entry-point",
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(
+            transaction.as_ref().unwrap().chain_name(),
+            "invocable-entity"
+        );
+        assert_eq!(
+            transaction.as_ref().unwrap().body().entry_point(),
+            entry_point_ref
+        );
+        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+    }
+    #[test]
+    fn should_create_invocable_entity_alias_transaction() {
+        let alias = String::from("alias");
+        let target = &TransactionTarget::Stored {
+            id: TransactionInvocationTarget::InvocableEntityAlias(alias),
+            runtime: TransactionRuntime::VmCasperV1,
+        };
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "invocable-entity-alias",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
+            entity_alias: "alias",
+            entry_point: "entry-point-alias",
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(
+            transaction.as_ref().unwrap().chain_name(),
+            "invocable-entity-alias"
+        );
+        assert_eq!(
+            transaction.as_ref().unwrap().body().entry_point(),
+            &TransactionEntryPoint::Custom("entry-point-alias".to_string())
+        );
+        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+    }
+    #[test]
+    fn should_create_package_transaction() {
+        let package_addr: PackageAddr = vec![0u8; 32].as_slice().try_into().unwrap();
+        let entry_point = "test-entry-point-package";
+        let maybe_entity_version = Some(23);
+        let target = &TransactionTarget::Stored {
+            id: TransactionInvocationTarget::Package {
+                addr: package_addr,
+                version: maybe_entity_version,
+            },
+            runtime: TransactionRuntime::VmCasperV1,
+        };
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "package",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::Package {
+            package_addr,
+            entry_point,
+            maybe_entity_version,
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "package");
+        assert_eq!(
+            transaction.as_ref().unwrap().body().entry_point(),
+            &TransactionEntryPoint::Custom("test-entry-point-package".to_string())
+        );
+        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+    }
+    #[test]
+    fn should_create_package_alias_transaction() {
+        let package_alias: String = String::from("package-alias");
+        let entry_point = "test-entry-point-package";
+        let maybe_entity_version = Some(23);
+        let target = &TransactionTarget::Stored {
+            id: TransactionInvocationTarget::PackageAlias {
+                alias: package_alias.clone(),
+                version: maybe_entity_version,
+            },
+            runtime: TransactionRuntime::VmCasperV1,
+        };
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "package",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::PackageAlias {
+            package_alias: &package_alias,
+            entry_point,
+            maybe_entity_version,
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "package");
+        assert_eq!(
+            transaction.as_ref().unwrap().body().entry_point(),
+            &TransactionEntryPoint::Custom("test-entry-point-package".to_string())
+        );
+        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+    }
+    #[test]
+    fn should_create_session_transaction() {
+        let transaction_bytes = Bytes::from(vec![1u8; 32]);
+        let target = &TransactionTarget::Session {
+            kind: TransactionSessionKind::Standard,
+            runtime: TransactionRuntime::VmCasperV1,
+            module_bytes: transaction_bytes.clone(),
+        };
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "session",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::Session {
+            transaction_bytes,
+            entry_point: "entry-point-session",
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "session");
+        assert_eq!(
+            transaction.as_ref().unwrap().body().entry_point(),
+            &TransactionEntryPoint::Custom("entry-point-session".to_string())
+        );
+        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+    }
+    #[test]
+    fn should_create_transfer_transaction() {
+        let source_uref = URef::from_formatted_str(
+            "uref-0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007",
+        )
+        .unwrap();
+        let target_uref = URef::from_formatted_str(
+            "uref-0202030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007",
+        )
+        .unwrap();
+
+        let source_uref_cl = &CLValue::from_t(&source_uref).unwrap();
+        let target_uref_cl = &CLValue::from_t(&target_uref).unwrap();
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "transfer",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::Transfer {
+            source_uref,
+            target_uref,
+            amount: Default::default(),
+            maybe_to: None,
+            maybe_id: None,
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        assert_eq!(transaction.as_ref().unwrap().chain_name(), "transfer");
+        assert_eq!(
+            transaction.as_ref().unwrap().body().entry_point(),
+            &TransactionEntryPoint::Transfer
+        );
+        assert_eq!(
+            transaction.as_ref().unwrap().args().get("source").unwrap(),
+            source_uref_cl
+        );
+        assert_eq!(
+            transaction.as_ref().unwrap().args().get("target").unwrap(),
+            target_uref_cl
+        );
+    }
+    #[test]
+    fn should_fail_to_create_transaction_with_no_secret_or_public_key() {
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "no-secret",
+            initiator_addr: "".to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+        let transaction_builder_params = TransactionBuilderParams::Transfer {
+            source_uref: Default::default(),
+            target_uref: Default::default(),
+            amount: Default::default(),
+            maybe_to: None,
+            maybe_id: None,
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_err());
+        assert!(matches!(
+            transaction.unwrap_err(),
+            CliError::Core(TransactionBuild(
+                TransactionV1BuilderError::MissingInitiatorAddr
+            ))
+        ));
+    }
+    #[test]
+    fn should_create_transaction_with_secret_key_but_no_initiator_addr() {
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "resources/test.pem",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "has-secret",
+            initiator_addr: "".to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+        let transaction_builder_params = TransactionBuilderParams::AddBid {
+            public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
+            delegation_rate: 0,
+            amount: U512::from(10),
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        println!("{:?}", transaction);
+    }
+
+    #[test]
+    fn should_fail_to_create_transaction_with_no_secret_and_no_unsigned_transactions() {
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "no-secret-must-be-signed",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            maybe_pricing_mode: None,
+            output_path: "",
+            payment_amount: "100",
+        };
+        let transaction_builder_params = TransactionBuilderParams::AddBid {
+            public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
+            delegation_rate: 0,
+            amount: U512::from(10),
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, false);
+        assert!(transaction.is_err(), "{:?}", transaction);
+        println!("{:?}", transaction);
+        assert!(matches!(
+            transaction.unwrap_err(),
+            CliError::InvalidArgument {
+                context: "create_transaction (secret_key, allow_unsigned_deploy)",
+                error: _
+            }
+        ));
+    }
 }

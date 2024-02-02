@@ -8,6 +8,7 @@ use casper_types::{
     account::AccountHash, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff, Timestamp, URef,
 };
 use casper_types::{CLValueError, KeyFromStrError, UIntParseError, URefFromStrError};
+use uint::FromDecStrErr;
 
 use crate::cli::JsonArgsError;
 #[cfg(doc)]
@@ -61,6 +62,16 @@ pub enum CliError {
         context: &'static str,
         /// The actual error raised.
         error: ParseIntError,
+    },
+
+    /// Failed to parse an integer from a string.
+    #[error("failed to parse '{context}' as an integer: {error}")]
+    FailedToParseDec {
+        /// Contextual description of where this error occurred including relevant paths,
+        /// filenames, etc.
+        context: &'static str,
+        /// The actual error raised.
+        error: FromDecStrErr,
     },
 
     /// Failed to parse a [`TimeDiff`] from a formatted string.
@@ -145,6 +156,10 @@ pub enum CliError {
     /// Core error.
     #[error(transparent)]
     Core(#[from] crate::Error),
+
+    /// Failed to parse a package address
+    #[error("Failed to parse a package address")]
+    FailedToParsePackageAddr,
 }
 
 impl From<CLValueError> for CliError {

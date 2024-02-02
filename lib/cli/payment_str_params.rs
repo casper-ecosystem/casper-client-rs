@@ -90,15 +90,10 @@ use crate::cli;
 /// [{"name":"t","type":{"Tuple3":["Bool","U8","String"]},"value":[true,128,"a"]}]
 /// ```
 ///
-/// ## `payment_args_complex`
-///
-/// For methods taking `payment_args_complex`, this parameter is the payment contract arguments, in
-/// the form of a `ToBytes`-encoded file.
-///
 /// ---
 ///
 /// **Note** while multiple payment args can be specified for a single payment code instance, only
-/// one of `payment_args_simple`, `payment_args_json` or `payment_args_complex` may be used.
+/// one of `payment_args_simple` or `payment_args_json` may be used.
 #[derive(Default)]
 pub struct PaymentStrParams<'a> {
     pub(super) payment_amount: &'a str,
@@ -109,7 +104,6 @@ pub struct PaymentStrParams<'a> {
     pub(super) payment_path: &'a str,
     pub(super) payment_args_simple: Vec<&'a str>,
     pub(super) payment_args_json: &'a str,
-    pub(super) payment_args_complex: &'a str,
     pub(super) payment_version: &'a str,
     pub(super) payment_entry_point: &'a str,
 }
@@ -125,13 +119,11 @@ impl<'a> PaymentStrParams<'a> {
         payment_path: &'a str,
         payment_args_simple: Vec<&'a str>,
         payment_args_json: &'a str,
-        payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_path,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
             ..Default::default()
         }
     }
@@ -161,13 +153,11 @@ impl<'a> PaymentStrParams<'a> {
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
         payment_args_json: &'a str,
-        payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_name,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
             payment_entry_point,
             ..Default::default()
         }
@@ -186,13 +176,11 @@ impl<'a> PaymentStrParams<'a> {
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
         payment_args_json: &'a str,
-        payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_hash,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
             payment_entry_point,
             ..Default::default()
         }
@@ -214,13 +202,11 @@ impl<'a> PaymentStrParams<'a> {
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
         payment_args_json: &'a str,
-        payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_package_name,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
             payment_version,
             payment_entry_point,
             ..Default::default()
@@ -244,13 +230,11 @@ impl<'a> PaymentStrParams<'a> {
         payment_entry_point: &'a str,
         payment_args_simple: Vec<&'a str>,
         payment_args_json: &'a str,
-        payment_args_complex: &'a str,
     ) -> Self {
         Self {
             payment_package_hash,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
             payment_version,
             payment_entry_point,
             ..Default::default()
