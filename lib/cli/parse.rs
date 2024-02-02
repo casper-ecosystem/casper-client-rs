@@ -6,15 +6,16 @@ use std::{fs, path::Path, str::FromStr};
 use rand::Rng;
 
 use casper_types::{
-    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
-    ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, SecretKey,
-    TimeDiff, Timestamp, TransactionV1, UIntParseError, URef, U512,
+    account::AccountHash, bytesrepr::Bytes, crypto, AddressableEntityHash, AsymmetricType,
+    BlockHash, DeployHash, Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode,
+    PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, TransactionV1, UIntParseError, URef,
+    U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
-    AccountIdentifier, BlockIdentifier, GlobalStateIdentifier, JsonRpcId, OutputKind,
-    PurseIdentifier, Verbosity,
+    AccountIdentifier, BlockIdentifier, EntityIdentifier, GlobalStateIdentifier, JsonRpcId,
+    OutputKind, PurseIdentifier, Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -743,6 +744,60 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
     Ok(AccountIdentifier::PublicKey(public_key))
 }
 
+/// `entity_identifier` can be a formatted public key, in the form of a hex-formatted string,
+/// a pem file, or a file containing a hex formatted string, or a formatted string representing
+/// an account hash.  It may not be empty.
+pub(super) fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentifier, CliError> {
+    const ACCOUNT_ENTITY_PREFIX: &str = "account-";
+    const CONTRACT_ENTITY_PREFIX: &str = "contract-";
+    const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
+
+    if entity_identifier.is_empty() {
+        return Err(CliError::InvalidArgument {
+            context: "entity_identifier",
+            error: "cannot be empty string".to_string(),
+        });
+    }
+
+    if entity_identifier.starts_with(ACCOUNT_HASH_PREFIX) {
+        let account_hash = AccountHash::from_formatted_str(entity_identifier).map_err(|error| {
+            CliError::FailedToParseAccountHash {
+                context: "entity_identifier",
+                error,
+            }
+        })?;
+        return Ok(EntityIdentifier::AccountHash(account_hash));
+    }
+
+    if let Some(suffix) = entity_identifier.strip_prefix(ACCOUNT_ENTITY_PREFIX) {
+        let entity_hash = AddressableEntityHash::from_formatted_str(suffix).map_err(|error| {
+            CliError::FailedToParseAddressableEntityHash {
+                context: "entity_identifier",
+                error,
+            }
+        })?;
+        return Ok(EntityIdentifier::EntityHashForAccount(entity_hash));
+    }
+
+    if let Some(suffix) = entity_identifier.strip_prefix(CONTRACT_ENTITY_PREFIX) {
+        let entity_hash = AddressableEntityHash::from_formatted_str(suffix).map_err(|error| {
+            CliError::FailedToParseAddressableEntityHash {
+                context: "entity_identifier",
+                error,
+            }
+        })?;
+        return Ok(EntityIdentifier::EntityHashForContract(entity_hash));
+    }
+
+    let public_key = PublicKey::from_hex(entity_identifier).map_err(|error| {
+        CliError::FailedToParsePublicKey {
+            context: "entity_identifier".to_string(),
+            error,
+        }
+    })?;
+    Ok(EntityIdentifier::PublicKey(public_key))
+}
+
 pub(super) fn pricing_mode(pricing_mode_str: &str) -> Result<PricingMode, CliError> {
     match pricing_mode_str.to_lowercase().as_str() {
         "fixed" => Ok(PricingMode::Fixed),
@@ -1421,6 +1476,54 @@ mod tests {
             assert!(parsed.is_err());
         }
     }
+
+    mod entity_identifier {
+        use super::*;
+
+        #[test]
+        pub fn should_parse_valid_contract_entity_hash() {
+            let entity_hash =
+                "contract-addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let parsed = entity_identifier(entity_hash).unwrap();
+            let expected = AddressableEntityHash::from_formatted_str("addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e").unwrap();
+            assert_eq!(parsed, EntityIdentifier::EntityHashForContract(expected));
+        }
+
+        #[test]
+        pub fn should_parse_valid_account_entity_hash() {
+            let entity_hash =
+                "account-addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let parsed = entity_identifier(entity_hash).unwrap();
+            let expected = AddressableEntityHash::from_formatted_str("addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e").unwrap();
+            assert_eq!(parsed, EntityIdentifier::EntityHashForAccount(expected));
+        }
+
+        #[test]
+        pub fn should_parse_valid_public_key() {
+            let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd2605d3f4bbb69b3c80";
+            let parsed = entity_identifier(public_key).unwrap();
+            let expected = PublicKey::from_hex(public_key).unwrap();
+            assert_eq!(parsed, EntityIdentifier::PublicKey(expected));
+        }
+
+        #[test]
+        pub fn should_fail_to_parse_invalid_entity_hash() {
+            //This is the account hash from above with several characters removed
+            let entity_hash =
+                "contract-addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef138";
+            let parsed = entity_identifier(entity_hash);
+            assert!(parsed.is_err());
+        }
+
+        #[test]
+        pub fn should_fail_to_parse_invalid_public_key() {
+            //This is the public key from above with several characters removed
+            let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd26054bbb69b3c80";
+            let parsed = entity_identifier(public_key);
+            assert!(parsed.is_err());
+        }
+    }
+
     mod pricing_mode {
         use super::*;
         #[test]

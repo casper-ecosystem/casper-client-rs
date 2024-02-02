@@ -44,6 +44,15 @@ pub enum CliError {
         error: casper_types::addressable_entity::FromStrError,
     },
 
+    /// Failed to parse an [`AddressableEntityHash`] from a formatted string.
+    #[error("failed to parse {context} as an addressable entity hash: {error}")]
+    FailedToParseAddressableEntityHash {
+        /// Contextual description of where this error occurred.
+        context: &'static str,
+        /// The actual error raised.
+        error: casper_types::addressable_entity::FromStrError,
+    },
+
     /// Failed to parse a [`URef`] from a formatted string.
     #[error("failed to parse '{context}' as a uref: {error}")]
     FailedToParseURef {
