@@ -64,11 +64,12 @@ pub use output_kind::OutputKind;
 use rpcs::{
     common::{BlockIdentifier, GlobalStateIdentifier},
     results::{
-        GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
-        GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
-        GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
-        GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
-        PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
+        GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
+        GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
+        GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
+        GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
+        PutDeployResult, PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult,
+        SpeculativeExecResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
@@ -79,10 +80,7 @@ use rpcs::{
         get_chainspec::GET_CHAINSPEC_METHOD,
         get_deploy::{GetDeployParams, GET_DEPLOY_METHOD},
         get_dictionary_item::{GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD},
-        get_entity::{
-            EntityIdentifier, GetAddressableEntityParams, GetAddressableEntityResult,
-            GET_ENTITY_METHOD,
-        },
+        get_entity::{EntityIdentifier, GetAddressableEntityParams, GET_ENTITY_METHOD},
         get_era_info::{GetEraInfoParams, GET_ERA_INFO_METHOD},
         get_era_summary::{GetEraSummaryParams, GET_ERA_SUMMARY_METHOD},
         get_node_status::GET_NODE_STATUS_METHOD,
