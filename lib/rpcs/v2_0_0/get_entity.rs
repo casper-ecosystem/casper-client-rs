@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::rpcs::common::BlockIdentifier;
 
-pub(crate) const GET_ENTITY_METHOD: &str = "chain_get_entity";
+pub(crate) const GET_ENTITY_METHOD: &str = "state_get_entity";
 
 /// Identifier of an addressable entity.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
