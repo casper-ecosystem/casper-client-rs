@@ -7,8 +7,6 @@ use casper_client::cli::CliError;
 
 use crate::{command::ClientCommand, common, Success};
 
-/// Legacy name of command.
-const COMMAND_ALIAS: &str = "get-entity";
 const ENTITY_IDENTIFIER_IS_REQUIRED: bool = true;
 const PUBLIC_KEY_IDENTIFIER_ALIAS: &str = "public-key";
 const PUBLIC_KEY_IDENTIFIER_SHORT_ALIAS: char = 'p';
@@ -33,7 +31,6 @@ impl ClientCommand for GetEntity {
 
     fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
-            .alias(COMMAND_ALIAS)
             .about(Self::ABOUT)
             .display_order(display_order)
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
