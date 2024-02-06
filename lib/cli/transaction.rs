@@ -100,10 +100,10 @@ pub fn make_transaction(
 pub fn sign_transaction_file(
     input_path: &str,
     secret_key_path: &str,
-    maybe_output_path: &str,
+    maybe_output_path: Option<&str>,
     force: bool,
 ) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    let output = parse::output_kind(maybe_output_path.unwrap_or(""), force);
     let secret_key = parse::secret_key_from_file(secret_key_path)?;
     crate::sign_transaction_file(input_path, &secret_key, output).map_err(CliError::from)
 }
