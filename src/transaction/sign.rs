@@ -36,16 +36,18 @@ impl ClientCommand for SignTransaction {
         let secret_key = common::secret_key::get(matches).unwrap_or_default();
         let maybe_output_path = creation_common::output::get(matches).unwrap_or_default();
         let force = common::force::get(matches);
+        let output = if maybe_output_path.is_empty(){
+            String::new()
+        } else {
+            format!(
+                "Signed the transaction at {} and wrote to {}",
+                input_path, maybe_output_path
+            )
+        };
+
         casper_client::cli::sign_transaction_file(input_path, secret_key, maybe_output_path, force)
             .map(|_| {
-                Success::Output(if maybe_output_path.is_empty() {
-                    String::new()
-                } else {
-                    format!(
-                        "Signed the transaction at {} and wrote to {}",
-                        input_path, maybe_output_path
-                    )
-                })
+                Success::Output(output)
             })
     }
 }
