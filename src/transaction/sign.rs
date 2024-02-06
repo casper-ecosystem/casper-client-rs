@@ -45,6 +45,13 @@ impl ClientCommand for SignTransaction {
             )
         };
 
+        // convert maybe_output_path to an instance of Option to change the function signature of sign_transaction_file
+        let maybe_output_path = if maybe_output_path.is_empty() {
+            None
+        } else {
+            Some(maybe_output_path)
+        };
+
         casper_client::cli::sign_transaction_file(input_path, secret_key, maybe_output_path, force)
             .map(|_| {
                 Success::Output(output)
