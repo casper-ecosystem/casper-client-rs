@@ -55,7 +55,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::Account, Block, StoredValue, Transfer};
-use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, TransactionV1, URef};
+use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, Transaction, TransactionV1, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
@@ -68,7 +68,7 @@ use rpcs::{
         GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
         GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
         GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
-        QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
+        QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult, PutTransactionResult
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
@@ -90,6 +90,7 @@ use rpcs::{
         query_balance::{PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD},
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
+        put_transaction::{PutTransactionParams, PUT_TRANSACTION_METHOD}
     },
     DictionaryItemIdentifier,
 };
@@ -115,6 +116,22 @@ pub async fn put_deploy(
 ) -> Result<SuccessResponse<PutDeployResult>, Error> {
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(PUT_DEPLOY_METHOD, Some(PutDeployParams::new(deploy)))
+        .await
+}
+
+/// Puts a [`Transaction`] to the network for execution
+///
+/// Sends a JSON-RPC `account_put_transaction` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn put_transaction(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    transaction: Transaction,
+) -> Result<SuccessResponse<PutTransactionResult>, Error> {
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(PUT_TRANSACTION_METHOD, Some(PutTransactionParams::new(transaction)))
         .await
 }
 
