@@ -5,11 +5,7 @@ use std::{fs, path::Path, str::FromStr};
 
 use rand::Rng;
 
-use casper_types::{
-    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
-    ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, SecretKey,
-    TimeDiff, Timestamp, UIntParseError, URef, U512,
-};
+use casper_types::{account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, UIntParseError, URef, U512, TransactionV1};
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
@@ -413,6 +409,23 @@ pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
         error,
     })?;
     Ok(Bytes::from(module_bytes))
+}
+
+/// Parse a transaction file into a `TransactionV1` to be sent to the network
+pub fn transaction_from_file(transaction_path: &str) -> Result<TransactionV1, CliError>{
+    let transaction_bytes = fs::read(transaction_path).map_err(|error| crate::Error::IoError {
+        context: format!("unable to read transaction file at '{}'", transaction_path),
+        error,
+    })?;
+    let transaction_str = std::str::from_utf8(&transaction_bytes).map_err(|error| crate::Error::Utf8Error{
+        context: "transaction_from_file",
+        error,
+    })?;
+    let transaction: TransactionV1 = serde_json::from_str(transaction_str).map_err(|error| crate::Error::FailedToDecodeFromJson {
+        context: "transaction",
+        error,
+    })?;
+    Ok(transaction)
 }
 /// Parses a URef from a formatted string for the purposes of creating transactions.
 pub fn uref(uref_str: &str) -> Result<URef, CliError> {
