@@ -46,6 +46,8 @@ pub(super) enum DisplayOrder {
     NewValidator,
     Delegator,
     EntityAddr,
+    RpcId,
+    Verbose,
 }
 
 /// Handles providing the arg for and executing the show-simple-arg-examples option.
@@ -305,7 +307,7 @@ pub(super) mod payment_amount {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required(false)
+            .required(true)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::PaymentAmount as usize)
@@ -522,9 +524,9 @@ pub(super) mod transaction_path {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to input transaction file";
 
-    pub fn arg() -> Arg {
+    pub fn arg(required: bool) -> Arg {
         Arg::new(ARG_NAME)
-            .required(true)
+            .required(required)
             .long(ARG_NAME)
             .short(ARG_SHORT)
             .value_name(ARG_VALUE_NAME)
@@ -532,11 +534,8 @@ pub(super) mod transaction_path {
             .display_order(DisplayOrder::Input as usize)
     }
 
-    pub fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
+    pub fn get(matches: &ArgMatches) -> Option<&str> {
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -922,7 +921,6 @@ pub(super) mod add_bid {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
@@ -965,7 +963,6 @@ pub(super) mod withdraw_bid {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
@@ -999,7 +996,6 @@ pub(super) mod delegate {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1042,7 +1038,6 @@ pub(super) mod undelegate {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1083,7 +1078,6 @@ pub(super) mod redelegate {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1287,7 +1281,16 @@ pub(super) mod session {
         show_json_args_examples_and_exit_if_required(matches);
 
         let transaction_path_str = transaction_path::get(matches);
-        let transaction_bytes = parse::transaction_module_bytes(transaction_path_str)?;
+
+        if transaction_path_str.is_none() {
+            return Err(CliError::InvalidArgument {
+                context: "transaction-path",
+                error: "Transaction path cannot be empty".to_string(),
+            });
+        }
+
+        let transaction_bytes =
+            parse::transaction_module_bytes(transaction_path_str.unwrap_or_default())?;
 
         let entry_point = session_entry_point::get(matches);
 
@@ -1301,7 +1304,7 @@ pub(super) mod session {
 
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
-            .arg(transaction_path::arg())
+            .arg(transaction_path::arg(true))
             .arg(session_entry_point::arg())
     }
 }
@@ -1322,7 +1325,6 @@ pub(super) mod transfer {
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let source_str = source::get(matches);
         let source_uref = parse::uref(source_str)?;
 
