@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{Transaction, TransactionHash, ProtocolVersion};
+use casper_types::{ProtocolVersion, Transaction, TransactionHash};
 
 pub(crate) const PUT_TRANSACTION_METHOD: &str = "account_put_transaction";
 
@@ -11,7 +11,6 @@ pub struct PutTransactionParams {
     /// The `Transaction`.
     pub transaction: Transaction,
 }
-
 
 impl PutTransactionParams {
     pub(crate) fn new(transaction: Transaction) -> Self {
