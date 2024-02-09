@@ -1,16 +1,20 @@
 use crate::cli::{parse, CliError, TransactionBuilderParams, TransactionStrParams};
-use casper_types::{InitiatorAddr, TransactionSessionKind, TransactionV1, TransactionV1Builder};
+use crate::rpcs::results::PutTransactionResult;
+use crate::SuccessResponse;
+use casper_types::{
+    InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder,
+};
 
 pub fn create_transaction(
     builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams,
-    allow_unsigned_deploy: bool,
+    allow_unsigned_transaction: bool,
 ) -> Result<TransactionV1, CliError> {
     let chain_name = transaction_params.chain_name.to_string();
     if transaction_params.payment_amount.is_empty() {
         return Err(CliError::InvalidArgument {
             context: "create_transaction (payment_amount)",
-            error: "payment_amount is required".to_string(),
+            error: "payment_amount is required to be non empty".to_string(),
         });
     }
     let payment_amount = transaction_params
@@ -21,14 +25,15 @@ pub fn create_transaction(
             error,
         })?;
 
-    let maybe_secret_key = if allow_unsigned_deploy && transaction_params.secret_key.is_empty() {
+    let maybe_secret_key = if allow_unsigned_transaction && transaction_params.secret_key.is_empty()
+    {
         None
-    } else if transaction_params.secret_key.is_empty() && !allow_unsigned_deploy {
+    } else if transaction_params.secret_key.is_empty() && !allow_unsigned_transaction {
         return Err(CliError::InvalidArgument {
             context: "create_transaction (secret_key, allow_unsigned_deploy)",
             error: format!(
                 "allow_unsigned_deploy was {}, but no secret key was provided",
-                allow_unsigned_deploy
+                allow_unsigned_transaction
             ),
         });
     } else {
@@ -71,14 +76,13 @@ pub fn create_transaction(
     Ok(txn)
 }
 
-/// Creates a transfer [`Transaction`] and outputs it to a file or stdout.
+/// Creates a [`Transaction`] and outputs it to a file or stdout.
 ///
 /// As a file, the `Transaction` can subsequently be signed by other parties using [`sign_transaction_file`]
 /// and then sent to the network for execution using [`send_transaction_file`].
 ///
-/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
-/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
+/// If `force` is true, and a file exists at `transaction_params.output_path`, it will be overwritten.  If `force`
+/// is false and a file exists at `transaction_params.output_path`, [`Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 pub fn make_transaction(
     builder_params: TransactionBuilderParams,
@@ -88,6 +92,31 @@ pub fn make_transaction(
     let output = parse::output_kind(transaction_params.output_path, force);
     let transaction = create_transaction(builder_params, transaction_params, true)?;
     crate::output_transaction(output, &transaction).map_err(CliError::from)
+}
+
+/// Creates a [`Transaction`] and sends it to the network for execution.
+///
+/// `rpc_id_str` is the RPC ID to use for this request.
+/// `node_address` is the address of the node to send the request to.
+/// `verbosity_level` is the level of verbosity to use when outputting the response.
+pub async fn put_transaction(
+    rpc_id_str: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    builder_params: TransactionBuilderParams<'_>,
+    transaction_params: TransactionStrParams<'_>,
+) -> Result<SuccessResponse<PutTransactionResult>, CliError> {
+    let rpc_id = parse::rpc_id(rpc_id_str);
+    let verbosity_level = parse::verbosity(verbosity_level);
+    let transaction = create_transaction(builder_params, transaction_params, false)?;
+    crate::put_transaction(
+        rpc_id,
+        node_address,
+        verbosity_level,
+        Transaction::V1(transaction),
+    )
+    .await
+    .map_err(CliError::from)
 }
 
 /// Reads a previously-saved [`TransactionV1`] from a file, cryptographically signs it, and outputs it to a

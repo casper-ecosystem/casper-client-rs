@@ -68,7 +68,7 @@ use rpcs::{
         GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
         GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
         GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
-        QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult, PutTransactionResult
+        PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
@@ -87,10 +87,10 @@ use rpcs::{
         get_validator_changes::GET_VALIDATOR_CHANGES_METHOD,
         list_rpcs::LIST_RPCS_METHOD,
         put_deploy::{PutDeployParams, PUT_DEPLOY_METHOD},
+        put_transaction::{PutTransactionParams, PUT_TRANSACTION_METHOD},
         query_balance::{PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD},
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
-        put_transaction::{PutTransactionParams, PUT_TRANSACTION_METHOD}
     },
     DictionaryItemIdentifier,
 };
@@ -131,7 +131,10 @@ pub async fn put_transaction(
     transaction: Transaction,
 ) -> Result<SuccessResponse<PutTransactionResult>, Error> {
     JsonRpcCall::new(rpc_id, node_address, verbosity)
-        .send_request(PUT_TRANSACTION_METHOD, Some(PutTransactionParams::new(transaction)))
+        .send_request(
+            PUT_TRANSACTION_METHOD,
+            Some(PutTransactionParams::new(transaction)),
+        )
         .await
 }
 

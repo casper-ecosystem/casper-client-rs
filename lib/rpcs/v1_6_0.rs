@@ -10,6 +10,7 @@ pub(crate) mod get_chainspec {
 }
 
 pub(crate) mod get_deploy {
+    #[allow(unused_imports)]
     pub use crate::rpcs::v1_5_0::get_deploy::GetDeployResult;
     // This lint should be re-enabled once the client is updated to handle multiple different node
     // node versions.
@@ -57,6 +58,7 @@ pub(crate) mod get_balance {
 }
 
 pub(crate) mod get_block {
+    #[allow(unused_imports)]
     pub use crate::rpcs::v1_5_0::get_block::GetBlockResult;
     pub(crate) use crate::rpcs::v1_5_0::get_block::{GetBlockParams, GET_BLOCK_METHOD};
 }

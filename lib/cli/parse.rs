@@ -5,7 +5,11 @@ use std::{fs, path::Path, str::FromStr};
 
 use rand::Rng;
 
-use casper_types::{account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, UIntParseError, URef, U512, TransactionV1};
+use casper_types::{
+    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
+    ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, SecretKey,
+    TimeDiff, Timestamp, TransactionV1, UIntParseError, URef, U512,
+};
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
@@ -185,7 +189,7 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
 ///
 /// # Original Author
 /// This function was modified from one of the same name written by Gregory Roussac for the 1.6 SDK
-fn check_no_conflicting_arg_types(simple: &Vec<&str>, json: &str) -> Result<(), CliError> {
+fn check_no_conflicting_arg_types(simple: &[&str], json: &str) -> Result<(), CliError> {
     let count = [!simple.is_empty(), !json.is_empty()]
         .iter()
         .filter(|&&x| x)
@@ -412,18 +416,21 @@ pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
 }
 
 /// Parse a transaction file into a `TransactionV1` to be sent to the network
-pub fn transaction_from_file(transaction_path: &str) -> Result<TransactionV1, CliError>{
+pub fn transaction_from_file(transaction_path: &str) -> Result<TransactionV1, CliError> {
     let transaction_bytes = fs::read(transaction_path).map_err(|error| crate::Error::IoError {
         context: format!("unable to read transaction file at '{}'", transaction_path),
         error,
     })?;
-    let transaction_str = std::str::from_utf8(&transaction_bytes).map_err(|error| crate::Error::Utf8Error{
-        context: "transaction_from_file",
-        error,
-    })?;
-    let transaction: TransactionV1 = serde_json::from_str(transaction_str).map_err(|error| crate::Error::FailedToDecodeFromJson {
-        context: "transaction",
-        error,
+    let transaction_str =
+        std::str::from_utf8(&transaction_bytes).map_err(|error| crate::Error::Utf8Error {
+            context: "transaction_from_file",
+            error,
+        })?;
+    let transaction: TransactionV1 = serde_json::from_str(transaction_str).map_err(|error| {
+        crate::Error::FailedToDecodeFromJson {
+            context: "transaction",
+            error,
+        }
     })?;
     Ok(transaction)
 }
