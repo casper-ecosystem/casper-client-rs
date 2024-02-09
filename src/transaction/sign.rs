@@ -23,7 +23,7 @@ impl ClientCommand for SignTransaction {
                 common::secret_key::arg(creation_common::DisplayOrder::SecretKey as usize, "")
                     .required(true),
             )
-            .arg(creation_common::transaction_path::arg())
+            .arg(creation_common::transaction_path::arg(true))
             .arg(creation_common::output::arg())
             .arg(common::force::arg(
                 creation_common::DisplayOrder::Force as usize,
@@ -32,11 +32,11 @@ impl ClientCommand for SignTransaction {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        let input_path = creation_common::transaction_path::get(matches);
+        let input_path = creation_common::transaction_path::get(matches).unwrap_or_default();
         let secret_key = common::secret_key::get(matches).unwrap_or_default();
         let maybe_output_path = creation_common::output::get(matches).unwrap_or_default();
         let force = common::force::get(matches);
-        let output = if maybe_output_path.is_empty(){
+        let output = if maybe_output_path.is_empty() {
             String::new()
         } else {
             format!(
@@ -53,8 +53,6 @@ impl ClientCommand for SignTransaction {
         };
 
         casper_client::cli::sign_transaction_file(input_path, secret_key, maybe_output_path, force)
-            .map(|_| {
-                Success::Output(output)
-            })
+            .map(|_| Success::Output(output))
     }
 }
