@@ -176,6 +176,18 @@ pub fn read_deploy_file<P: AsRef<Path>>(deploy_path: P) -> Result<Deploy, Error>
     read_deploy(Cursor::new(input))
 }
 
+/// Reads a previously-saved [`Transaction`] from a file.
+pub fn read_transaction_file<P: AsRef<Path>>(transaction_path: P) -> Result<TransactionV1, Error> {
+    let input = fs::read(transaction_path.as_ref()).map_err(|error| Error::IoError {
+        context: format!(
+            "unable to read transaction file at '{}'",
+            transaction_path.as_ref().display()
+        ),
+        error,
+    })?;
+    read_transaction(Cursor::new(input))
+}
+
 /// Reads a previously-saved [`Deploy`] from a file, cryptographically signs it, and outputs it
 /// to a file or stdout.
 ///
@@ -195,6 +207,24 @@ pub fn sign_deploy_file<P: AsRef<Path>>(
     deploy.is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)?;
 
     write_deploy(&deploy, output.get()?)?;
+    output.commit()
+}
+
+/// Reads a previously-saved [`TransactionV1`] from a file, cryptographically signs it, and outputs it to a file or stdout.
+///
+/// `output` specifies the output file and corresponding overwrite behaviour, or if OutputKind::Stdout,
+/// causes the `Transaction` to be printed `stdout`.
+///
+pub fn sign_transaction_file<P: AsRef<Path>>(
+    input_path: P,
+    secret_key: &SecretKey,
+    output: OutputKind,
+) -> Result<(), Error> {
+    let mut transaction = read_transaction_file(input_path)?;
+
+    transaction.sign(secret_key);
+
+    write_transaction(&transaction, output.get()?)?;
     output.commit()
 }
 
@@ -520,9 +550,9 @@ fn write_deploy<W: Write>(deploy: &Deploy, mut output: W) -> Result<(), Error> {
         })
 }
 
-fn write_transaction<W: Write>(deploy: &TransactionV1, mut output: W) -> Result<(), Error> {
+fn write_transaction<W: Write>(transaction: &TransactionV1, mut output: W) -> Result<(), Error> {
     let content =
-        serde_json::to_string_pretty(deploy).map_err(|error| Error::FailedToEncodeToJson {
+        serde_json::to_string_pretty(transaction).map_err(|error| Error::FailedToEncodeToJson {
             context: "writing transaction",
             error,
         })?;
@@ -542,6 +572,15 @@ fn read_deploy<R: Read>(input: R) -> Result<Deploy, Error> {
         })?;
     deploy.is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)?;
     Ok(deploy)
+}
+
+fn read_transaction<R: Read>(input: R) -> Result<TransactionV1, Error> {
+    let transaction: TransactionV1 =
+        serde_json::from_reader(input).map_err(|error| Error::FailedToDecodeFromJson {
+            context: "reading transaction",
+            error,
+        })?;
+    Ok(transaction)
 }
 
 /// Retrieves era information from the network at a given switch [`Block`].

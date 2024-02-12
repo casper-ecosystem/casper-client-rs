@@ -90,6 +90,24 @@ pub fn make_transaction(
     crate::output_transaction(output, &transaction).map_err(CliError::from)
 }
 
+/// Reads a previously-saved [`TransactionV1`] from a file, cryptographically signs it, and outputs it to a
+/// file or stdout.
+///
+/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
+/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
+/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
+/// and the file will not be written.
+pub fn sign_transaction_file(
+    input_path: &str,
+    secret_key_path: &str,
+    maybe_output_path: Option<&str>,
+    force: bool,
+) -> Result<(), CliError> {
+    let output = parse::output_kind(maybe_output_path.unwrap_or(""), force);
+    let secret_key = parse::secret_key_from_file(secret_key_path)?;
+    crate::sign_transaction_file(input_path, &secret_key, output).map_err(CliError::from)
+}
+
 pub fn make_transaction_builder(
     transaction_builder_params: TransactionBuilderParams,
 ) -> Result<TransactionV1Builder, CliError> {
