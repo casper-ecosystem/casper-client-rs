@@ -615,7 +615,7 @@ pub(super) mod entity_addr {
                 error,
             })?;
         match entity_addr {
-            Key::AddressableEntity(_, entity_addr) => Ok(entity_addr),
+            Key::AddressableEntity(entity_addr) => Ok(entity_addr),
             _ => Err(CliError::from(Error::InvalidKeyVariant {
                 expected_variant: "AddressibleEntity".to_string(),
                 actual: entity_addr,
