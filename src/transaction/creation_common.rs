@@ -524,9 +524,9 @@ pub(super) mod transaction_path {
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to input transaction file";
 
-    pub fn arg(required: bool) -> Arg {
+    pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
-            .required(required)
+            .required(true)
             .long(ARG_NAME)
             .short(ARG_SHORT)
             .value_name(ARG_VALUE_NAME)
@@ -1304,7 +1304,7 @@ pub(super) mod session {
 
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
-            .arg(transaction_path::arg(true))
+            .arg(transaction_path::arg())
             .arg(session_entry_point::arg())
     }
 }

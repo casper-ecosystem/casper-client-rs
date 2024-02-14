@@ -23,7 +23,7 @@ impl ClientCommand for SignTransaction {
                 common::secret_key::arg(creation_common::DisplayOrder::SecretKey as usize, "")
                     .required(true),
             )
-            .arg(creation_common::transaction_path::arg(true))
+            .arg(creation_common::transaction_path::arg())
             .arg(creation_common::output::arg())
             .arg(common::force::arg(
                 creation_common::DisplayOrder::Force as usize,
