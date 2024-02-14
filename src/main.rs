@@ -50,7 +50,7 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
-use transaction::{MakeTransaction, SignTransaction, PutTransaction};
+use transaction::{MakeTransaction, PutTransaction, SignTransaction};
 
 const APP_NAME: &str = "Casper client";
 
@@ -108,9 +108,7 @@ fn cli() -> Command {
         .about("A client for interacting with the Casper network")
         .subcommand(PutDeploy::build(DisplayOrder::PutDeploy as usize))
         .subcommand(MakeDeploy::build(DisplayOrder::MakeDeploy as usize))
-        .subcommand(PutTransaction::build(
-            DisplayOrder::PutTransaction as usize,
-        ))
+        .subcommand(PutTransaction::build(DisplayOrder::PutTransaction as usize))
         .subcommand(MakeTransaction::build(
             DisplayOrder::MakeTransaction as usize,
         ))

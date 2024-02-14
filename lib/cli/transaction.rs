@@ -1,6 +1,9 @@
-use crate::cli::{parse, CliError, TransactionBuilderParams, TransactionStrParams};
-use crate::rpcs::results::PutTransactionResult;
-use crate::SuccessResponse;
+use crate::{
+    cli::{parse, CliError, TransactionBuilderParams, TransactionStrParams},
+    put_transaction as put_transaction_rpc_handler,
+    rpcs::results::PutTransactionResult,
+    SuccessResponse,
+};
 use casper_types::{
     InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder,
 };
@@ -109,7 +112,7 @@ pub async fn put_transaction(
     let rpc_id = parse::rpc_id(rpc_id_str);
     let verbosity_level = parse::verbosity(verbosity_level);
     let transaction = create_transaction(builder_params, transaction_params, false)?;
-    crate::put_transaction(
+    put_transaction_rpc_handler(
         rpc_id,
         node_address,
         verbosity_level,
