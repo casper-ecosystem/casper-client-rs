@@ -189,7 +189,7 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
 ///
 /// # Original Author
 /// This function was modified from one of the same name written by Gregory Roussac for the 1.6 SDK
-fn check_no_conflicting_arg_types(simple: &Vec<&str>, json: &str) -> Result<(), CliError> {
+fn check_no_conflicting_arg_types(simple: &[&str], json: &str) -> Result<(), CliError> {
     let count = [!simple.is_empty(), !json.is_empty()]
         .iter()
         .filter(|&&x| x)

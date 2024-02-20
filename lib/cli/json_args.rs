@@ -135,7 +135,7 @@ fn write_json_to_bytesrepr(
                 Key::Bid(_) if mapped_variant == "Bid" => {}
                 Key::Withdraw(_) if mapped_variant == "Withdraw" => {}
                 Key::Dictionary(_) if mapped_variant == "Dictionary" => {}
-                Key::SystemContractRegistry if mapped_variant == "SystemContractRegistry" => {}
+                Key::SystemEntityRegistry if mapped_variant == "SystemEntityRegistry" => {}
                 Key::Unbond(_) if mapped_variant == "Unbond" => {}
                 Key::ChainspecRegistry if mapped_variant == "ChainspecRegistry" => {}
                 _ => return Err(ErrorDetails::KeyObjectHasInvalidVariant),
