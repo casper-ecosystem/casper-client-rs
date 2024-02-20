@@ -807,11 +807,11 @@ mod transaction {
 
     #[test]
     fn should_create_invocable_entity_transaction() {
-        let entity_addr: EntityAddr = EntityAddr::new_contract_entity_addr([0u8; 32]);
-        let entity_hash_addr = entity_addr.value();
+        let entity_addr: EntityAddr = EntityAddr::new_account_entity_addr([0u8; 32]);
+        let hash_addr = entity_addr.value();
         let entry_point = String::from("test-entry-point");
         let target = &TransactionTarget::Stored {
-            id: TransactionInvocationTarget::InvocableEntity(entity_hash_addr),
+            id: TransactionInvocationTarget::InvocableEntity(hash_addr),
             runtime: TransactionRuntime::VmCasperV1,
         };
 

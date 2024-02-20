@@ -5,9 +5,10 @@ use std::process;
 
 use clap::{Arg, ArgAction, ArgGroup, ArgMatches, Command};
 
-use casper_client::cli::{json_args_help, simple_args_help, TransactionStrParams};
+use casper_client::cli::{CliError, json_args_help, simple_args_help, TransactionBuilderParams, TransactionStrParams};
 
 use crate::common;
+use crate::transaction::creation_common::invocable_entity_alias::run;
 
 const SESSION_ARG_GROUP: &str = "session-args";
 
@@ -918,6 +919,10 @@ pub(super) mod add_bid {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
@@ -941,6 +946,31 @@ pub(super) mod add_bid {
         Ok((params, transaction_str_params))
     }
 
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError>{
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
+    }
+
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
             .arg(delegation_rate::arg())
@@ -960,6 +990,10 @@ pub(super) mod withdraw_bid {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
@@ -974,7 +1008,35 @@ pub(super) mod withdraw_bid {
 
         Ok((params, transaction_str_params))
     }
+    ///
+    /// Parse the args for this command when it is set up for the put-transaction subcommand.
+    ///
+    /// Returns a tuple of the transaction builder params, the transaction str params, a string representing the node address, a string representing rpc_id, and a u64 representing the verbosity level.
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
 
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
+    }
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
             .arg(public_key::arg(DisplayOrder::PublicKey as usize))
@@ -991,6 +1053,10 @@ pub(super) mod delegate {
 
     pub fn build() -> Command {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1015,6 +1081,38 @@ pub(super) mod delegate {
         Ok((params, transaction_str_params))
     }
 
+    ///
+    /// Parse the args for this command when it is set up for the put-transaction subcommand.
+    ///
+    /// Returns a tuple of the transaction builder params, the transaction str params, a string representing the node address, a string representing rpc_id, and a u64 representing the verbosity level.
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
+    }
+
+
+
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
             .arg(delegator::arg())
@@ -1033,6 +1131,10 @@ pub(super) mod undelegate {
 
     pub fn build() -> Command {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1056,6 +1158,36 @@ pub(super) mod undelegate {
         Ok((params, transaction_str_params))
     }
 
+    ///
+    /// Parse the args for this command when it is set up for the put-transaction subcommand.
+    ///
+    /// Returns a tuple of the transaction builder params, the transaction str params, a string representing the node address, a string representing rpc_id, and a u64 representing the verbosity level.
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
+    }
+
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
             .arg(delegator::arg())
@@ -1073,6 +1205,10 @@ pub(super) mod redelegate {
 
     pub fn build() -> Command {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1100,6 +1236,36 @@ pub(super) mod redelegate {
         Ok((params, transaction_str_params))
     }
 
+    ///
+    /// Parse the args for this command when it is set up for the put-transaction subcommand.
+    ///
+    /// Returns a tuple of the transaction builder params, the transaction str params, a string representing the node address, a string representing rpc_id, and a u64 representing the verbosity level.
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
+    }
+
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
             .arg(delegator::arg())
@@ -1121,6 +1287,10 @@ pub(super) mod invocable_entity {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
@@ -1138,6 +1308,36 @@ pub(super) mod invocable_entity {
         };
         let transaction_str_params = build_transaction_str_params(matches);
         Ok((params, transaction_str_params))
+    }
+
+    ///
+    /// Parse the args for this command when it is set up for the put-transaction subcommand.
+    ///
+    /// Returns a tuple of the transaction builder params, the transaction str params, a string representing the node address, a string representing rpc_id, and a u64 representing the verbosity level.
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1158,6 +1358,10 @@ pub(super) mod invocable_entity_alias {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
@@ -1173,6 +1377,32 @@ pub(super) mod invocable_entity_alias {
         };
         let transaction_str_params = build_transaction_str_params(matches);
         Ok((params, transaction_str_params))
+    }
+
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
     }
 
     fn add_args(add_bid_subcommand: Command) -> Command {
@@ -1191,6 +1421,10 @@ pub(super) mod package {
 
     pub fn build() -> Command {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1214,6 +1448,32 @@ pub(super) mod package {
         Ok((params, transaction_str_params))
     }
 
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
+    }
+
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
             .arg(package_addr::arg())
@@ -1231,6 +1491,10 @@ pub(super) mod package_alias {
 
     pub fn build() -> Command {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1254,6 +1518,32 @@ pub(super) mod package_alias {
         Ok((params, transaction_str_params))
     }
 
+    pub fn put_transaction_run(
+        matches: &ArgMatches,
+    ) -> Result<
+        (
+            TransactionBuilderParams,
+            TransactionStrParams,
+            &str,
+            &str,
+            u64,
+        ),
+        CliError,
+    > {
+        let node_address = common::node_address::get(matches);
+        let rpc_id = common::rpc_id::get(matches);
+        let verbosity_level = common::verbose::get(matches);
+
+        let (transaction_builder_params, transaction_str_params) = run(matches)?;
+        Ok((
+            transaction_builder_params,
+            transaction_str_params,
+            node_address,
+            rpc_id,
+            verbosity_level,
+        ))
+    }
+
     fn add_args(add_bid_subcommand: Command) -> Command {
         add_bid_subcommand
             .arg(package_alias_arg::arg())
@@ -1272,6 +1562,10 @@ pub(super) mod session {
 
     pub fn build() -> Command {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1320,6 +1614,10 @@ pub(super) mod transfer {
 
     pub fn build() -> Command {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1507,4 +1805,37 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionS
         output_path: maybe_output_path,
         payment_amount,
     }
+}
+pub(super) fn add_rpc_args(subcommand: Command) -> Command {
+    subcommand
+        .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
+        .arg(common::node_address::arg(DisplayOrder::NodeAddress as usize))
+        .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
+}
+
+pub(super) fn put_transaction_run(
+    matches: &ArgMatches,
+    subcommand_run: fn(&ArgMatches) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError>,
+) -> Result<
+    (
+        TransactionBuilderParams,
+        TransactionStrParams,
+        &'static str,
+        &'static str,
+        u64,
+    ),
+    CliError,
+> {
+    let node_address = common::node_address::get(matches);
+    let rpc_id = common::rpc_id::get(matches);
+    let verbosity_level = common::verbose::get(matches);
+
+    let (transaction_builder_params, transaction_str_params) = subcommand_run(matches)?;
+    Ok((
+        transaction_builder_params,
+        transaction_str_params,
+        node_address,
+        rpc_id,
+        verbosity_level,
+    ))
 }

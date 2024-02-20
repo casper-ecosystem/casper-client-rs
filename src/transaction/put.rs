@@ -5,10 +5,10 @@ use casper_client::cli::CliError;
 
 use super::creation_common::{
     add_bid, delegate, invocable_entity, invocable_entity_alias, package, package_alias,
-    redelegate, session, transfer, undelegate, withdraw_bid, DisplayOrder,
+    redelegate, session, transfer, undelegate, withdraw_bid,
 };
 
-use crate::{command::ClientCommand, common, Success};
+use crate::{command::ClientCommand, Success};
 
 pub struct PutTransaction;
 const ALIAS: &str = "put-txn";
@@ -26,39 +26,37 @@ impl ClientCommand for PutTransaction {
             .about(Self::ABOUT)
             .alias(ALIAS)
             .subcommand_required(true)
-            .subcommand(withdraw_bid::build())
-            .subcommand(add_bid::build())
-            .subcommand(delegate::build())
-            .subcommand(undelegate::build())
-            .subcommand(redelegate::build())
-            .subcommand(invocable_entity::build())
-            .subcommand(invocable_entity_alias::build())
-            .subcommand(package::build())
-            .subcommand(package_alias::build())
-            .subcommand(session::build())
-            .subcommand(transfer::build())
-            .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
-            .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
-            .arg(common::node_address::arg(
-                DisplayOrder::NodeAddress as usize,
-            ))
+            .subcommand(withdraw_bid::put_transaction_build())
+            .subcommand(add_bid::put_transaction_build())
+            .subcommand(delegate::put_transaction_build())
+            .subcommand(undelegate::put_transaction_build())
+            .subcommand(redelegate::put_transaction_build())
+            .subcommand(invocable_entity::put_transaction_build())
+            .subcommand(invocable_entity_alias::put_transaction_build())
+            .subcommand(package::put_transaction_build())
+            .subcommand(package_alias::put_transaction_build())
+            .subcommand(session::put_transaction_build())
+            .subcommand(transfer::put_transaction_build())
             .display_order(display_order)
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        let rpc_id = common::rpc_id::get(matches);
-        let node_address = common::node_address::get(matches);
-        let verbosity_level = common::verbose::get(matches);
         if let Some((subcommand, matches)) = matches.subcommand() {
-            let (transaction_builder_params, transaction_str_params) = match subcommand {
-                add_bid::NAME => add_bid::run(matches)?,
-                withdraw_bid::NAME => withdraw_bid::run(matches)?,
-                delegate::NAME => delegate::run(matches)?,
-                undelegate::NAME => undelegate::run(matches)?,
-                redelegate::NAME => redelegate::run(matches)?,
-                invocable_entity::NAME => invocable_entity::run(matches)?,
-                invocable_entity_alias::NAME => invocable_entity_alias::run(matches)?,
-                package::NAME => package::run(matches)?,
+            let (
+                transaction_builder_params,
+                transaction_str_params,
+                node_address,
+                rpc_id,
+                verbosity_level,
+            ) = match subcommand {
+                add_bid::NAME => add_bid::put_transaction_run(matches)?,
+                withdraw_bid::NAME => withdraw_bid::put_transaction_run(matches)?,
+                delegate::NAME => delegate::put_transaction_run(matches)?,
+                undelegate::NAME => undelegate::put_transaction_run(matches)?,
+                redelegate::NAME => redelegate::put_transaction_run(matches)?,
+                invocable_entity::NAME => invocable_entity::put_transaction_run(matches)?,
+                invocable_entity_alias::NAME => invocable_entity_alias::put_transaction_run(matches)?,
+                package::NAME => package::put_transaction_run(matches)?,
                 package_alias::NAME => package_alias::run(matches)?,
                 session::NAME => session::run(matches)?,
                 transfer::NAME => transfer::run(matches)?,
