@@ -10,6 +10,8 @@ pub(crate) mod speculative_exec;
 // The following RPCs are all unchanged from v1.4.5, so we just re-export them.
 
 pub(crate) mod get_account {
+    // This lint should be re-enabled once the client is updated to handle multiple different node
+    // node versions.
     #[allow(unused_imports)]
     pub use crate::rpcs::v1_4_5::get_account::GetAccountResult;
     // This lint should be re-enabled once the client is updated to handle multiple different node
