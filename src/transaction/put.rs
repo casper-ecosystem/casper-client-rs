@@ -8,7 +8,7 @@ use super::creation_common::{
     redelegate, session, transfer, undelegate, withdraw_bid,
 };
 
-use crate::{command::ClientCommand, Success};
+use crate::{command::ClientCommand, transaction::creation_common::parse_rpc_args_and_run, Success};
 
 pub struct PutTransaction;
 const ALIAS: &str = "put-txn";
@@ -49,17 +49,19 @@ impl ClientCommand for PutTransaction {
                 rpc_id,
                 verbosity_level,
             ) = match subcommand {
-                add_bid::NAME => add_bid::put_transaction_run(matches)?,
-                withdraw_bid::NAME => withdraw_bid::put_transaction_run(matches)?,
-                delegate::NAME => delegate::put_transaction_run(matches)?,
-                undelegate::NAME => undelegate::put_transaction_run(matches)?,
-                redelegate::NAME => redelegate::put_transaction_run(matches)?,
-                invocable_entity::NAME => invocable_entity::put_transaction_run(matches)?,
-                invocable_entity_alias::NAME => invocable_entity_alias::put_transaction_run(matches)?,
-                package::NAME => package::put_transaction_run(matches)?,
-                package_alias::NAME => package_alias::run(matches)?,
-                session::NAME => session::run(matches)?,
-                transfer::NAME => transfer::run(matches)?,
+                add_bid::NAME => parse_rpc_args_and_run(matches, add_bid::run)?,
+                withdraw_bid::NAME => parse_rpc_args_and_run(matches, withdraw_bid::run)?,
+                delegate::NAME => parse_rpc_args_and_run(matches, delegate::run)?,
+                undelegate::NAME => parse_rpc_args_and_run(matches, undelegate::run)?,
+                redelegate::NAME => parse_rpc_args_and_run(matches, redelegate::run)?,
+                invocable_entity::NAME => parse_rpc_args_and_run(matches, invocable_entity::run)?,
+                invocable_entity_alias::NAME => {
+                    parse_rpc_args_and_run(matches, invocable_entity_alias::run)?
+                }
+                package::NAME => parse_rpc_args_and_run(matches, package::run)?,
+                package_alias::NAME => parse_rpc_args_and_run(matches, package_alias::run)?,
+                session::NAME => parse_rpc_args_and_run(matches, session::run)?,
+                transfer::NAME => parse_rpc_args_and_run(matches, transfer::run)?,
                 _ => {
                     return Err(CliError::InvalidArgument {
                         context: "Make Transaction",
