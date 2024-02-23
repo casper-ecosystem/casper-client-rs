@@ -2,6 +2,7 @@
 
 pub(crate) mod get_block;
 pub(crate) mod get_deploy;
+pub(crate) mod put_transaction;
 
 // The following RPCs are all unchanged from v1.6.0, so we just re-export them.
 

@@ -5,7 +5,9 @@ use std::process;
 
 use clap::{Arg, ArgAction, ArgGroup, ArgMatches, Command};
 
-use casper_client::cli::{json_args_help, simple_args_help, TransactionStrParams};
+use casper_client::cli::{
+    json_args_help, simple_args_help, CliError, TransactionBuilderParams, TransactionStrParams,
+};
 
 use crate::common;
 
@@ -46,6 +48,8 @@ pub(super) enum DisplayOrder {
     NewValidator,
     Delegator,
     EntityAddr,
+    RpcId,
+    Verbose,
 }
 
 /// Handles providing the arg for and executing the show-simple-arg-examples option.
@@ -305,7 +309,7 @@ pub(super) mod payment_amount {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required(false)
+            .required(true)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::PaymentAmount as usize)
@@ -532,11 +536,8 @@ pub(super) mod transaction_path {
             .display_order(DisplayOrder::Input as usize)
     }
 
-    pub fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
+    pub fn get(matches: &ArgMatches) -> Option<&str> {
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
@@ -919,10 +920,13 @@ pub(super) mod add_bid {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
@@ -962,10 +966,13 @@ pub(super) mod withdraw_bid {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let public_key_str = public_key::get(matches)?;
         let public_key = public_key::parse_public_key(&public_key_str)?;
 
@@ -996,10 +1003,13 @@ pub(super) mod delegate {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1039,10 +1049,13 @@ pub(super) mod undelegate {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1080,10 +1093,13 @@ pub(super) mod redelegate {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let delegator_str = delegator::get(matches);
         let delegator = public_key::parse_public_key(delegator_str)?;
 
@@ -1127,6 +1143,10 @@ pub(super) mod invocable_entity {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
@@ -1164,6 +1184,10 @@ pub(super) mod invocable_entity_alias {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
@@ -1197,6 +1221,10 @@ pub(super) mod package {
 
     pub fn build() -> Command {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1237,6 +1265,10 @@ pub(super) mod package_alias {
 
     pub fn build() -> Command {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+    }
+
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
     }
 
     pub fn run(
@@ -1280,6 +1312,10 @@ pub(super) mod session {
         apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
@@ -1287,7 +1323,16 @@ pub(super) mod session {
         show_json_args_examples_and_exit_if_required(matches);
 
         let transaction_path_str = transaction_path::get(matches);
-        let transaction_bytes = parse::transaction_module_bytes(transaction_path_str)?;
+
+        if transaction_path_str.is_none() {
+            return Err(CliError::InvalidArgument {
+                context: "transaction-path",
+                error: "Transaction path cannot be empty".to_string(),
+            });
+        }
+
+        let transaction_bytes =
+            parse::transaction_module_bytes(transaction_path_str.unwrap_or_default())?;
 
         let entry_point = session_entry_point::get(matches);
 
@@ -1319,10 +1364,13 @@ pub(super) mod transfer {
         apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
     }
 
+    pub fn put_transaction_build() -> Command {
+        add_rpc_args(build())
+    }
+
     pub fn run(
         matches: &ArgMatches,
     ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError> {
-
         let source_str = source::get(matches);
         let source_uref = parse::uref(source_str)?;
 
@@ -1505,4 +1553,41 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionS
         output_path: maybe_output_path,
         payment_amount,
     }
+}
+pub(super) fn add_rpc_args(subcommand: Command) -> Command {
+    subcommand
+        .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
+        .arg(common::node_address::arg(
+            DisplayOrder::NodeAddress as usize,
+        ))
+        .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
+}
+
+pub(super) fn parse_rpc_args_and_run(
+    matches: &ArgMatches,
+    subcommand_run: fn(
+        &ArgMatches,
+    ) -> Result<(TransactionBuilderParams, TransactionStrParams), CliError>,
+) -> Result<
+    (
+        TransactionBuilderParams,
+        TransactionStrParams,
+        &str,
+        &str,
+        u64,
+    ),
+    CliError,
+> {
+    let node_address = common::node_address::get(matches);
+    let rpc_id = common::rpc_id::get(matches);
+    let verbosity_level = common::verbose::get(matches);
+
+    let (transaction_builder_params, transaction_str_params) = subcommand_run(matches)?;
+    Ok((
+        transaction_builder_params,
+        transaction_str_params,
+        node_address,
+        rpc_id,
+        verbosity_level,
+    ))
 }

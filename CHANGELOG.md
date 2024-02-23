@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.  The format
 * Add module to support node 2.0.0 RPCs.
 * Add `make-transaction` command for creating transactions to support node 2.0.0.
 * Add `sign-transaction` command for signing transactions to support node 2.0.0.
+* Add `put-transaction` command for sending transactions to support node 2.0.0.
 
 ### Changed
 * Update to match change to node RPC `info_get_deploy`.

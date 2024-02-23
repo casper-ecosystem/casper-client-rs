@@ -50,7 +50,7 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
-use transaction::{MakeTransaction, SignTransaction};
+use transaction::{MakeTransaction, PutTransaction, SignTransaction};
 
 const APP_NAME: &str = "Casper client";
 
@@ -72,6 +72,7 @@ static VERSION: Lazy<String> =
 enum DisplayOrder {
     PutDeploy,
     MakeDeploy,
+    PutTransaction,
     MakeTransaction,
     SignDeploy,
     SignTransaction,
@@ -107,6 +108,7 @@ fn cli() -> Command {
         .about("A client for interacting with the Casper network")
         .subcommand(PutDeploy::build(DisplayOrder::PutDeploy as usize))
         .subcommand(MakeDeploy::build(DisplayOrder::MakeDeploy as usize))
+        .subcommand(PutTransaction::build(DisplayOrder::PutTransaction as usize))
         .subcommand(MakeTransaction::build(
             DisplayOrder::MakeTransaction as usize,
         ))
@@ -164,6 +166,7 @@ async fn main() {
     let result = match subcommand_name {
         PutDeploy::NAME => PutDeploy::run(matches).await,
         MakeDeploy::NAME => MakeDeploy::run(matches).await,
+        PutTransaction::NAME => PutTransaction::run(matches).await,
         MakeTransaction::NAME => MakeTransaction::run(matches).await,
         SignDeploy::NAME => SignDeploy::run(matches).await,
         SignTransaction::NAME => SignTransaction::run(matches).await,
