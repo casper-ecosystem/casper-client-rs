@@ -7,11 +7,13 @@ use casper_client::cli::CliError;
 use super::creation_common::{self, DisplayOrder};
 use crate::{command::ClientCommand, common, Success};
 
-pub struct SendDeploy;
+pub struct SendTransaction;
+
+const ALIAS: &str = "send-txn";
 
 #[async_trait]
-impl ClientCommand for SendDeploy {
-    const NAME: &'static str = "send-deploy";
+impl ClientCommand for SendTransaction {
+    const NAME: &'static str = "send-transaction";
     const ABOUT: &'static str =
         "Read a previously-saved deploy from a file and send it to the network for execution";
 
@@ -19,6 +21,7 @@ impl ClientCommand for SendDeploy {
         Command::new(Self::NAME)
             .about(Self::ABOUT)
             .display_order(display_order)
+            .alias(ALIAS)
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
             .arg(common::node_address::arg(
                 DisplayOrder::NodeAddress as usize,
