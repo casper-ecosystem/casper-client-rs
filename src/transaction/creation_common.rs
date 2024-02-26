@@ -21,7 +21,8 @@ pub(super) enum DisplayOrder {
     ShowJsonArgExamples,
     NodeAddress,
     SecretKey,
-    Input,
+    SpeculativeExec,
+    TransactionPath,
     Output,
     Force,
     Target,
@@ -533,7 +534,7 @@ pub(super) mod transaction_path {
             .short(ARG_SHORT)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::Input as usize)
+            .display_order(DisplayOrder::TransactionPath as usize)
     }
 
     pub fn get(matches: &ArgMatches) -> Option<&str> {
@@ -1457,6 +1458,41 @@ pub(super) mod target {
             .get_one::<String>(ARG_NAME)
             .map(String::as_str)
             .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
+    }
+}
+
+/// Handles providing the arg for speculative execution.
+pub(super) mod speculative_exec {
+    use super::*;
+
+    const ARG_NAME: &str = "speculative-exec";
+    const ARG_VALUE_NAME: &str = "HEX STRING OR INTEGER";
+    const ARG_HELP: &str =
+        "If the receiving node supports this, execution of the deploy will only be attempted on \
+        that single node. Full validation of the deploy is not performed, and successful execution \
+        at the given global state is no guarantee that the deploy will be able to be successfully \
+        executed if put to the network, nor should execution costs be expected to be identical. \
+        Optionally provide the hex-encoded block hash or height of the block to specify the global \
+        state on which to execute";
+    const DEFAULT_MISSING_VALUE: &str = "";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .num_args(0..=1)
+            .default_missing_value(DEFAULT_MISSING_VALUE)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::SpeculativeExec as usize)
+    }
+
+    // get: The command line posibilities are encoded by a combination of option and &str
+    // None represents no --speculative-exec argument at all
+    // Some("") represents a --speculative-exec with no/empty argument
+    // Some(block_identifier) represents "--speculative-exec block_identifier"
+    pub(in crate::transaction) fn get(matches: &ArgMatches) -> Option<&str> {
+        matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
 
