@@ -403,6 +403,7 @@ pub(super) fn apply_common_creation_options(
     subcommand: Command,
     require_secret_key: bool,
     include_node_address: bool,
+    include_transaction_args: bool,
 ) -> Command {
     let mut subcommand = subcommand
         .next_line_help(true)
@@ -433,6 +434,12 @@ pub(super) fn apply_common_creation_options(
             signed, for example by running the `sign-transaction` subcommand.",
         )
     };
+
+    if include_transaction_args {
+        subcommand = subcommand
+            .arg(arg_simple::session::arg())
+            .arg(args_json::session::arg())
+    }
 
     subcommand = subcommand
         .arg(secret_key_arg)
@@ -916,9 +923,11 @@ pub(super) mod add_bid {
 
     pub const NAME: &str = "add-bid";
 
+    const ACCEPT_SESSION_ARGS: bool = false;
+
     const ABOUT: &str = "Creates a new add-bid transaction";
     pub fn build() -> Command {
-        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
     }
 
     pub fn put_transaction_build() -> Command {
@@ -943,7 +952,7 @@ pub(super) mod add_bid {
             amount,
         };
 
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
 
         Ok((params, transaction_str_params))
     }
@@ -962,9 +971,11 @@ pub(super) mod withdraw_bid {
 
     pub const NAME: &str = "withdraw-bid";
 
+    const ACCEPT_SESSION_ARGS: bool = false;
+
     const ABOUT: &str = "Creates a new withdraw-bid transaction";
     pub fn build() -> Command {
-        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
     }
 
     pub fn put_transaction_build() -> Command {
@@ -981,7 +992,7 @@ pub(super) mod withdraw_bid {
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
 
         let params = TransactionBuilderParams::WithdrawBid { public_key, amount };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
 
         Ok((params, transaction_str_params))
     }
@@ -998,10 +1009,12 @@ pub(super) mod delegate {
 
     pub const NAME: &str = "delegate";
 
+    const ACCEPT_SESSION_ARGS: bool = false;
+
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1025,7 +1038,7 @@ pub(super) mod delegate {
             validator,
             amount,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
 
         Ok((params, transaction_str_params))
     }
@@ -1044,10 +1057,12 @@ pub(super) mod undelegate {
 
     pub const NAME: &str = "undelegate";
 
+    const ACCEPT_SESSION_ARGS: bool = false;
+
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1071,7 +1086,7 @@ pub(super) mod undelegate {
             validator,
             amount,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
@@ -1088,10 +1103,11 @@ pub(super) mod redelegate {
 
     pub const NAME: &str = "redelegate";
 
+    const ACCEPT_SESSION_ARGS: bool = false;
     const ABOUT: &str = "Creates a new delegate transaction";
 
     pub fn build() -> Command {
-        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1119,7 +1135,7 @@ pub(super) mod redelegate {
             new_validator,
             amount,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
@@ -1137,6 +1153,7 @@ pub(super) mod invocable_entity {
     use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "invocable-entity";
+    const ACCEPT_SESSION_ARGS: bool = true;
 
     const ABOUT: &str = "Creates a new transaction targeting an invocable entity";
 
@@ -1163,7 +1180,7 @@ pub(super) mod invocable_entity {
             entity_addr,
             entry_point,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
@@ -1178,6 +1195,8 @@ pub(super) mod invocable_entity_alias {
     use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "invocable-entity-alias";
+
+    const ACCEPT_SESSION_ARGS: bool = true;
 
     const ABOUT: &str = "Creates a new transaction targeting an invocable entity via its alias";
 
@@ -1202,7 +1221,7 @@ pub(super) mod invocable_entity_alias {
             entity_alias,
             entry_point,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
@@ -1217,6 +1236,8 @@ pub(super) mod package {
     use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "package";
+
+    const ACCEPT_SESSION_ARGS: bool = true;
 
     const ABOUT: &str = "Creates a new transaction targeting a package";
 
@@ -1245,7 +1266,7 @@ pub(super) mod package {
             maybe_entity_version,
             entry_point,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
@@ -1261,6 +1282,8 @@ pub(super) mod package_alias {
     use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "package-alias";
+
+    const ACCEPT_SESSION_ARGS: bool = true;
 
     const ABOUT: &str = "Creates a new transaction targeting package via its alias";
 
@@ -1289,7 +1312,7 @@ pub(super) mod package_alias {
             maybe_entity_version,
             entry_point,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
@@ -1306,6 +1329,8 @@ pub(super) mod session {
     use casper_client::cli::{CliError, TransactionBuilderParams};
 
     pub const NAME: &str = "session";
+
+    const ACCEPT_SESSION_ARGS: bool = true;
 
     const ABOUT: &str = "Creates a new transaction for running session logic";
 
@@ -1341,7 +1366,7 @@ pub(super) mod session {
             transaction_bytes,
             entry_point,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
@@ -1359,10 +1384,12 @@ pub(super) mod transfer {
 
     pub const NAME: &str = "transfer";
 
+    const ACCEPT_SESSION_ARGS: bool = false;
+
     const ABOUT: &str = "Creates a new native transfer transaction";
 
     pub fn build() -> Command {
-        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false)
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1396,7 +1423,7 @@ pub(super) mod transfer {
             maybe_to,
             maybe_id,
         };
-        let transaction_str_params = build_transaction_str_params(matches);
+        let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
 
         Ok((params, transaction_str_params))
     }
@@ -1561,10 +1588,10 @@ pub(super) mod destination_account {
 }
 pub(super) fn apply_common_args(subcommand: Command) -> Command {
     let subcommand = apply_common_args_options(subcommand);
-    apply_common_creation_options(subcommand, false, false)
+    apply_common_creation_options(subcommand, false, false, true)
 }
 
-pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionStrParams {
+pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_args: bool) -> TransactionStrParams {
     let secret_key = common::secret_key::get(matches).unwrap_or_default();
     let timestamp = timestamp::get(matches);
     let ttl = ttl::get(matches);
@@ -1572,23 +1599,40 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches) -> TransactionS
     let maybe_pricing_mode = pricing_mode::get(matches);
     let payment_amount = payment_amount::get(matches);
 
-    let session_args_simple = arg_simple::session::get(matches);
-    let session_args_json = args_json::session::get(matches);
-
     let maybe_output_path = output::get(matches).unwrap_or_default();
     let initiator_addr = initiator_address::get(matches);
-    TransactionStrParams {
-        secret_key,
-        timestamp,
-        ttl,
-        chain_name,
-        initiator_addr,
-        session_args_simple,
-        session_args_json,
-        maybe_pricing_mode,
-        output_path: maybe_output_path,
-        payment_amount,
+
+    if obtain_session_args {
+        let session_args_simple = arg_simple::session::get(matches);
+        let session_args_json = args_json::session::get(matches);
+        TransactionStrParams {
+            secret_key,
+            timestamp,
+            ttl,
+            chain_name,
+            initiator_addr,
+            session_args_simple,
+            session_args_json,
+            maybe_pricing_mode,
+            output_path: maybe_output_path,
+            payment_amount,
+        }
+    } else {
+
+        TransactionStrParams {
+            secret_key,
+            timestamp,
+            ttl,
+            chain_name,
+            initiator_addr,
+            maybe_pricing_mode,
+            output_path: maybe_output_path,
+            payment_amount,
+            ..Default::default()
+        }
     }
+
+
 }
 pub(super) fn add_rpc_args(subcommand: Command) -> Command {
     subcommand
