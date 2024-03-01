@@ -45,11 +45,11 @@ use casper_types::{Digest, URef};
 use crate::{
     rpcs::{
         results::{
-            GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
-            GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
-            GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
-            GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, QueryBalanceResult,
-            QueryGlobalStateResult,
+            GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
+            GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
+            GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
+            GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
+            QueryBalanceResult, QueryGlobalStateResult,
         },
         DictionaryItemIdentifier,
     },
@@ -340,6 +340,34 @@ pub async fn get_account(
         verbosity,
         maybe_block_id,
         account_identifier,
+    )
+    .await
+    .map_err(CliError::from)
+}
+
+/// Retrieves an [`EntityOrAccount`] at a given [`Block`].
+///
+/// `public_key` is the public key as a formatted string associated with the `Account`.
+///
+/// For details of other parameters, see [the module docs](crate::cli#common-parameters).
+pub async fn get_entity(
+    maybe_rpc_id: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    maybe_block_id: &str,
+    account_identifier: &str,
+) -> Result<SuccessResponse<GetAddressableEntityResult>, CliError> {
+    let rpc_id = parse::rpc_id(maybe_rpc_id);
+    let verbosity = parse::verbosity(verbosity_level);
+    let maybe_block_id = parse::block_identifier(maybe_block_id)?;
+    let entity_identifier = parse::entity_identifier(account_identifier)?;
+
+    crate::get_entity(
+        rpc_id,
+        node_address,
+        verbosity,
+        maybe_block_id,
+        entity_identifier,
     )
     .await
     .map_err(CliError::from)

@@ -2,6 +2,7 @@
 
 pub(crate) mod get_block;
 pub(crate) mod get_deploy;
+pub(crate) mod get_entity;
 pub(crate) mod put_transaction;
 pub(crate) mod speculative_exec_transaction;
 

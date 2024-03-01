@@ -80,6 +80,7 @@ use rpcs::{
         get_chainspec::GET_CHAINSPEC_METHOD,
         get_deploy::{GetDeployParams, GET_DEPLOY_METHOD},
         get_dictionary_item::{GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD},
+        get_entity::{EntityIdentifier, GetAddressableEntityParams, GET_ENTITY_METHOD},
         get_era_info::{GetEraInfoParams, GET_ERA_INFO_METHOD},
         get_era_summary::{GetEraSummaryParams, GET_ERA_SUMMARY_METHOD},
         get_node_status::GET_NODE_STATUS_METHOD,
@@ -460,6 +461,24 @@ pub async fn get_account(
     let params = GetAccountParams::new(account_identifier, maybe_block_identifier);
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(GET_ACCOUNT_METHOD, Some(params))
+        .await
+}
+
+/// Retrieves an [`EntityOrAccount`] at a given [`Block`].
+///
+/// Sends a JSON-RPC `state_get_entity` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn get_entity(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    maybe_block_identifier: Option<BlockIdentifier>,
+    entity_identifier: EntityIdentifier,
+) -> Result<SuccessResponse<GetAddressableEntityResult>, Error> {
+    let params = GetAddressableEntityParams::new(entity_identifier, maybe_block_identifier);
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(GET_ENTITY_METHOD, Some(params))
         .await
 }
 

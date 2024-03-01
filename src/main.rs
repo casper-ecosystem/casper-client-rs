@@ -9,6 +9,7 @@ mod get_auction_info;
 mod get_balance;
 mod get_chainspec;
 mod get_dictionary_item;
+mod get_entity;
 mod get_era_info;
 mod get_era_summary;
 mod get_node_status;
@@ -25,6 +26,7 @@ use std::process;
 
 use clap::{crate_version, Command};
 use get_balance::GetBalance;
+use get_entity::GetEntity;
 use once_cell::sync::Lazy;
 
 use casper_client::{cli, rpcs::results::GetChainspecResult, SuccessResponse};
@@ -92,6 +94,7 @@ enum DisplayOrder {
     QueryBalance,
     GetDictionaryItem,
     GetAccount,
+    GetEntity,
     GetAuctionInfo,
     GetValidatorChanges,
     GetPeers,
@@ -141,6 +144,7 @@ fn cli() -> Command {
             DisplayOrder::GetDictionaryItem as usize,
         ))
         .subcommand(GetAccount::build(DisplayOrder::GetAccount as usize))
+        .subcommand(GetEntity::build(DisplayOrder::GetEntity as usize))
         .subcommand(GetAuctionInfo::build(DisplayOrder::GetAuctionInfo as usize))
         .subcommand(GetValidatorChanges::build(
             DisplayOrder::GetValidatorChanges as usize,
@@ -188,6 +192,7 @@ async fn main() {
         QueryBalance::NAME => QueryBalance::run(matches).await,
         GetDictionaryItem::NAME => GetDictionaryItem::run(matches).await,
         GetAccount::NAME => GetAccount::run(matches).await,
+        GetEntity::NAME => GetEntity::run(matches).await,
         GetAuctionInfo::NAME => GetAuctionInfo::run(matches).await,
         GetValidatorChanges::NAME => GetValidatorChanges::run(matches).await,
         GetPeers::NAME => GetPeers::run(matches).await,
