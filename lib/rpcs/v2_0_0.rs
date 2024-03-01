@@ -9,6 +9,7 @@ pub(crate) mod put_transaction;
 pub(crate) mod query_balance;
 pub(crate) mod query_balance_details;
 pub(crate) mod speculative_exec_transaction;
+pub(crate) mod get_transaction;
 
 // The following RPCs are all unchanged from v1.6.0, so we just re-export them.
 
