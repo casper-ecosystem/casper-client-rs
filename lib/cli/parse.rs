@@ -6,9 +6,9 @@ use std::{fs, path::Path, str::FromStr};
 use rand::Rng;
 
 use casper_types::{
-    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
-    EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs,
-    SecretKey, TimeDiff, Timestamp, TransferTarget, UIntParseError, URef, U512,
+    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType,
+    BlockHash, DeployHash, Digest, EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode,
+    PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, TransferTarget, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
