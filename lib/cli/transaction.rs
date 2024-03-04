@@ -1,8 +1,10 @@
+use crate::rpcs::v2_0_0::speculative_exec_transaction::SpeculativeExecTxnResult;
 use crate::{
+    read_transaction_file,
     cli::{parse, CliError, TransactionBuilderParams, TransactionStrParams},
     put_transaction as put_transaction_rpc_handler,
     rpcs::results::PutTransactionResult,
-    SuccessResponse,
+    speculative_exec_txn, SuccessResponse,
 };
 use casper_types::{
     InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder,
@@ -115,6 +117,60 @@ pub async fn put_transaction(
     put_transaction_rpc_handler(
         rpc_id,
         node_address,
+        verbosity_level,
+        Transaction::V1(transaction),
+    )
+    .await
+    .map_err(CliError::from)
+}
+///
+/// Reads a previously-saved [`TransactionV1`] from a file and sends it to the network for execution.
+///
+/// `rpc_id_str` is the RPC ID to use for this request. node_address is the address of the node to send the request to.
+/// verbosity_level is the level of verbosity to use when outputting the response.
+/// the input path is the path to the file containing the transaction to send.
+pub async fn send_transaction_file(
+    rpc_id_str: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    input_path: &str,
+) -> Result<SuccessResponse<PutTransactionResult>, CliError> {
+    let rpc_id = parse::rpc_id(rpc_id_str);
+    let verbosity_level = parse::verbosity(verbosity_level);
+    let transaction = read_transaction_file(input_path)?;
+    put_transaction_rpc_handler(
+        rpc_id,
+        node_address,
+        verbosity_level,
+        Transaction::V1(transaction),
+    )
+    .await
+    .map_err(CliError::from)
+}
+
+///
+/// Reads a previously-saved [`TransactionV1`] from a file and sends it to the network for execution.
+///
+/// `rpc_id_str` is the RPC ID to use for this request. node_address is the address of the node to send the request to.
+/// verbosity_level is the level of verbosity to use when outputting the response.
+/// `maybe_speculative_exec_height_identifier` is the block identifier to use for this request.
+///  the input path is the path to the file containing the transaction to send.
+pub async fn speculative_send_transaction_file(
+    rpc_id_str: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    input_path: &str,
+    maybe_speculative_exec_height_identifier: &str,
+) -> Result<SuccessResponse<SpeculativeExecTxnResult>, CliError> {
+    let rpc_id = parse::rpc_id(rpc_id_str);
+    let verbosity_level = parse::verbosity(verbosity_level);
+    let transaction = read_transaction_file(input_path).unwrap();
+    let maybe_speculative_exec_height_identifier =
+        parse::block_identifier(maybe_speculative_exec_height_identifier)?;
+    speculative_exec_txn(
+        rpc_id,
+        node_address,
+        maybe_speculative_exec_height_identifier,
         verbosity_level,
         Transaction::V1(transaction),
     )

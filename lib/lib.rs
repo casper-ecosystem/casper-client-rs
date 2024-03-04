@@ -64,12 +64,12 @@ pub use output_kind::OutputKind;
 use rpcs::{
     common::{BlockIdentifier, GlobalStateIdentifier},
     results::{
-        GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
-        GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
-        GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
-        GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
-        PutDeployResult, PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult,
-        SpeculativeExecResult,
+        GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
+        GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
+        GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
+        GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
+        PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
+        SpeculativeExecTxnResult, GetAddressableEntityResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
@@ -93,6 +93,7 @@ use rpcs::{
         query_balance::{PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD},
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
+        speculative_exec_transaction::{SpeculativeExecTxnParams, SPECULATIVE_EXEC_TXN_METHOD},
     },
     DictionaryItemIdentifier,
 };
@@ -156,6 +157,26 @@ pub async fn speculative_exec(
         .send_request(
             SPECULATIVE_EXEC_METHOD,
             Some(SpeculativeExecParams::new(block_identifier, deploy)),
+        )
+        .await
+}
+
+/// Puts a [`Transction`] to a single node for speculative execution on that node only.
+///
+/// Sends a JSON-RPC speculative_exec request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn speculative_exec_txn(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    block_identifier: Option<BlockIdentifier>,
+    verbosity: Verbosity,
+    transaction: Transaction,
+) -> Result<SuccessResponse<SpeculativeExecTxnResult>, Error> {
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(
+            SPECULATIVE_EXEC_TXN_METHOD,
+            Some(SpeculativeExecTxnParams::new(block_identifier, transaction)),
         )
         .await
 }
