@@ -1,5 +1,6 @@
 use crate::rpcs::v2_0_0::speculative_exec_transaction::SpeculativeExecTxnResult;
 use crate::{
+    read_transaction_file,
     cli::{parse, CliError, TransactionBuilderParams, TransactionStrParams},
     put_transaction as put_transaction_rpc_handler,
     rpcs::results::PutTransactionResult,
@@ -136,7 +137,7 @@ pub async fn send_transaction_file(
 ) -> Result<SuccessResponse<PutTransactionResult>, CliError> {
     let rpc_id = parse::rpc_id(rpc_id_str);
     let verbosity_level = parse::verbosity(verbosity_level);
-    let transaction = parse::transaction_from_file(input_path)?;
+    let transaction = read_transaction_file(input_path)?;
     put_transaction_rpc_handler(
         rpc_id,
         node_address,
@@ -163,7 +164,7 @@ pub async fn speculative_send_transaction_file(
 ) -> Result<SuccessResponse<SpeculativeExecTxnResult>, CliError> {
     let rpc_id = parse::rpc_id(rpc_id_str);
     let verbosity_level = parse::verbosity(verbosity_level);
-    let transaction = parse::transaction_from_file(input_path).unwrap();
+    let transaction = read_transaction_file(input_path).unwrap();
     let maybe_speculative_exec_height_identifier =
         parse::block_identifier(maybe_speculative_exec_height_identifier)?;
     speculative_exec_txn(
