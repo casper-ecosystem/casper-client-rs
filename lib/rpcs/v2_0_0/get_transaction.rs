@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{BlockHash, ProtocolVersion, Transaction, TransactionHash};
 use casper_types::execution::ExecutionResult;
+use casper_types::{BlockHash, ProtocolVersion, Transaction, TransactionHash};
+
+pub(crate) const GET_TRANSACTION_METHOD: &str = "info_get_transaction";
 
 /// Params for "info_get_transaction" RPC request.
 #[derive(Serialize, Deserialize, Debug)]
@@ -14,6 +16,12 @@ pub struct GetTransactionParams {
     /// node.
     #[serde(default = "finalized_approvals_default")]
     pub finalized_approvals: bool,
+}
+
+/// The default for `GetDeployParams::finalized_approvals` and
+/// `GetTransactionParams::finalized_approvals`.
+fn finalized_approvals_default() -> bool {
+    false
 }
 
 impl GetTransactionParams {
@@ -34,7 +42,6 @@ pub struct ExecutionInfo {
     pub(crate) block_height: u64,
     pub(crate) execution_result: Option<ExecutionResult>,
 }
-
 
 /// Result for "info_get_transaction" RPC response.
 #[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
