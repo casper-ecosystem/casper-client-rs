@@ -59,7 +59,6 @@ use casper_types::{
     Deploy, DeployHash, Digest, Key, SecretKey, Transaction, TransactionHash, TransactionV1, URef,
 };
 
-use crate::rpcs::v2_0_0::get_transaction::;
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
