@@ -6,7 +6,7 @@ pub use super::v2_0_0::get_balance::GetBalanceResult;
 pub use super::v2_0_0::get_block::GetBlockResult;
 pub use super::v2_0_0::get_block_transfers::GetBlockTransfersResult;
 pub use super::v2_0_0::get_chainspec::GetChainspecResult;
-pub use super::v2_0_0::get_deploy::{DeployExecutionInfo, GetDeployResult};
+pub use super::v2_0_0::get_deploy::{ExecutionInfo, GetDeployResult};
 pub use super::v2_0_0::get_dictionary_item::GetDictionaryItemResult;
 pub use super::v2_0_0::get_entity::GetAddressableEntityResult;
 pub use super::v2_0_0::get_era_info::{EraSummary, GetEraInfoResult};

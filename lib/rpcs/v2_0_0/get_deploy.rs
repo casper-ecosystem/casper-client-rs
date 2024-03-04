@@ -8,7 +8,7 @@ pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_MET
 /// if known.
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct DeployExecutionInfo {
+pub struct ExecutionInfo {
     /// Hash of the block that included the deploy.
     pub block_hash: BlockHash,
     /// Height of block that included the deploy.
@@ -27,5 +27,5 @@ pub struct GetDeployResult {
     pub deploy: Deploy,
     /// Execution info, if available.
     #[serde(skip_serializing_if = "Option::is_none", flatten)]
-    pub execution_info: Option<DeployExecutionInfo>,
+    pub execution_info: Option<ExecutionInfo>,
 }
