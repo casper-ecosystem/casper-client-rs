@@ -54,6 +54,7 @@ pub(crate) mod get_era_summary {
     };
 }
 
+
 pub(crate) mod get_peers {
     pub(crate) use crate::rpcs::v1_6_0::get_peers::GET_PEERS_METHOD;
     pub use crate::rpcs::v1_6_0::get_peers::{GetPeersResult, PeerEntry};

@@ -31,3 +31,4 @@ pub use super::v2_0_0::query_balance_details::QueryBalanceDetailsResult;
 pub use super::v2_0_0::query_global_state::QueryGlobalStateResult;
 pub use super::v2_0_0::speculative_exec::SpeculativeExecResult;
 pub use super::v2_0_0::speculative_exec_transaction::SpeculativeExecTxnResult;
+pub use super::v2_0_0::get_transaction::GetTransactionResult;
