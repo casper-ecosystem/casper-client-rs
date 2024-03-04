@@ -69,7 +69,7 @@ use rpcs::{
         GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
         GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
         PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
-        SpeculativeExecTxnResult,
+        SpeculativeExecTxnResult, GetAddressableEntityResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
