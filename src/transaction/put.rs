@@ -8,9 +8,7 @@ use super::creation_common::{
     redelegate, session, transfer, undelegate, withdraw_bid,
 };
 
-use crate::{
-    command::ClientCommand, transaction::creation_common::parse_rpc_args_and_run, Success,
-};
+use crate::{command::ClientCommand, transaction::creation_common::parse_rpc_args_and_run, Success};
 
 pub struct PutTransaction;
 const ALIAS: &str = "put-txn";
