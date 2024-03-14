@@ -6,8 +6,7 @@ use crate::{
     speculative_exec_txn, SuccessResponse,
 };
 use casper_types::{
-    Digest, InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder,
-};
+    Digest, InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder, U512};
 
 pub fn create_transaction(
     builder_params: TransactionBuilderParams,

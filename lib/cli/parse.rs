@@ -8,7 +8,7 @@ use rand::Rng;
 use casper_types::{
     account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType,
     BlockHash, DeployHash, Digest, EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode,
-    PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, TransferTarget, UIntParseError, URef, U512,
+    PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, TransactionHash, TransactionV1Hash, TransferTarget, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
