@@ -67,8 +67,8 @@ pub fn create_transaction(
         })?;
         parse::pricing_mode(
             transaction_params.pricing_mode,
-            transaction_params.gas_price,
             transaction_params.payment_amount,
+            transaction_params.gas_price,
             Some(digest),
             Some(paid_amount)
 
@@ -76,8 +76,8 @@ pub fn create_transaction(
     } else{
         parse::pricing_mode(
             transaction_params.pricing_mode,
-            transaction_params.gas_price,
             transaction_params.payment_amount,
+            transaction_params.gas_price,
             None,
             None
         )?
