@@ -1,14 +1,11 @@
 use crate::rpcs::v2_0_0::speculative_exec_transaction::SpeculativeExecTxnResult;
 use crate::{
-    read_transaction_file,
     cli::{parse, CliError, TransactionBuilderParams, TransactionStrParams},
-    put_transaction as put_transaction_rpc_handler,
+    put_transaction as put_transaction_rpc_handler, read_transaction_file,
     rpcs::results::PutTransactionResult,
     speculative_exec_txn, SuccessResponse,
 };
-use casper_types::{
-    InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder,
-};
+use casper_types::{Digest, InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder, U512};
 
 pub fn create_transaction(
     builder_params: TransactionBuilderParams,
@@ -22,13 +19,6 @@ pub fn create_transaction(
             error: "payment_amount is required to be non empty".to_string(),
         });
     }
-    let payment_amount = transaction_params
-        .payment_amount
-        .parse::<u64>()
-        .map_err(|error| CliError::FailedToParseInt {
-            context: "payment_amount",
-            error,
-        })?;
 
     let maybe_secret_key = if allow_unsigned_transaction && transaction_params.secret_key.is_empty()
     {
@@ -52,10 +42,48 @@ pub fn create_transaction(
     let mut transaction_builder = make_transaction_builder(builder_params)?;
 
     transaction_builder = transaction_builder
-        .with_payment_amount(payment_amount)
         .with_timestamp(timestamp)
         .with_ttl(ttl)
         .with_chain_name(chain_name);
+
+    if transaction_params.pricing_mode.is_empty() {
+        return Err(CliError::InvalidArgument {
+            context: "create_transaction (pricing_mode)",
+            error: "pricing_mode is required to be non empty".to_string(),
+        });
+    }
+    let pricing_mode = if transaction_params.payment_amount.to_lowercase().as_str() == "reserved" {
+        let digest = Digest::from_hex(transaction_params.receipt).map_err(|error| {
+            CliError::FailedToParseDigest {
+                context: "pricing_digest",
+                error,
+            }
+        })?;
+        let paid_amount = U512::from_dec_str(transaction_params.receipt).map_err(|error| {
+            CliError::FailedToParseDec {
+                context: "pricing_digest",
+                error,
+            }
+        })?;
+        parse::pricing_mode(
+            transaction_params.pricing_mode,
+            transaction_params.gas_price,
+            transaction_params.payment_amount,
+            Some(digest),
+            Some(paid_amount)
+
+        )?
+    } else{
+        parse::pricing_mode(
+            transaction_params.pricing_mode,
+            transaction_params.gas_price,
+            transaction_params.payment_amount,
+            None,
+            None
+        )?
+    };
+
+    transaction_builder = transaction_builder.with_pricing_mode(pricing_mode);
 
     let maybe_json_args = parse::args_json::session::parse(transaction_params.session_args_json)?;
     let maybe_simple_args =
@@ -68,10 +96,7 @@ pub fn create_transaction(
     if let Some(secret_key) = &maybe_secret_key {
         transaction_builder = transaction_builder.with_secret_key(secret_key);
     }
-    if let Some(pricing_mode) = transaction_params.maybe_pricing_mode {
-        let pricing_mode = parse::pricing_mode(pricing_mode)?;
-        transaction_builder = transaction_builder.with_pricing_mode(pricing_mode);
-    }
+
     if let Some(account) = maybe_session_account {
         transaction_builder =
             transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));

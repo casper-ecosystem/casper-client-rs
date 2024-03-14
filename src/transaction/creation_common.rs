@@ -44,6 +44,9 @@ pub(super) enum DisplayOrder {
     EntityAlias,
     PaymentAmount,
     PricingMode,
+    Receipt,
+    PaidAmount,
+    GasPriceTolerance,
     TransactionAmount,
     Validator,
     NewValidator,
@@ -324,6 +327,86 @@ pub(super) mod payment_amount {
     }
 }
 
+pub(super) mod receipt {
+    use super::*;
+    pub(in crate::transaction) const ARG_NAME: &str = "receipt";
+
+    const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
+    const ARG_HELP: &str = "The digest representing the a previous reservation of funds to pay for the current transaction.";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::Receipt as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
+pub(super) mod paid_amount {
+    use super::*;
+    pub(in crate::transaction) const ARG_NAME: &str = "paid-amount";
+
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+
+    const ARG_HELP: &str =
+        "The amount previously reserved to pay for the current transaction.";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::PaidAmount as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
+pub(super) mod gas_price_tolerance {
+    use super::*;
+    pub(in crate::transaction) const ARG_NAME: &str = "gas-price-tolerance";
+
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+
+    const ARG_ALIAS: &str = "gas-price";
+    const ARG_SHORT: char = 'g';
+    const ARG_HELP: &str =
+        "The maximum gas price that the user is willing to pay for the transaction";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .alias(ARG_ALIAS)
+            .short(ARG_SHORT)
+            .required(true)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::GasPriceTolerance as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
 pub(super) mod transfer_amount {
     use super::*;
     pub(in crate::transaction) const ARG_NAME: &str = "transfer-amount";
@@ -366,8 +449,11 @@ pub(super) mod pricing_mode {
             .display_order(DisplayOrder::PricingMode as usize)
     }
 
-    pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.get_one::<String>(ARG_NAME).map(String::as_str)
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -455,7 +541,28 @@ pub(super) fn apply_common_creation_options(
         .arg(chain_name::arg())
         .arg(output::arg())
         .arg(payment_amount::arg())
-        .arg(pricing_mode::arg());
+        .arg(pricing_mode::arg())
+        .arg(gas_price_tolerance::arg())
+        .arg(receipt::arg())
+        .arg(paid_amount::arg())
+        .group(
+            ArgGroup::new("Classic payment")
+                .arg(payment_amount::ARG_NAME)
+                .arg(gas_price_tolerance::ARG_NAME)
+                .multiple(true)
+                .required(false),
+        )
+        .group(
+            ArgGroup::new("Reserved payment")
+                .arg(receipt::ARG_NAME)
+                .arg(paid_amount::ARG_NAME)
+                .required(false),
+        )
+        .group(
+            ArgGroup::new("Fixed Payment")
+                .arg(gas_price_tolerance::ARG_NAME)
+                .required(false)
+        );
     subcommand
 }
 
@@ -1597,7 +1704,11 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_
     let ttl = ttl::get(matches);
     let chain_name = chain_name::get(matches);
     let maybe_pricing_mode = pricing_mode::get(matches);
+    let gas_price = gas_price_tolerance::get(matches);
     let payment_amount = payment_amount::get(matches);
+    let receipt = receipt::get(matches);
+    let paid_amount = paid_amount::get(matches);
+
 
     let maybe_output_path = output::get(matches).unwrap_or_default();
     let initiator_addr = initiator_address::get(matches);
@@ -1613,9 +1724,12 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_
             initiator_addr,
             session_args_simple,
             session_args_json,
-            maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode,
             output_path: maybe_output_path,
             payment_amount,
+            gas_price,
+            receipt,
+            paid_amount,
         }
     } else {
 
@@ -1625,9 +1739,12 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_
             ttl,
             chain_name,
             initiator_addr,
-            maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode,
             output_path: maybe_output_path,
             payment_amount,
+            gas_price,
+            receipt,
+            paid_amount,
             ..Default::default()
         }
     }

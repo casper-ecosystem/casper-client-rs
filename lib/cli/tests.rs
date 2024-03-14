@@ -445,9 +445,10 @@ mod transaction {
     "ttl": "30m",
     "body_hash": "fb94fd83178e3acf22546beebf5f44692499d681c4381f6d145d85ff9b5fc152",
     "pricing_mode": {
-      "GasPriceMultiplier": 1
+      "Fixed": {
+        "gas_price_tolerance": 10
+      }
     },
-    "payment_amount": 10,
     "initiator_addr": {
       "PublicKey": "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d"
     }
@@ -486,6 +487,7 @@ mod transaction {
   "approvals": []
 }
 "#;
+    const SAMPLE_DIGEST: &str = "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d";
 
     #[test]
     fn should_sign_transaction() {
@@ -529,9 +531,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -586,9 +591,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Delegate {
@@ -644,9 +652,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params =
@@ -693,9 +704,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Undelegate {
@@ -757,9 +771,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Redelegate {
@@ -825,9 +842,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
@@ -863,9 +883,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
@@ -905,9 +928,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Package {
@@ -945,9 +971,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::PackageAlias {
@@ -981,9 +1010,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
@@ -1022,9 +1054,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
@@ -1061,9 +1096,12 @@ mod transaction {
             initiator_addr: "".to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
             source_uref: Default::default(),
@@ -1092,9 +1130,12 @@ mod transaction {
             initiator_addr: "".to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
@@ -1117,9 +1158,12 @@ mod transaction {
             initiator_addr: SAMPLE_ACCOUNT.to_string(),
             session_args_simple: vec![],
             session_args_json: "",
-            maybe_pricing_mode: None,
+            pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
+            gas_price: "",
+            receipt: SAMPLE_DIGEST,
+            paid_amount: "",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),

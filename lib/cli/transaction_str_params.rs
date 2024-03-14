@@ -55,9 +55,15 @@ pub struct TransactionStrParams<'a> {
     /// Session args in json for use with the transaction
     pub session_args_json: &'a str,
     /// The pricing mode to use with the transaction
-    pub maybe_pricing_mode: Option<&'a str>,
+    pub pricing_mode: &'a str,
     /// The optional output path for the transaction, if writing it to a file.
     pub output_path: &'a str,
     ///The payment amount for executing the transaction
     pub payment_amount: &'a str,
+    /// the gas price tolerance for the transaction
+    pub gas_price: &'a str,
+    /// the digest of a previous transaction that represents the receipt for the current transaction.
+    pub receipt: &'a str,
+    /// the amount paid for the previous transaction that represents the receipt for the current transaction.
+    pub paid_amount: &'a str,
 }

@@ -779,20 +779,87 @@ pub(super) fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentif
     Ok(EntityIdentifier::PublicKey(public_key))
 }
 
-pub(super) fn pricing_mode(pricing_mode_str: &str) -> Result<PricingMode, CliError> {
-    match pricing_mode_str.to_lowercase().as_str() {
-        "fixed" => Ok(PricingMode::Fixed),
-        "reserved" => Ok(PricingMode::Reserved),
-        _ => {
-            if let Ok(number) = pricing_mode_str.trim().parse() {
-                Ok(PricingMode::GasPriceMultiplier(number))
-            } else {
-                Err(CliError::InvalidArgument {
-                    context: "pricing_mode",
-                    error: format!("Invalid pricing mode: {}", pricing_mode_str),
-                })
+pub(super) fn pricing_mode(
+    pricing_mode_identifier_str: &str,
+    maybe_payment_amount_str: &str,
+    maybe_gas_price_str: &str,
+    maybe_receipt: Option<Digest>,
+    maybe_paid_amount: Option<U512>,
+) -> Result<PricingMode, CliError> {
+    match pricing_mode_identifier_str.to_lowercase().as_str() {
+        "classic" => {
+            if maybe_gas_price_str.is_empty() {
+                return Err(CliError::InvalidArgument {
+                    context: "gas-price",
+                    error: "Gas price is required".to_string(),
+                });
             }
+
+            if maybe_payment_amount_str.is_empty() {
+                return Err(CliError::InvalidArgument {
+                    context: "payment_amount",
+                    error: "Gas price is required".to_string(),
+                });
+            }
+            let gas_price =
+                maybe_gas_price_str
+                    .parse::<u64>()
+                    .map_err(|error| CliError::FailedToParseInt {
+                        context: "gas-price",
+                        error,
+                    })?;
+            let payment_amount = maybe_payment_amount_str.parse::<u64>().map_err(|error| {
+                CliError::FailedToParseInt {
+                    context: "payment_amount",
+                    error,
+                }
+            })?;
+
+            Ok(PricingMode::Classic {
+                payment_amount,
+                gas_price,
+            })
         }
+        "fixed" => {
+            if maybe_gas_price_str.is_empty() {
+                return Err(CliError::InvalidArgument {
+                    context: "gas-price-tolerance",
+                    error: "Gas price tolerance is required".to_string(),
+                });
+            }
+            let gas_price_tolerance =
+                maybe_gas_price_str
+                    .parse::<u64>()
+                    .map_err(|error| CliError::FailedToParseInt {
+                        context: "gas-price-tolerance",
+                        error,
+                    })?;
+            Ok(PricingMode::Fixed {
+                gas_price_tolerance,
+            })
+        }
+        "reserved" => {
+            if maybe_receipt.is_none() {
+                return Err(CliError::InvalidArgument {
+                    context: "receipt",
+                    error: "Receipt is required for reserved pricing mode".to_string(),
+                });
+            }
+            if maybe_paid_amount.is_none() {
+                return Err(CliError::InvalidArgument {
+                    context: "paid-amount",
+                    error: "Paid amount is required for reserved pricing mode".to_string(),
+                });
+            }
+             Ok(PricingMode::Reserved{
+                receipt: maybe_receipt.unwrap_or_default(),
+                paid_amount: maybe_paid_amount.unwrap_or_default(),
+            })
+        },
+        _ => Err(CliError::InvalidArgument {
+            context: "pricing-mode",
+            error: "Invalid pricing mode identifier".to_string(),
+        }),
     }
 }
 
@@ -1507,33 +1574,51 @@ mod tests {
 
     mod pricing_mode {
         use super::*;
+
+        const VALID_HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
         #[test]
-        fn should_parse_fixed_pricing_mode() {
+        fn should_parse_fixed_pricing_mode_identifier() {
             let pricing_mode_str = "fixed";
-            let parsed = pricing_mode(pricing_mode_str).unwrap();
-            assert_eq!(parsed, PricingMode::Fixed);
+            let payment_amount = "10";
+            let gas_price = "10";
+            let parsed = pricing_mode(pricing_mode_str, payment_amount, gas_price, None, None).unwrap();
+            assert_eq!(parsed, PricingMode::Fixed{
+                gas_price_tolerance: 10,
+            });
         }
         #[test]
         fn should_parse_reserved_pricing_mode() {
             let pricing_mode_str = "reserved";
-            let parsed = pricing_mode(pricing_mode_str).unwrap();
-            assert_eq!(parsed, PricingMode::Reserved);
+            let payment_amount = "10";
+            let gas_price = "10";
+            let paid_amount: u64 = 10;
+            let parsed = pricing_mode(pricing_mode_str, payment_amount, gas_price, Some(Digest::from_hex(VALID_HASH).unwrap()), Some(U512::from(paid_amount))).unwrap();
+            assert_eq!(parsed, PricingMode::Reserved{
+                receipt: Digest::from_hex(VALID_HASH).unwrap(),
+                paid_amount: U512::from(paid_amount),
+            });
         }
         #[test]
-        fn should_parse_gas_price_multiplier_pricing_mode() {
-            let pricing_mode_str = "10";
-            let parsed = pricing_mode(pricing_mode_str).unwrap();
-            assert_eq!(parsed, PricingMode::GasPriceMultiplier(10));
+        fn should_parse_classic_pricing_mode() {
+            let pricing_mode_str = "classic";
+            let payment_amount = "10";
+            let gas_price = "10";
+            let parsed = pricing_mode(pricing_mode_str, payment_amount, gas_price, None, None).unwrap();
+            assert_eq!(parsed, PricingMode::Classic {
+                payment_amount: 10,
+                gas_price: 10
+            });
         }
         #[test]
         fn should_fail_to_parse_invalid_pricing_mode() {
             let pricing_mode_str = "invalid";
-            let parsed = pricing_mode(pricing_mode_str);
+            let payment_amount = "10";
+            let gas_price = "10";
+            let parsed = pricing_mode(pricing_mode_str, payment_amount, gas_price, None, None);
             assert!(parsed.is_err());
             assert!(matches!(
                 parsed,
                 Err(CliError::InvalidArgument {
-                    context: "pricing_mode",
                     ..
                 })
             ));
