@@ -44,6 +44,9 @@ pub(super) enum DisplayOrder {
     EntityAlias,
     PaymentAmount,
     PricingMode,
+    Receipt,
+    PaidAmount,
+    GasPriceTolerance,
     TransactionAmount,
     Validator,
     NewValidator,
@@ -190,8 +193,6 @@ pub(super) mod chain_name {
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required_unless_present(show_simple_arg_examples::ARG_NAME)
-            .required_unless_present(show_json_args_examples::ARG_NAME)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::ChainName as usize)
@@ -324,6 +325,86 @@ pub(super) mod payment_amount {
     }
 }
 
+pub(super) mod receipt {
+    use super::*;
+    pub(in crate::transaction) const ARG_NAME: &str = "receipt";
+
+    const ARG_VALUE_NAME: &str = common::ARG_HEX_STRING;
+    const ARG_HELP: &str = "The digest representing the a previous reservation of funds to pay for the current transaction.";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::Receipt as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
+pub(super) mod paid_amount {
+    use super::*;
+    pub(in crate::transaction) const ARG_NAME: &str = "paid-amount";
+
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+
+    const ARG_HELP: &str =
+        "The amount previously reserved to pay for the current transaction.";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::PaidAmount as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
+pub(super) mod gas_price_tolerance {
+    use super::*;
+    pub(in crate::transaction) const ARG_NAME: &str = "gas-price-tolerance";
+
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+
+    const ARG_ALIAS: &str = "gas-price";
+    const ARG_SHORT: char = 'g';
+    const ARG_HELP: &str =
+        "The maximum gas price that the user is willing to pay for the transaction";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .alias(ARG_ALIAS)
+            .short(ARG_SHORT)
+            .required(true)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::GasPriceTolerance as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
 pub(super) mod transfer_amount {
     use super::*;
     pub(in crate::transaction) const ARG_NAME: &str = "transfer-amount";
@@ -366,8 +447,11 @@ pub(super) mod pricing_mode {
             .display_order(DisplayOrder::PricingMode as usize)
     }
 
-    pub fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.get_one::<String>(ARG_NAME).map(String::as_str)
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
     }
 }
 
@@ -400,21 +484,11 @@ pub(super) mod initiator_address {
 }
 
 pub(super) fn apply_common_creation_options(
-    subcommand: Command,
+    mut subcommand: Command,
     require_secret_key: bool,
     include_node_address: bool,
     include_transaction_args: bool,
 ) -> Command {
-    let mut subcommand = subcommand
-        .next_line_help(true)
-        .arg(show_simple_arg_examples::arg())
-        .arg(show_json_args_examples::arg())
-        .group(
-            ArgGroup::new("show-examples")
-                .arg(show_simple_arg_examples::ARG_NAME)
-                .arg(show_json_args_examples::ARG_NAME),
-        );
-
     if include_node_address {
         subcommand = subcommand.arg(
             common::node_address::arg(DisplayOrder::NodeAddress as usize)
@@ -439,6 +513,30 @@ pub(super) fn apply_common_creation_options(
         subcommand = subcommand
             .arg(arg_simple::session::arg())
             .arg(args_json::session::arg())
+            .arg(show_simple_arg_examples::arg())
+            .arg(show_json_args_examples::arg())
+            // Group the session-arg args so only one style is used to ensure consistent ordering.
+            .group(
+                ArgGroup::new(SESSION_ARG_GROUP)
+                    .arg(arg_simple::session::ARG_NAME)
+                    .arg(args_json::session::ARG_NAME)
+                    .required(false),
+            )
+            .group(
+                ArgGroup::new("session")
+                    .arg(show_simple_arg_examples::ARG_NAME)
+                    .arg(show_json_args_examples::ARG_NAME)
+                    .required(false),
+            )
+            .group(
+                // This group duplicates all the args in the "session" and "show-examples" groups, but
+                // ensures at least one of them are provided.
+                ArgGroup::new("session-and-show-examples")
+                    .arg(show_simple_arg_examples::ARG_NAME)
+                    .arg(show_json_args_examples::ARG_NAME)
+                    .multiple(true)
+                    .required(false),
+            );
     }
 
     subcommand = subcommand
@@ -455,36 +553,29 @@ pub(super) fn apply_common_creation_options(
         .arg(chain_name::arg())
         .arg(output::arg())
         .arg(payment_amount::arg())
-        .arg(pricing_mode::arg());
-    subcommand
-}
-
-pub(super) fn apply_common_args_options(subcommand: Command) -> Command {
-    subcommand
-        .arg(arg_simple::session::arg())
-        .arg(args_json::session::arg())
-        // Group the session-arg args so only one style is used to ensure consistent ordering.
+        .arg(pricing_mode::arg())
+        .arg(gas_price_tolerance::arg())
+        .arg(receipt::arg())
+        .arg(paid_amount::arg())
         .group(
-            ArgGroup::new(SESSION_ARG_GROUP)
-                .arg(arg_simple::session::ARG_NAME)
-                .arg(args_json::session::ARG_NAME)
-                .required(false),
-        )
-        .group(
-            ArgGroup::new("session")
-                .arg(show_simple_arg_examples::ARG_NAME)
-                .arg(show_json_args_examples::ARG_NAME)
-                .required(false),
-        )
-        .group(
-            // This group duplicates all the args in the "session" and "show-examples" groups, but
-            // ensures at least one of them are provided.
-            ArgGroup::new("session-and-show-examples")
-                .arg(show_simple_arg_examples::ARG_NAME)
-                .arg(show_json_args_examples::ARG_NAME)
+            ArgGroup::new("Classic payment")
+                .arg(payment_amount::ARG_NAME)
+                .arg(gas_price_tolerance::ARG_NAME)
                 .multiple(true)
                 .required(false),
         )
+        .group(
+            ArgGroup::new("Reserved payment")
+                .arg(receipt::ARG_NAME)
+                .arg(paid_amount::ARG_NAME)
+                .required(false),
+        )
+        .group(
+            ArgGroup::new("Fixed Payment")
+                .arg(gas_price_tolerance::ARG_NAME)
+                .required(false)
+        );
+    subcommand
 }
 
 pub(super) fn show_simple_arg_examples_and_exit_if_required(matches: &ArgMatches) {
@@ -1158,7 +1249,8 @@ pub(super) mod invocable_entity {
     const ABOUT: &str = "Creates a new transaction targeting an invocable entity";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
+
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1201,7 +1293,8 @@ pub(super) mod invocable_entity_alias {
     const ABOUT: &str = "Creates a new transaction targeting an invocable entity via its alias";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
+
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1242,7 +1335,8 @@ pub(super) mod package {
     const ABOUT: &str = "Creates a new transaction targeting a package";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
+
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1288,7 +1382,8 @@ pub(super) mod package_alias {
     const ABOUT: &str = "Creates a new transaction targeting package via its alias";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
+
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1335,7 +1430,7 @@ pub(super) mod session {
     const ABOUT: &str = "Creates a new transaction for running session logic";
 
     pub fn build() -> Command {
-        apply_common_args(add_args(Command::new(NAME).about(ABOUT)))
+        apply_common_creation_options(add_args(Command::new(NAME).about(ABOUT)), false, false, ACCEPT_SESSION_ARGS)
     }
 
     pub fn put_transaction_build() -> Command {
@@ -1586,10 +1681,6 @@ pub(super) mod destination_account {
         }
     }
 }
-pub(super) fn apply_common_args(subcommand: Command) -> Command {
-    let subcommand = apply_common_args_options(subcommand);
-    apply_common_creation_options(subcommand, false, false, true)
-}
 
 pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_args: bool) -> TransactionStrParams {
     let secret_key = common::secret_key::get(matches).unwrap_or_default();
@@ -1597,7 +1688,11 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_
     let ttl = ttl::get(matches);
     let chain_name = chain_name::get(matches);
     let maybe_pricing_mode = pricing_mode::get(matches);
+    let gas_price = gas_price_tolerance::get(matches);
     let payment_amount = payment_amount::get(matches);
+    let receipt = receipt::get(matches);
+    let paid_amount = paid_amount::get(matches);
+
 
     let maybe_output_path = output::get(matches).unwrap_or_default();
     let initiator_addr = initiator_address::get(matches);
@@ -1613,9 +1708,12 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_
             initiator_addr,
             session_args_simple,
             session_args_json,
-            maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode,
             output_path: maybe_output_path,
             payment_amount,
+            gas_price,
+            receipt,
+            paid_amount,
         }
     } else {
 
@@ -1625,9 +1723,12 @@ pub(super) fn build_transaction_str_params(matches: &ArgMatches, obtain_session_
             ttl,
             chain_name,
             initiator_addr,
-            maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode,
             output_path: maybe_output_path,
             payment_amount,
+            gas_price,
+            receipt,
+            paid_amount,
             ..Default::default()
         }
     }
