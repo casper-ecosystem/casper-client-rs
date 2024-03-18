@@ -29,6 +29,7 @@ pub(crate) mod get_era_summary {
 
 pub(crate) mod get_node_status {
     pub(crate) use crate::rpcs::v1_5_0::get_node_status::GET_NODE_STATUS_METHOD;
+    #[allow(unused_imports)]
     pub use crate::rpcs::v1_5_0::get_node_status::{
         ActivationPoint, AvailableBlockRange, BlockSyncStatus, BlockSynchronizerStatus,
         GetNodeStatusResult, MinimalBlockInfo, NextUpgrade, ReactorState,

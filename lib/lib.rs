@@ -64,12 +64,12 @@ pub use output_kind::OutputKind;
 use rpcs::{
     common::{BlockIdentifier, GlobalStateIdentifier},
     results::{
-        GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
-        GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
-        GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
-        GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
-        PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
-        SpeculativeExecTxnResult, GetAddressableEntityResult,
+        GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
+        GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
+        GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
+        GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
+        PutDeployResult, PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult,
+        SpeculativeExecResult, SpeculativeExecTxnResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
