@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.  The format
 
 ### Changed
 * Update to match change to node RPC `info_get_deploy`.
+* Update to match change to node RPC `info_get_status` used in the binary's `get-node-status` subcommand.
 
 ### Removed
 * Remove following public types which are now available in `casper_types`:
