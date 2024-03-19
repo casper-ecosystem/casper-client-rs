@@ -12,8 +12,7 @@ pub use super::v2_0_0::get_entity::GetAddressableEntityResult;
 pub use super::v2_0_0::get_era_info::{EraSummary, GetEraInfoResult};
 pub use super::v2_0_0::get_era_summary::GetEraSummaryResult;
 pub use super::v2_0_0::get_node_status::{
-    ActivationPoint, AvailableBlockRange, BlockSyncStatus, BlockSynchronizerStatus,
-    GetNodeStatusResult, MinimalBlockInfo, NextUpgrade, ReactorState,
+    AvailableBlockRange, GetNodeStatusResult, MinimalBlockInfo, NextUpgrade,
 };
 pub use super::v2_0_0::get_peers::{GetPeersResult, PeerEntry};
 pub use super::v2_0_0::get_state_root_hash::GetStateRootHashResult;
