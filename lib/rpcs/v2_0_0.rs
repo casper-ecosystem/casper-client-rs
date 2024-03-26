@@ -2,6 +2,7 @@
 
 pub(crate) mod get_block;
 pub(crate) mod get_deploy;
+pub(crate) mod get_dictionary_item;
 pub(crate) mod get_entity;
 pub(crate) mod get_node_status;
 pub(crate) mod put_transaction;
@@ -36,15 +37,6 @@ pub(crate) mod get_block_transfers {
 pub(crate) mod get_chainspec {
     pub use crate::rpcs::v1_6_0::get_chainspec::GetChainspecResult;
     pub(crate) use crate::rpcs::v1_6_0::get_chainspec::GET_CHAINSPEC_METHOD;
-}
-
-pub(crate) mod get_dictionary_item {
-    pub use crate::rpcs::v1_6_0::get_dictionary_item::{
-        DictionaryItemIdentifier, GetDictionaryItemResult,
-    };
-    pub(crate) use crate::rpcs::v1_6_0::get_dictionary_item::{
-        GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD,
-    };
 }
 
 pub(crate) mod get_era_info {

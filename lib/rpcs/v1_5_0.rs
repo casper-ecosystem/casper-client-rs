@@ -45,12 +45,8 @@ pub(crate) mod get_block_transfers {
 }
 
 pub(crate) mod get_dictionary_item {
-    pub use crate::rpcs::v1_4_5::get_dictionary_item::{
-        DictionaryItemIdentifier, GetDictionaryItemResult,
-    };
-    pub(crate) use crate::rpcs::v1_4_5::get_dictionary_item::{
-        GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD,
-    };
+    pub use crate::rpcs::v1_4_5::get_dictionary_item::GetDictionaryItemResult;
+    pub(crate) use crate::rpcs::v1_4_5::get_dictionary_item::GET_DICTIONARY_ITEM_METHOD;
 }
 
 pub(crate) mod get_era_info {
