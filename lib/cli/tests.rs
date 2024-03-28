@@ -487,7 +487,8 @@ mod transaction {
   "approvals": []
 }
 "#;
-    const SAMPLE_DIGEST: &str = "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d";
+    const SAMPLE_DIGEST: &str =
+        "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d";
 
     #[test]
     fn should_sign_transaction() {
@@ -537,6 +538,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -597,6 +600,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Delegate {
@@ -658,6 +663,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params =
@@ -710,6 +717,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Undelegate {
@@ -777,6 +786,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Redelegate {
@@ -824,11 +835,11 @@ mod transaction {
 
     #[test]
     fn should_create_invocable_entity_transaction() {
-        let entity_addr: EntityAddr = EntityAddr::new_account_entity_addr([0u8; 32]);
-        let hash_addr = entity_addr.value();
+        let entity_addr: EntityAddr = EntityAddr::new_account([0u8; 32]);
+        let entity_hash = entity_addr.value();
         let entry_point = String::from("test-entry-point");
         let target = &TransactionTarget::Stored {
-            id: TransactionInvocationTarget::InvocableEntity(hash_addr),
+            id: TransactionInvocationTarget::ByHash(entity_hash),
             runtime: TransactionRuntime::VmCasperV1,
         };
 
@@ -848,10 +859,12 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
-            entity_addr,
+            entity_hash: entity_hash.into(),
             entry_point: "test-entry-point",
         };
         let transaction =
@@ -872,7 +885,7 @@ mod transaction {
     fn should_create_invocable_entity_alias_transaction() {
         let alias = String::from("alias");
         let target = &TransactionTarget::Stored {
-            id: TransactionInvocationTarget::InvocableEntityAlias(alias),
+            id: TransactionInvocationTarget::ByName(alias),
             runtime: TransactionRuntime::VmCasperV1,
         };
         let transaction_string_params = TransactionStrParams {
@@ -889,6 +902,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
@@ -914,7 +929,7 @@ mod transaction {
         let entry_point = "test-entry-point-package";
         let maybe_entity_version = Some(23);
         let target = &TransactionTarget::Stored {
-            id: TransactionInvocationTarget::Package {
+            id: TransactionInvocationTarget::ByPackageHash {
                 addr: package_addr,
                 version: maybe_entity_version,
             },
@@ -934,10 +949,12 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Package {
-            package_addr,
+            package_hash: package_addr.into(),
             entry_point,
             maybe_entity_version,
         };
@@ -953,12 +970,12 @@ mod transaction {
     }
     #[test]
     fn should_create_package_alias_transaction() {
-        let package_alias: String = String::from("package-alias");
+        let package_name = String::from("package-name");
         let entry_point = "test-entry-point-package";
         let maybe_entity_version = Some(23);
         let target = &TransactionTarget::Stored {
-            id: TransactionInvocationTarget::PackageAlias {
-                alias: package_alias.clone(),
+            id: TransactionInvocationTarget::ByPackageName {
+                name: package_name.clone(),
                 version: maybe_entity_version,
             },
             runtime: TransactionRuntime::VmCasperV1,
@@ -977,10 +994,12 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::PackageAlias {
-            package_alias: &package_alias,
+            package_alias: &package_name,
             entry_point,
             maybe_entity_version,
         };
@@ -1016,6 +1035,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
@@ -1043,6 +1064,8 @@ mod transaction {
         )
         .unwrap();
 
+        let maybe_source = Some(source_uref);
+
         let source_uref_cl = &CLValue::from_t(&source_uref).unwrap();
         let target_uref_cl = &CLValue::from_t(&target_uref).unwrap();
 
@@ -1060,13 +1083,14 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
-            source_uref,
-            target_uref,
+            maybe_source,
+            target: target_uref,
             amount: Default::default(),
-            maybe_to: None,
             maybe_id: None,
         };
         let transaction =
@@ -1102,12 +1126,13 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
-            source_uref: Default::default(),
-            target_uref: Default::default(),
+            maybe_source: Default::default(),
+            target: Default::default(),
             amount: Default::default(),
-            maybe_to: None,
             maybe_id: None,
         };
         let transaction =
@@ -1136,6 +1161,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
@@ -1164,6 +1191,8 @@ mod transaction {
             gas_price: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
+            strike_price: "1",
+            standard_payment: "true",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),

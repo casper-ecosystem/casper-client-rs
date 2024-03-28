@@ -1,6 +1,8 @@
 use casper_types::account::AccountHash;
 use casper_types::bytesrepr::Bytes;
-use casper_types::{EntityAddr, PackageAddr, PublicKey, URef, U512};
+use casper_types::{
+    AddressableEntityHash, EntityAddr, PackageAddr, PackageHash, PublicKey, URef, U512,
+};
 
 /// An enum representing the parameters needed to construct a transaction builder
 /// for the commands concerning the creation of a transaction
@@ -46,8 +48,8 @@ pub enum TransactionBuilderParams<'a> {
     },
     /// Parameters for the invocable entity variant of the transaction builder
     InvocableEntity {
-        /// The entity address for the invocable entity transaction
-        entity_addr: EntityAddr,
+        /// The entity hash for the invocable entity transaction
+        entity_hash: AddressableEntityHash,
         /// The entry point for the invocable entity transaction
         entry_point: &'a str,
     },
@@ -60,8 +62,8 @@ pub enum TransactionBuilderParams<'a> {
     },
     /// Parameters for the package variant of the transaction builder
     Package {
-        /// The package address for the package transaction
-        package_addr: PackageAddr,
+        /// The package hash for the package transaction
+        package_hash: PackageHash,
         /// The optional entity version for the package transaction
         maybe_entity_version: Option<u32>,
         /// The entry_point for the package transaction
@@ -85,14 +87,12 @@ pub enum TransactionBuilderParams<'a> {
     },
     /// Parameters for the transfer variant of the transaction builder
     Transfer {
-        /// The uref for the source purse for the undelegate transaction
-        source_uref: URef,
-        /// The uref for the traget_purse for the undelegate transaction
-        target_uref: URef,
+        /// Source of the transfer transaction
+        maybe_source: Option<URef>,
+        /// Target of the transfer transaction
+        target: URef,
         /// The amount of motes for the undelegate transaction
         amount: U512,
-        /// The optional account hash for the transfer transaction
-        maybe_to: Option<AccountHash>,
         /// The optional id for the transfer transaction
         maybe_id: Option<u64>,
     },

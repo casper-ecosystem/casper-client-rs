@@ -58,12 +58,16 @@ pub struct TransactionStrParams<'a> {
     pub pricing_mode: &'a str,
     /// The optional output path for the transaction, if writing it to a file.
     pub output_path: &'a str,
-    ///The payment amount for executing the transaction
+    /// The payment amount for executing the transaction
     pub payment_amount: &'a str,
-    /// the gas price tolerance for the transaction
+    /// The gas price tolerance for the transaction
     pub gas_price: &'a str,
-    /// the digest of a previous transaction that represents the receipt for the current transaction.
+    /// The digest of a previous transaction that represents the receipt for the current transaction.
     pub receipt: &'a str,
-    /// the amount paid for the previous transaction that represents the receipt for the current transaction.
+    /// The amount paid for the previous transaction that represents the receipt for the current transaction.
     pub paid_amount: &'a str,
+    /// The gas price at the time of reservation.
+    pub strike_price: &'a str,
+    /// Standard payment.
+    pub standard_payment: &'a str,
 }

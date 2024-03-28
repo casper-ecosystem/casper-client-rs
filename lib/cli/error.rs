@@ -1,4 +1,4 @@
-use std::num::ParseIntError;
+use std::{num::ParseIntError, str::ParseBoolError};
 
 use humantime::{DurationError, TimestampError};
 use thiserror::Error;
@@ -71,6 +71,16 @@ pub enum CliError {
         context: &'static str,
         /// The actual error raised.
         error: ParseIntError,
+    },
+
+    /// Failed to parse a bool from a string.
+    #[error("failed to parse '{context}' as a bool: {error}")]
+    FailedToParseBool {
+        /// Contextual description of where this error occurred including relevant paths,
+        /// filenames, etc.
+        context: &'static str,
+        /// The actual error raised.
+        error: ParseBoolError,
     },
 
     /// Failed to parse an integer from a string.
