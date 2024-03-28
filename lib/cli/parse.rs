@@ -820,7 +820,7 @@ pub(super) fn pricing_mode(
                     error,
                 }
             })?;
-            let standard_payment = maybe_payment_amount_str.parse::<bool>().map_err(|error| {
+            let standard_payment = maybe_standard_payment_str.parse::<bool>().map_err(|error| {
                 CliError::FailedToParseBool {
                     context: "standard_payment",
                     error,
