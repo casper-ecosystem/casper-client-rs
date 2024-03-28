@@ -1076,7 +1076,7 @@ mod transaction {
 
         let maybe_source = Some(source_uref);
 
-        let source_uref_cl = &CLValue::from_t(&source_uref).unwrap();
+        let source_uref_cl = &CLValue::from_t(Some(&source_uref)).unwrap();
         let target_uref_cl = &CLValue::from_t(&target_uref).unwrap();
 
         let transaction_string_params = TransactionStrParams {
