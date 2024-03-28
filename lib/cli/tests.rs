@@ -540,6 +540,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -602,6 +603,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Delegate {
@@ -665,6 +667,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params =
@@ -719,6 +722,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Undelegate {
@@ -788,6 +792,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Redelegate {
@@ -861,6 +866,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
@@ -904,6 +910,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
@@ -951,6 +958,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Package {
@@ -996,6 +1004,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::PackageAlias {
@@ -1037,6 +1046,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
@@ -1085,6 +1095,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
@@ -1128,6 +1139,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
             maybe_source: Default::default(),
@@ -1163,6 +1175,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
@@ -1193,6 +1206,7 @@ mod transaction {
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
+            gas_price_tolerance: "1",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),

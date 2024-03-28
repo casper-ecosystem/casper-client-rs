@@ -70,4 +70,6 @@ pub struct TransactionStrParams<'a> {
     pub strike_price: &'a str,
     /// Standard payment.
     pub standard_payment: &'a str,
+    /// User-specified gas_price tolerance (minimum 1).
+    pub gas_price_tolerance: &'a str,
 }

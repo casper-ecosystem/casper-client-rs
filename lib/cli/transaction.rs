@@ -76,6 +76,7 @@ pub fn create_transaction(
             transaction_params.strike_price,
             Some(digest),
             Some(paid_amount),
+            transaction_params.gas_price_tolerance,
         )?
     } else {
         parse::pricing_mode(
@@ -86,6 +87,7 @@ pub fn create_transaction(
             transaction_params.strike_price,
             None,
             None,
+            transaction_params.gas_price_tolerance,
         )?
     };
 

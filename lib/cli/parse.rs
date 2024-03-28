@@ -786,6 +786,7 @@ pub(super) fn pricing_mode(
     maybe_strike_price_str: &str,
     maybe_receipt: Option<Digest>,
     maybe_paid_amount: Option<U512>,
+    maybe_gas_price_tolerance_str: &str,
 ) -> Result<PricingMode, CliError> {
     match pricing_mode_identifier_str.to_lowercase().as_str() {
         "classic" => {
@@ -820,12 +821,12 @@ pub(super) fn pricing_mode(
                     error,
                 }
             })?;
-            let standard_payment = maybe_standard_payment_str.parse::<bool>().map_err(|error| {
-                CliError::FailedToParseBool {
+            let standard_payment = maybe_standard_payment_str
+                .parse::<bool>()
+                .map_err(|error| CliError::FailedToParseBool {
                     context: "standard_payment",
                     error,
-                }
-            })?;
+                })?;
             Ok(PricingMode::Classic {
                 payment_amount,
                 gas_price,
@@ -833,14 +834,14 @@ pub(super) fn pricing_mode(
             })
         }
         "fixed" => {
-            if maybe_gas_price_str.is_empty() {
+            if maybe_gas_price_tolerance_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "gas-price-tolerance",
                     error: "Gas price tolerance is required".to_string(),
                 });
             }
             let gas_price_tolerance =
-                maybe_gas_price_str
+                maybe_gas_price_tolerance_str
                     .parse::<u8>()
                     .map_err(|error| CliError::FailedToParseInt {
                         context: "gas-price-tolerance",
@@ -1608,6 +1609,7 @@ mod tests {
             let gas_price = "10";
             let standard_payment = "";
             let strike_price = "1";
+            let gas_price_tolerance = "10";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
@@ -1616,6 +1618,7 @@ mod tests {
                 strike_price,
                 None,
                 None,
+                gas_price_tolerance,
             )
             .unwrap();
             assert_eq!(
@@ -1633,6 +1636,7 @@ mod tests {
             let standard_payment = "";
             let paid_amount: u64 = 10;
             let strike_price = "1";
+            let gas_price_tolerance = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
@@ -1641,6 +1645,7 @@ mod tests {
                 strike_price,
                 Some(Digest::from_hex(VALID_HASH).unwrap()),
                 Some(U512::from(paid_amount)),
+                gas_price_tolerance
             )
             .unwrap();
             assert_eq!(
@@ -1659,6 +1664,7 @@ mod tests {
             let gas_price = "10";
             let standard_payment = "true";
             let strike_price = "1";
+            let gas_price_tolerance = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
@@ -1667,6 +1673,7 @@ mod tests {
                 strike_price,
                 None,
                 None,
+                gas_price_tolerance,
             )
             .unwrap();
             assert_eq!(
@@ -1685,6 +1692,7 @@ mod tests {
             let gas_price = "10";
             let standard_payment = "true";
             let strike_price = "1";
+            let gas_price_tolerance = "10";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
@@ -1693,6 +1701,7 @@ mod tests {
                 strike_price,
                 None,
                 None,
+                gas_price_tolerance,
             );
             assert!(parsed.is_err());
             assert!(matches!(parsed, Err(CliError::InvalidArgument { .. })));

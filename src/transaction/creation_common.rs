@@ -1801,6 +1801,7 @@ pub(super) fn build_transaction_str_params(
     let paid_amount = paid_amount::get(matches);
     let strike_price = strike_price::get(matches);
     let standard_payment = standard_payment::get(matches);
+    let gas_price_tolerance = gas_price_tolerance::get(matches);
 
     let maybe_output_path = output::get(matches).unwrap_or_default();
     let initiator_addr = initiator_address::get(matches);
@@ -1824,6 +1825,7 @@ pub(super) fn build_transaction_str_params(
             paid_amount,
             strike_price,
             standard_payment,
+            gas_price_tolerance,
         }
     } else {
         TransactionStrParams {
