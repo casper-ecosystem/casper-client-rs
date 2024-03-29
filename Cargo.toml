@@ -48,7 +48,9 @@ tempfile = "3.7.1"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-casper-types = { git = "https://github.com/casper-network/casper-node", branch = "feat-2.0" }
+# This change is to be reverted after `feat-2.0` in `casper-node` is updated with the recent "spicy" changes.
+#casper-types = { git = "https://github.com/casper-network/casper-node", branch = "feat-2.0" }
+casper-types = { path = "../casper-node/types" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
