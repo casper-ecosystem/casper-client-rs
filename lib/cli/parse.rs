@@ -785,7 +785,7 @@ pub(super) fn pricing_mode(
     maybe_standard_payment_str: &str,
     maybe_strike_price_str: &str,
     maybe_receipt: Option<Digest>,
-    maybe_paid_amount: Option<U512>,
+    maybe_paid_amount: Option<u64>,
     maybe_gas_price_tolerance_str: &str,
 ) -> Result<PricingMode, CliError> {
     match pricing_mode_identifier_str.to_lowercase().as_str() {

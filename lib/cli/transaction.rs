@@ -62,12 +62,15 @@ pub fn create_transaction(
                 error,
             }
         })?;
-        let paid_amount = U512::from_dec_str(transaction_params.receipt).map_err(|error| {
-            CliError::FailedToParseDec {
-                context: "pricing_digest",
+
+        let paid_amount = transaction_params
+            .paid_amount
+            .parse::<u64>()
+            .map_err(|error| CliError::FailedToParseInt {
+                context: "paid_amount",
                 error,
-            }
-        })?;
+            })?;
+
         parse::pricing_mode(
             transaction_params.pricing_mode,
             transaction_params.payment_amount,
