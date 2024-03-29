@@ -1644,15 +1644,15 @@ mod tests {
                 standard_payment,
                 strike_price,
                 Some(Digest::from_hex(VALID_HASH).unwrap()),
-                Some(U512::from(paid_amount)),
-                gas_price_tolerance
+                Some(paid_amount),
+                gas_price_tolerance,
             )
             .unwrap();
             assert_eq!(
                 parsed,
                 PricingMode::Reserved {
                     receipt: Digest::from_hex(VALID_HASH).unwrap(),
-                    paid_amount: U512::from(paid_amount),
+                    paid_amount: 10,
                     strike_price: 1,
                 }
             );
