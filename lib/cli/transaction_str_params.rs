@@ -60,8 +60,8 @@ pub struct TransactionStrParams<'a> {
     pub output_path: &'a str,
     /// The payment amount for executing the transaction
     pub payment_amount: &'a str,
-    /// The gas price tolerance for the transaction
-    pub gas_price: &'a str,
+    /// User-specified gas_price tolerance.
+    pub gas_price_tolerance: &'a str,
     /// The digest of a previous transaction that represents the receipt for the current transaction.
     pub receipt: &'a str,
     /// The amount paid for the previous transaction that represents the receipt for the current transaction.
@@ -70,6 +70,4 @@ pub struct TransactionStrParams<'a> {
     pub strike_price: &'a str,
     /// Standard payment.
     pub standard_payment: &'a str,
-    /// User-specified gas_price tolerance (minimum 1).
-    pub gas_price_tolerance: &'a str,
 }

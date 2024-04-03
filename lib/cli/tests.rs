@@ -535,12 +535,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -598,12 +597,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Delegate {
@@ -662,12 +660,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params =
@@ -717,12 +714,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Undelegate {
@@ -787,12 +783,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Redelegate {
@@ -861,12 +856,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
@@ -905,12 +899,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
@@ -953,12 +946,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Package {
@@ -999,12 +991,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::PackageAlias {
@@ -1041,12 +1032,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
@@ -1090,12 +1080,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
@@ -1134,12 +1123,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
             maybe_source: Default::default(),
@@ -1170,12 +1158,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
@@ -1201,12 +1188,11 @@ mod transaction {
             pricing_mode: "fixed",
             output_path: "",
             payment_amount: "100",
-            gas_price: "",
+            gas_price_tolerance: "",
             receipt: SAMPLE_DIGEST,
             paid_amount: "",
             strike_price: "1",
             standard_payment: "true",
-            gas_price_tolerance: "1",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),

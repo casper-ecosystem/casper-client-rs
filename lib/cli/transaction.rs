@@ -6,8 +6,7 @@ use crate::{
     speculative_exec_txn, SuccessResponse,
 };
 use casper_types::{
-    Digest, InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1,
-    TransactionV1Builder, U512,
+    Digest, InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder,
 };
 
 pub fn create_transaction(
@@ -74,23 +73,21 @@ pub fn create_transaction(
         parse::pricing_mode(
             transaction_params.pricing_mode,
             transaction_params.payment_amount,
-            transaction_params.gas_price,
+            transaction_params.gas_price_tolerance,
             transaction_params.standard_payment,
             transaction_params.strike_price,
             Some(digest),
             Some(paid_amount),
-            transaction_params.gas_price_tolerance,
         )?
     } else {
         parse::pricing_mode(
             transaction_params.pricing_mode,
             transaction_params.payment_amount,
-            transaction_params.gas_price,
+            transaction_params.gas_price_tolerance,
             transaction_params.standard_payment,
             transaction_params.strike_price,
             None,
             None,
-            transaction_params.gas_price_tolerance,
         )?
     };
 

@@ -1795,13 +1795,12 @@ pub(super) fn build_transaction_str_params(
     let ttl = ttl::get(matches);
     let chain_name = chain_name::get(matches);
     let maybe_pricing_mode = pricing_mode::get(matches);
-    let gas_price = gas_price_tolerance::get(matches);
+    let gas_price_tolerance = gas_price_tolerance::get(matches);
     let payment_amount = payment_amount::get(matches);
     let receipt = receipt::get(matches);
     let paid_amount = paid_amount::get(matches);
     let strike_price = strike_price::get(matches);
     let standard_payment = standard_payment::get(matches);
-    let gas_price_tolerance = gas_price_tolerance::get(matches);
 
     let maybe_output_path = output::get(matches).unwrap_or_default();
     let initiator_addr = initiator_address::get(matches);
@@ -1820,12 +1819,11 @@ pub(super) fn build_transaction_str_params(
             pricing_mode: maybe_pricing_mode,
             output_path: maybe_output_path,
             payment_amount,
-            gas_price,
+            gas_price_tolerance,
             receipt,
             paid_amount,
             strike_price,
             standard_payment,
-            gas_price_tolerance,
         }
     } else {
         TransactionStrParams {
@@ -1837,7 +1835,7 @@ pub(super) fn build_transaction_str_params(
             pricing_mode: maybe_pricing_mode,
             output_path: maybe_output_path,
             payment_amount,
-            gas_price,
+            gas_price_tolerance,
             receipt,
             paid_amount,
             strike_price,
