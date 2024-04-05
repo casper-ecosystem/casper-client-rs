@@ -111,9 +111,9 @@ mod entity_addr {
     use super::*;
 
     pub(crate) const ARG_NAME: &str = "entity-addr";
-    const ARG_HELP: &str =
-        "This must be a properly formatted entity address. The format for contract address is \
-        \"addressable-entity-contract-<HEX STRING>\".";
+    const ARG_HELP: &str = "This must be a properly formatted entity address. The format is \
+        \"entity-contract-<HEX STRING>\" for contracts and \"entity-account-<HEX STRING>\" for \
+        accounts.";
 
     pub(super) fn arg() -> Arg {
         key::arg(ARG_NAME, ARG_HELP, DisplayOrder::EntityAddr as usize)
