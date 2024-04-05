@@ -798,7 +798,7 @@ pub(super) fn pricing_mode(
             if maybe_payment_amount_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "payment_amount",
-                    error: "Gas price is required".to_string(),
+                    error: "Payment amount is required".to_string(),
                 });
             }
             if maybe_standard_payment_str.is_empty() {
