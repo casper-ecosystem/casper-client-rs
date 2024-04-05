@@ -52,7 +52,7 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
-use transaction::{MakeTransaction, PutTransaction, SignTransaction, SendTransaction};
+use transaction::{MakeTransaction, PutTransaction, SendTransaction, SignTransaction};
 
 const APP_NAME: &str = "Casper client";
 
@@ -121,7 +121,9 @@ fn cli() -> Command {
             DisplayOrder::SignTransaction as usize,
         ))
         .subcommand(SendDeploy::build(DisplayOrder::SendDeploy as usize))
-        .subcommand(SendTransaction::build(DisplayOrder::SendTransaction as usize))
+        .subcommand(SendTransaction::build(
+            DisplayOrder::SendTransaction as usize,
+        ))
         .subcommand(Transfer::build(DisplayOrder::Transfer as usize))
         .subcommand(MakeTransfer::build(DisplayOrder::MakeTransfer as usize))
         .subcommand(GetBalance::build(DisplayOrder::GetBalance as usize).hide(true))
