@@ -791,8 +791,8 @@ pub(super) fn pricing_mode(
         "classic" => {
             if maybe_gas_price_tolerance_str.is_empty() {
                 return Err(CliError::InvalidArgument {
-                    context: "gas-price",
-                    error: "Gas price is required".to_string(),
+                    context: "gas_price_tolerance",
+                    error: "Gas price tolerance is required".to_string(),
                 });
             }
             if maybe_payment_amount_str.is_empty() {
