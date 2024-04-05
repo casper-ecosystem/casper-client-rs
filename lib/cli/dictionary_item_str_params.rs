@@ -31,7 +31,7 @@ pub enum DictionaryItemStrParams<'a> {
     },
     /// A dictionary item identified via a [`AddressableEntity`]'s named keys.
     EntityNamedKey {
-        /// The [`HashAddr`] as a formatted string, identifying the entity whose named keys
+        /// The [`EntityAddr`] as a formatted string, identifying the entity whose named keys
         /// contains `dictionary_name`.
         entity_addr: &'a str,
         /// The named key under which the dictionary seed `URef` is stored.
