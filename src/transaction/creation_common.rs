@@ -383,7 +383,7 @@ pub(super) mod standard_payment {
 
     const ARG_VALUE_NAME: &str = common::ARG_STRING;
 
-    const ARG_HELP: &str = "Standard payment.";
+    const ARG_HELP: &str = "Flag to determine if this transaction uses standard or custom payment.";
 
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
