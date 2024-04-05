@@ -114,7 +114,7 @@ impl<'a> TryFrom<DictionaryItemStrParams<'a>> for DictionaryItemIdentifier {
                 })?;
                 let entity_addr = key.as_entity_addr().ok_or(CliError::InvalidArgument {
                     context: "dictionary item entity named key",
-                    error: "not a entity hash-addr".to_string(),
+                    error: "not a entity-addr".to_string(),
                 })?;
                 Ok(DictionaryItemIdentifier::new_from_entity_info(
                     entity_addr,
