@@ -22,8 +22,7 @@ doc = false
 [dependencies]
 async-trait = "0.1.59"
 base16 = "0.2.1"
-#casper-types = { version = "3.0.0", features = ["std"] }
-casper-types = { path = "../casper-node/types", features = ["std"] }
+casper-types = { version = "3.0.0", features = ["std"] }
 clap = { version = "4", features = ["cargo", "deprecated", "wrap_help"] }
 clap_complete = "4"
 hex-buffer-serde = "0.4.0"
@@ -49,9 +48,7 @@ tempfile = "3.7.1"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-# This change is to be reverted after `feat-2.0` in `casper-node` is updated with the recent "spicy" changes.
-#casper-types = { git = "https://github.com/casper-network/casper-node", branch = "feat-2.0" }
-#casper-types = { path = "../casper-node/types" }
+casper-types = { git = "https://github.com/casper-network/casper-node", branch = "feat-2.0" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
