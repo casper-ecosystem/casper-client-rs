@@ -1,4 +1,4 @@
-//! The JSON-RPC request and response types at v1.5.0 of casper-node.
+//! The JSON-RPC request and response types at v1.6.0 of casper-node.
 
 pub(crate) mod get_account;
 

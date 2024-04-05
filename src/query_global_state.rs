@@ -42,8 +42,8 @@ mod key {
         \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\", \"transfer-<HEX-STRING>\", \
         \"deploy-<HEX-STRING>\", \"era-<u64>\", \"bid-<HEX-STRING>\",\
         \"withdraw-<HEX-STRING>\" or \"dictionary-<HEX-STRING>\". \
-        The system contract registry key is unique and can only take the value: \
-        system-contract-registry-0000000000000000000000000000000000000000000000000000000000000000. \
+        The system entity registry key is unique and can only take the value: \
+        system-entity-registry-0000000000000000000000000000000000000000000000000000000000000000. \
         \nThe public key may instead be read in from a file, in which case \
         enter the path to the file as the --key argument. The file should be one of the two public \
         key files generated via the `keygen` subcommand; \"public_key_hex\" or \"public_key.pem\"";

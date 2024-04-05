@@ -6,5 +6,5 @@ mod sign;
 
 pub use make::MakeTransaction;
 pub use put::PutTransaction;
-pub use sign::SignTransaction;
 pub use send::SendTransaction;
+pub use sign::SignTransaction;

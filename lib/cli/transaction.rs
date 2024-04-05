@@ -5,7 +5,9 @@ use crate::{
     rpcs::results::PutTransactionResult,
     speculative_exec_txn, SuccessResponse,
 };
-use casper_types::{Digest, InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder, U512};
+use casper_types::{
+    Digest, InitiatorAddr, Transaction, TransactionSessionKind, TransactionV1, TransactionV1Builder,
+};
 
 pub fn create_transaction(
     builder_params: TransactionBuilderParams,
@@ -59,27 +61,33 @@ pub fn create_transaction(
                 error,
             }
         })?;
-        let paid_amount = U512::from_dec_str(transaction_params.receipt).map_err(|error| {
-            CliError::FailedToParseDec {
-                context: "pricing_digest",
-                error,
-            }
-        })?;
-        parse::pricing_mode(
-            transaction_params.pricing_mode,
-            transaction_params.payment_amount,
-            transaction_params.gas_price,
-            Some(digest),
-            Some(paid_amount)
 
-        )?
-    } else{
+        let paid_amount = transaction_params
+            .paid_amount
+            .parse::<u64>()
+            .map_err(|error| CliError::FailedToParseInt {
+                context: "paid_amount",
+                error,
+            })?;
+
         parse::pricing_mode(
             transaction_params.pricing_mode,
             transaction_params.payment_amount,
-            transaction_params.gas_price,
+            transaction_params.gas_price_tolerance,
+            transaction_params.standard_payment,
+            transaction_params.strike_price,
+            Some(digest),
+            Some(paid_amount),
+        )?
+    } else {
+        parse::pricing_mode(
+            transaction_params.pricing_mode,
+            transaction_params.payment_amount,
+            transaction_params.gas_price_tolerance,
+            transaction_params.standard_payment,
+            transaction_params.strike_price,
             None,
-            None
+            None,
         )?
     };
 
@@ -263,11 +271,11 @@ pub fn make_transaction_builder(
             Ok(transaction_builder)
         }
         TransactionBuilderParams::InvocableEntity {
-            entity_addr,
+            entity_hash,
             entry_point,
         } => {
             let transaction_builder =
-                TransactionV1Builder::new_targeting_invocable_entity(entity_addr, entry_point);
+                TransactionV1Builder::new_targeting_invocable_entity(entity_hash, entry_point);
             Ok(transaction_builder)
         }
         TransactionBuilderParams::InvocableEntityAlias {
@@ -282,12 +290,12 @@ pub fn make_transaction_builder(
             Ok(transaction_builder)
         }
         TransactionBuilderParams::Package {
-            package_addr,
+            package_hash,
             maybe_entity_version,
             entry_point,
         } => {
             let transaction_builder = TransactionV1Builder::new_targeting_package(
-                package_addr,
+                package_hash,
                 maybe_entity_version,
                 entry_point,
             );
@@ -317,19 +325,14 @@ pub fn make_transaction_builder(
             Ok(transaction_builder)
         }
         TransactionBuilderParams::Transfer {
-            source_uref,
-            target_uref,
+            maybe_source,
+            target,
             amount,
-            maybe_to,
             maybe_id,
         } => {
-            let transaction_builder = TransactionV1Builder::new_transfer(
-                source_uref,
-                target_uref,
-                amount,
-                maybe_to,
-                maybe_id,
-            )?;
+            let transaction_builder =
+                TransactionV1Builder::new_transfer(amount, maybe_source, target, maybe_id)?;
+
             Ok(transaction_builder)
         }
         TransactionBuilderParams::WithdrawBid { public_key, amount } => {

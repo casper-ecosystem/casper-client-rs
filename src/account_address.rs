@@ -37,7 +37,7 @@ impl ClientCommand for AccountAddress {
         let public_key = PublicKey::from_hex(&hex_public_key).map_err(|error| {
             eprintln!("Can't parse {} as a public key: {}", hex_public_key, error);
             CliError::FailedToParsePublicKey {
-                context: "account-address".to_string(),
+                context: "account_address".to_string(),
                 error,
             }
         })?;

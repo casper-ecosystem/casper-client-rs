@@ -39,7 +39,7 @@ impl ClientCommand for SendTransaction {
         let input_path = creation_common::transaction_path::get(matches).unwrap_or_default();
         if input_path.is_empty() {
             return Err(CliError::InvalidArgument {
-                context: "send-deploy",
+                context: "send_deploy",
                 error: "Transaction path cannot be empty".to_string(),
             });
         }

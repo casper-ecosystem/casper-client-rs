@@ -49,7 +49,7 @@ impl From<GetBlockResult> for ListDeploysResult {
                 match &block.block {
                     Block::V1(v1_block) => v1_block.transfer_hashes().to_vec(),
                     Block::V2(v2_block) => v2_block
-                        .transfer()
+                        .mint()
                         .filter_map(|txn_hash| match txn_hash {
                             TransactionHash::Deploy(deploy_hash) => Some(*deploy_hash),
                             TransactionHash::V1(_) => None,
