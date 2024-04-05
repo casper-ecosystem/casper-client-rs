@@ -32,8 +32,8 @@ pub enum DictionaryItemIdentifier {
     },
     /// A dictionary item identified via a [`AddressableEntity`]'s named keys.
     EntityNamedKey {
-        /// The [`Key::Hash`] as a formatted string, identifying the entity whose named keys
-        /// contains `dictionary_name`.
+        /// The [`Key::AddressableEntity`] as a formatted string, identifying the entity whose
+        /// named keys contain `dictionary_name`.
         key: String,
         /// The named key under which the dictionary seed `URef` is stored.
         dictionary_name: String,
