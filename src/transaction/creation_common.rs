@@ -1546,7 +1546,7 @@ pub(super) mod session {
 
         if transaction_path_str.is_none() {
             return Err(CliError::InvalidArgument {
-                context: "transaction-path",
+                context: "transaction_path",
                 error: "Transaction path cannot be empty".to_string(),
             });
         }
@@ -1779,7 +1779,7 @@ pub(super) mod destination_account {
         match AccountHash::from_formatted_str(maybe_account) {
             Ok(account) => Ok(Some(account)),
             Err(err) => Err(CliError::FailedToParseAccountHash {
-                context: "destination-account",
+                context: "destination_account",
                 error: err,
             }),
         }
