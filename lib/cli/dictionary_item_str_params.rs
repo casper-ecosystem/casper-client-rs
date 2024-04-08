@@ -29,6 +29,16 @@ pub enum DictionaryItemStrParams<'a> {
         /// The key within the dictionary under which the item is held.
         dictionary_item_key: &'a str,
     },
+    /// A dictionary item identified via a [`AddressableEntity`]'s named keys.
+    EntityNamedKey {
+        /// The [`EntityAddr`] as a formatted string, identifying the entity whose named keys
+        /// contains `dictionary_name`.
+        entity_addr: &'a str,
+        /// The named key under which the dictionary seed `URef` is stored.
+        dictionary_name: &'a str,
+        /// The key within the dictionary under which the item is held.
+        dictionary_item_key: &'a str,
+    },
     /// A dictionary item identified via its seed [`URef`].
     URef {
         /// The dictionary's seed `URef` as a formatted string.
@@ -87,6 +97,27 @@ impl<'a> TryFrom<DictionaryItemStrParams<'a>> for DictionaryItemIdentifier {
                 })?;
                 Ok(DictionaryItemIdentifier::new_from_contract_info(
                     hash_addr,
+                    dictionary_name.to_string(),
+                    dictionary_item_key.to_string(),
+                ))
+            }
+            DictionaryItemStrParams::EntityNamedKey {
+                entity_addr,
+                dictionary_name,
+                dictionary_item_key,
+            } => {
+                let key = Key::from_formatted_str(entity_addr).map_err(|error| {
+                    CliError::FailedToParseKey {
+                        context: "dictionary item entity named key",
+                        error,
+                    }
+                })?;
+                let entity_addr = key.as_entity_addr().ok_or(CliError::InvalidArgument {
+                    context: "dictionary item entity named key",
+                    error: "not a entity-addr".to_string(),
+                })?;
+                Ok(DictionaryItemIdentifier::new_from_entity_info(
+                    entity_addr,
                     dictionary_name.to_string(),
                     dictionary_item_key.to_string(),
                 ))
