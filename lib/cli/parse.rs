@@ -6,9 +6,9 @@ use std::{fs, path::Path, str::FromStr};
 use rand::Rng;
 
 use casper_types::{
-    account::AccountHash, bytesrepr::Bytes, crypto, AddressableEntityHash, AsymmetricType,
-    BlockHash, DeployHash, Digest, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode,
-    PublicKey, RuntimeArgs, SecretKey, TimeDiff, Timestamp, UIntParseError, URef, U512,
+    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
+    EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs,
+    SecretKey, TimeDiff, Timestamp, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -728,8 +728,7 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
 /// a pem file, or a file containing a hex formatted string, or a formatted string representing
 /// an account hash.  It may not be empty.
 pub(super) fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentifier, CliError> {
-    const ACCOUNT_ENTITY_PREFIX: &str = "account-";
-    const CONTRACT_ENTITY_PREFIX: &str = "contract-";
+    const ENTITY_PREFIX: &str = "entity-";
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
     if entity_identifier.is_empty() {
@@ -748,25 +747,14 @@ pub(super) fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentif
         })?;
         return Ok(EntityIdentifier::AccountHash(account_hash));
     }
-
-    if let Some(suffix) = entity_identifier.strip_prefix(ACCOUNT_ENTITY_PREFIX) {
-        let entity_hash = AddressableEntityHash::from_formatted_str(suffix).map_err(|error| {
+    if entity_identifier.starts_with(ENTITY_PREFIX) {
+        let entity_addr = EntityAddr::from_formatted_str(entity_identifier).map_err(|error| {
             CliError::FailedToParseAddressableEntityHash {
                 context: "entity_identifier",
                 error,
             }
         })?;
-        return Ok(EntityIdentifier::EntityHashForAccount(entity_hash));
-    }
-
-    if let Some(suffix) = entity_identifier.strip_prefix(CONTRACT_ENTITY_PREFIX) {
-        let entity_hash = AddressableEntityHash::from_formatted_str(suffix).map_err(|error| {
-            CliError::FailedToParseAddressableEntityHash {
-                context: "entity_identifier",
-                error,
-            }
-        })?;
-        return Ok(EntityIdentifier::EntityHashForContract(entity_hash));
+        return Ok(EntityIdentifier::EntityAddr(entity_addr));
     }
 
     let public_key = PublicKey::from_hex(entity_identifier).map_err(|error| {
@@ -1554,21 +1542,29 @@ mod tests {
         use super::*;
 
         #[test]
-        pub fn should_parse_valid_contract_entity_hash() {
-            let entity_hash =
-                "contract-addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
-            let parsed = entity_identifier(entity_hash).unwrap();
-            let expected = AddressableEntityHash::from_formatted_str("addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e").unwrap();
-            assert_eq!(parsed, EntityIdentifier::EntityHashForContract(expected));
+        pub fn should_parse_valid_contract_entity_addr() {
+            let entity_addr =
+                "entity-contract-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let parsed = entity_identifier(entity_addr).unwrap();
+            assert_eq!(
+                parsed,
+                EntityIdentifier::EntityAddr(
+                    EntityAddr::from_formatted_str(entity_addr).expect("should parse EntityAddr")
+                )
+            );
         }
 
         #[test]
-        pub fn should_parse_valid_account_entity_hash() {
-            let entity_hash =
-                "account-addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
-            let parsed = entity_identifier(entity_hash).unwrap();
-            let expected = AddressableEntityHash::from_formatted_str("addressable-entity-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e").unwrap();
-            assert_eq!(parsed, EntityIdentifier::EntityHashForAccount(expected));
+        pub fn should_parse_valid_account_entity_addr() {
+            let entity_addr =
+                "entity-account-c029c14904b870e64c1d443d428c606740e82f341bea0f8542ca6494cef1383e";
+            let parsed = entity_identifier(entity_addr).unwrap();
+            assert_eq!(
+                parsed,
+                EntityIdentifier::EntityAddr(
+                    EntityAddr::from_formatted_str(entity_addr).expect("should parse EntityAddr")
+                )
+            );
         }
 
         #[test]
