@@ -358,7 +358,7 @@ pub(super) mod entity_identifier {
     const ARG_HELP: &str =
         "The identifier for an addressable entity or an account. This can be an entity hash, a public \
         key or an account hash. To provide an entity hash, it must be formatted as \
-        \"contract-addressable-entity-<HEX STRING>\" or \"account-addressable-entity-<HEX STRING>\". \
+        \"entity-contract-<HEX STRING>\" or \"entity-account-<HEX STRING>\". \
         To provide a public key, it must be a properly formatted public key. The public key may be \
         read in from a file, in which case enter the path to the file as the --account-identifier \
         argument. The file should be one of the two public key files generated via the `keygen` \
