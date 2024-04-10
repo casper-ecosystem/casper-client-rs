@@ -17,6 +17,9 @@ use crate::{
     Error, Verbosity,
 };
 
+const MAX_RETRIES: usize = 1200;
+const RETRY_DELAY: Duration = Duration::from_secs(3);
+
 static GIT_DIR_NAME: &str = ".git";
 static TARGET_DIR_NAME: &str = "target";
 
@@ -38,7 +41,7 @@ pub fn build_archive(path: &Path) -> Result<Bytes, std::io::Error> {
     let encoder = GzEncoder::new(buffer, Compression::best());
     let mut archive = TarBuilder::new(encoder);
 
-    for entry in (path.read_dir()?).flatten() {
+    for entry in path.read_dir()?.flatten() {
         let file_name = entry.file_name();
         // Skip `.git` and `target`.
         if file_name == TARGET_DIR_NAME || file_name == GIT_DIR_NAME {
@@ -94,7 +97,7 @@ pub async fn send_verification_request(
         .build()
     else {
         eprintln!("Failed to build HTTP client");
-        return Err(Error::ContractVerificationFailed); // FIXME: different error
+        return Err(Error::FailedToConstructHttpClient);
     };
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
@@ -123,7 +126,6 @@ pub async fn send_verification_request(
         }
         status => {
             eprintln!("Verification failed with status {status}");
-            // return Err(Error::ContractVerificationFailed);
         }
     }
 
@@ -153,10 +155,9 @@ async fn wait_for_verification_finished(
     key: Key,
     verbosity: Verbosity,
 ) {
-    let delay = Duration::from_secs(2);
-    let mut retries = 20_000;
+    let mut retries = MAX_RETRIES;
     while retries != 0 {
-        sleep(delay).await;
+        sleep(RETRY_DELAY).await;
 
         match get_verification_status(base_url, http_client, key).await {
             Ok(status) => {

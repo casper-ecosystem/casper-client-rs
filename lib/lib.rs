@@ -566,6 +566,7 @@ pub async fn get_era_info(
 pub async fn verify_contract(
     key: Key,
     verification_url_base_path: &str,
+    project_path: Option<&str>,
     verbosity: Verbosity,
 ) -> Result<VerificationDetails, Error> {
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
@@ -573,12 +574,15 @@ pub async fn verify_contract(
         println!("Verification service base path: {verification_url_base_path}",);
     }
 
-    let project_path = match current_dir() {
-        Ok(path) => path,
-        Err(error) => {
-            eprintln!("Cannot get current directory: {error}");
-            return Err(Error::ContractVerificationFailed);
-        }
+    let project_path = match project_path {
+        Some(path) => Path::new(path).to_path_buf(),
+        None => match current_dir() {
+            Ok(path) => path,
+            Err(error) => {
+                eprintln!("Cannot get current directory: {error}");
+                return Err(Error::ContractVerificationFailed);
+            }
+        },
     };
 
     let archive = match build_archive(&project_path) {

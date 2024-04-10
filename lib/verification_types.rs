@@ -58,11 +58,3 @@ pub struct VerificationDetails {
     pub(crate) status: VerificationStatus,
     pub(crate) result: VerificationDetailsResult,
 }
-
-// #[derive(Serialize)]
-// pub(crate) struct Toolchain {
-//     pub(crate) channel: String,
-//     pub(crate) components: Vec<String>,
-//     pub(crate) targets: Vec<String>,
-//     pub(crate) profile: String,
-// }
