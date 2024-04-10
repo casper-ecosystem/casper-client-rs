@@ -22,7 +22,7 @@ doc = false
 [dependencies]
 async-trait = "0.1.59"
 base16 = "0.2.1"
-casper-types = { version = "3.0.0", features = ["std"] }
+casper-types = { version = "5.0.0", features = ["std"] }
 clap = { version = "4", features = ["cargo", "deprecated", "wrap_help"] }
 clap_complete = "4"
 hex-buffer-serde = "0.4.0"
