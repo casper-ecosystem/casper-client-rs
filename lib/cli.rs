@@ -602,11 +602,17 @@ pub async fn get_era_info(
 pub async fn verify_contract(
     hash_str: &str,
     verification_url_base_path: &str,
+    verification_project_path: Option<&str>,
     verbosity_level: u64,
 ) -> Result<VerificationDetails, CliError> {
     let key = parse::key_for_query(hash_str)?;
     let verbosity = parse::verbosity(verbosity_level);
-    crate::verify_contract(key, verification_url_base_path, verbosity)
-        .await
-        .map_err(CliError::from)
+    crate::verify_contract(
+        key,
+        verification_url_base_path,
+        verification_project_path,
+        verbosity,
+    )
+    .await
+    .map_err(CliError::from)
 }
