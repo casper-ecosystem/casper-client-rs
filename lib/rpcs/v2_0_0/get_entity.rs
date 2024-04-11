@@ -1,6 +1,6 @@
 use casper_types::{
     account::{Account, AccountHash},
-    AddressableEntity, AddressableEntityHash, ProtocolVersion, PublicKey,
+    AddressableEntity, EntityAddr, ProtocolVersion, PublicKey,
 };
 use serde::{Deserialize, Serialize};
 
@@ -16,10 +16,8 @@ pub enum EntityIdentifier {
     PublicKey(PublicKey),
     /// The account hash of an account.
     AccountHash(AccountHash),
-    /// The hash of an addressable entity representing an account.
-    EntityHashForAccount(AddressableEntityHash),
-    /// The hash of an addressable entity representing a contract.
-    EntityHashForContract(AddressableEntityHash),
+    /// The address of an addressable entity.
+    EntityAddr(EntityAddr),
 }
 
 /// An addressable entity or a legacy account.
