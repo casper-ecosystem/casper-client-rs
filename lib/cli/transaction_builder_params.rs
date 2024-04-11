@@ -1,8 +1,5 @@
-use casper_types::account::AccountHash;
 use casper_types::bytesrepr::Bytes;
-use casper_types::{
-    AddressableEntityHash, EntityAddr, PackageAddr, PackageHash, PublicKey, URef, U512,
-};
+use casper_types::{AddressableEntityHash, PackageHash, PublicKey, URef, U512};
 
 /// An enum representing the parameters needed to construct a transaction builder
 /// for the commands concerning the creation of a transaction
