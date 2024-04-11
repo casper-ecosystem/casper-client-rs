@@ -1319,8 +1319,6 @@ pub(super) mod redelegate {
 pub(super) mod invocable_entity {
     use super::*;
     use casper_client::cli::{CliError, TransactionBuilderParams};
-    use casper_types::addressable_entity;
-
     pub const NAME: &str = "invocable-entity";
     const ACCEPT_SESSION_ARGS: bool = true;
 
