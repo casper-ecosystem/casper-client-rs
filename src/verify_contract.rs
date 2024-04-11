@@ -63,10 +63,11 @@ mod verification_project_path {
 #[async_trait]
 impl ClientCommand for VerifyContract {
     const NAME: &'static str = "verify-contract";
-    const ABOUT: &'static str = "Verifies a smart contracts source code using verification service. 
-    The source code will be uploaded, built, and compared against the deployed contract binary.
-    You may specify a path from which the code will be read and compressed from, or omit the path.
-    If the path is omitted, the archive will be built from the current working directory.";
+    const ABOUT: &'static str =
+        "Verifies a smart contracts source code using verification service. \
+        The source code will be uploaded, built, and compared against the deployed contract binary. \
+        You may specify a path from which the code will be read and compressed from, or omit the path. \
+        If the path is omitted, the archive will be built from the current working directory.";
 
     fn build(display_order: usize) -> Command {
         Command::new(Self::NAME)
