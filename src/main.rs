@@ -19,6 +19,7 @@ mod get_validator_changes;
 mod keygen;
 mod list_rpcs;
 mod query_balance;
+mod query_balance_details;
 mod query_global_state;
 mod transaction;
 

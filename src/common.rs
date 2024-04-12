@@ -287,13 +287,14 @@ pub(super) mod purse_identifier {
     const ARG_SHORT: char = 'p';
     const ARG_VALUE_NAME: &str = "FORMATTED STRING or PATH";
     const ARG_HELP: &str =
-        "The identifier for the purse. This can be a public key or account hash, implying the main \
-        purse of the given account should be used. Alternatively it can be a purse URef. To \
-        provide a public key, it must be a properly formatted public key. The public key may \
-        be read in from a file, in which case enter the path to the file as the --purse-identifier \
-        argument. The file should be one of the two public key files generated via the `keygen` \
-        subcommand; \"public_key_hex\" or \"public_key.pem\". To provide an account hash, it must \
-        be formatted as \"account-hash-<HEX STRING>\", or for a URef as \
+        "The identifier for the purse. This can be a public key, account hash or an entity \
+        address, implying the main purse of the given account should be used. Alternatively it \
+        can be a purse URef. To provide a public key, it must be a properly formatted public key. \
+        The public key may be read in from a file, in which case enter the path to the file as \
+        the --purse-identifier argument. The file should be one of the two public key files \
+        generated via the `keygen` subcommand; \"public_key_hex\" or \"public_key.pem\". To \
+        provide an account hash, it must be formatted as \"account-hash-<HEX STRING>\", or \
+        for an entity address as \"entity-account-<HEX STRING>\" or for a URef as \
         \"uref-<HEX STRING>-<THREE DIGIT INTEGER>\"";
 
     pub fn arg(order: usize, is_required: bool) -> Arg {
