@@ -1,5 +1,4 @@
 use std::{
-    env::set_var,
     process::Command
 };
 
@@ -18,5 +17,5 @@ fn main() {
     //Remove the newline character from the short git commit hash
     let git_hash = git_hash_raw.trim_end_matches('\n');
 
-    println!("cargo::rustc-env={}={}", GIT_HASH_ENV_VAR, git_hash);
+    println!("cargo:rustc-env={}={}", GIT_HASH_ENV_VAR, git_hash);
 }
