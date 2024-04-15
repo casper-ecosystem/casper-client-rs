@@ -1,7 +1,24 @@
-use vergen::{Config, ShaKind};
+use std::{
+    env::set_var,
+    process::Command
+};
 
+const GIT_HASH_ENV_VAR: &str = "GIT_SHA_SHORT";
 fn main() {
-    let mut config = Config::default();
-    *config.git_mut().sha_kind_mut() = ShaKind::Short;
-    let _ = vergen::vergen(config);
+    //Build command to retrieve the short git commit hash
+    let git_process_output = Command::new("git")
+        .arg("rev-parse")
+        .arg("--short")
+        .arg("HEAD")
+        .output()
+        .expect("Failed to retrieve short git commit hash");
+
+    //Parse the raw output into a string, we still need to remove the newline character
+    let git_hash_raw = String::from_utf8(git_process_output.stdout).expect("Failed to convert git hash to string");
+    //Remove the newline character from the short git commit hash
+    let git_hash = git_hash_raw.trim_end_matches('\n');
+
+    println!("test: {}", git_hash);
+
+    set_var(GIT_HASH_ENV_VAR, git_hash);
 }
