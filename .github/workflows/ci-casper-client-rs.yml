@@ -23,9 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
+
+      - name: Get stable from rust-toolchain.toml
+        id: stable-toolchain
+        run: echo "::set-output name=version::$(sed -nr 's/channel\s+=\s+\"(.*)\"/\1/p' rust-toolchain.toml)"
+
+      - name: Install Toolchain - Stable
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af #tag v1.0.7
         with:
-          toolchain: 1.73.0
           profile: minimal
+          toolchain: ${{ steps.stable-toolchain.outputs.version }}
           components: rustfmt, clippy
           target: wasm32-unknown-unknown
 
