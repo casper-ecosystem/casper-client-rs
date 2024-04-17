@@ -1,6 +1,7 @@
 use std::process::Command;
 
 const GIT_HASH_ENV_VAR: &str = "GIT_SHA_SHORT";
+
 fn main() {
     //Build command to retrieve the short git commit hash
     let git_process_output = Command::new("git")
