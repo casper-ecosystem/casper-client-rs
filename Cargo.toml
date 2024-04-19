@@ -55,7 +55,7 @@ uint = "0.9.5"
 tempfile = "3.8.1"
 
 [build-dependencies]
-vergen = { version = "7", default-features = false, features = ["git"] }
+vergen = { version = "8", default-features = false, features = ["git", "git2"] }
 
 [patch.crates-io]
 casper-hashing = { git = "https://github.com/casper-network/casper-node", branch = "dev" }
