@@ -25,15 +25,15 @@ jobs:
 
       - name: Get stable from rust-toolchain.toml
         id: stable-toolchain
-        run: echo "::set-output name=version::$(sed -nr 's/channel\s+=\s+\"(.*)\"/\1/p' rust-toolchain.toml)"
+        run: |
+          VER=$(sed -nr 's/channel\s+=\s+\"(.*)\"/\1/p' rust-toolchain.toml)
+          echo "RUST_CHANNEL=$VER" >> $GITHUB_ENV
 
       - name: Install Toolchain - Stable
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af #tag v1.0.7
-        with:
-          profile: minimal
-          toolchain: ${{ steps.stable-toolchain.outputs.version }}
-          components: rustfmt, clippy
-          target: wasm32-unknown-unknown
+        run: |
+          rustup update --no-self-update ${{ env.RUST_CHANNEL }}
+          rustup component add --toolchain ${{ env.RUST_CHANNEL }} rustfmt rust-src
+          rustup default ${{ env.RUST_CHANNEL }}
 
       - name: Fmt
         uses: actions-rs/cargo@v1
