@@ -34,7 +34,7 @@ jobs:
           rustup update --no-self-update ${{ env.RUST_CHANNEL }}
           rustup component add --toolchain ${{ env.RUST_CHANNEL }} rustfmt rust-src clippy
           rustup default ${{ env.RUST_CHANNEL }}
-
+          rustup target add wasm32-unknown-unknown
       - name: Fmt
         uses: actions-rs/cargo@v1
         with:
