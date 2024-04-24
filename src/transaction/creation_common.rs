@@ -373,7 +373,6 @@ pub(super) mod standard_payment {
     }
 }
 
-
 pub(super) mod gas_price_tolerance {
     use super::*;
     pub(in crate::transaction) const ARG_NAME: &str = "gas-price-tolerance";
@@ -1686,7 +1685,6 @@ pub(super) mod transfer_id {
         *get_result
     }
 }
-
 
 pub(super) fn build_transaction_str_params(
     matches: &ArgMatches,
