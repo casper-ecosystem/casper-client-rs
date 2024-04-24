@@ -62,22 +62,12 @@ pub fn create_transaction(
             }
         })?;
 
-        let paid_amount = transaction_params
-            .paid_amount
-            .parse::<u64>()
-            .map_err(|error| CliError::FailedToParseInt {
-                context: "paid_amount",
-                error,
-            })?;
-
         parse::pricing_mode(
             transaction_params.pricing_mode,
             transaction_params.payment_amount,
             transaction_params.gas_price_tolerance,
             transaction_params.standard_payment,
-            transaction_params.strike_price,
             Some(digest),
-            Some(paid_amount),
         )?
     } else {
         parse::pricing_mode(
@@ -85,8 +75,6 @@ pub fn create_transaction(
             transaction_params.payment_amount,
             transaction_params.gas_price_tolerance,
             transaction_params.standard_payment,
-            transaction_params.strike_price,
-            None,
             None,
         )?
     };
