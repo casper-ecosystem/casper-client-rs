@@ -32,7 +32,6 @@ pub(super) enum DisplayOrder {
     Ttl,
     ChainName,
     DelegationRate,
-    DestinationAccount,
     Source,
     SessionArgSimple,
     SessionArgsJson,
@@ -44,17 +43,14 @@ pub(super) enum DisplayOrder {
     EntityAlias,
     PaymentAmount,
     PricingMode,
-    StrikePrice,
     StandardPayment,
     Receipt,
-    PaidAmount,
     GasPriceTolerance,
     TransactionAmount,
     Validator,
     NewValidator,
     Delegator,
     EntityAddr,
-    EntityHash,
     RpcId,
     Verbose,
 }
@@ -352,31 +348,6 @@ pub(super) mod receipt {
     }
 }
 
-pub(super) mod paid_amount {
-    use super::*;
-    pub(in crate::transaction) const ARG_NAME: &str = "paid-amount";
-
-    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
-
-    const ARG_HELP: &str = "The amount previously reserved to pay for the current transaction.";
-
-    pub(in crate::transaction) fn arg() -> Arg {
-        Arg::new(ARG_NAME)
-            .long(ARG_NAME)
-            .required(false)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
-            .display_order(DisplayOrder::StrikePrice as usize)
-    }
-
-    pub fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_default()
-    }
-}
-
 pub(super) mod standard_payment {
     use super::*;
     pub(in crate::transaction) const ARG_NAME: &str = "standard-payment";
@@ -402,30 +373,6 @@ pub(super) mod standard_payment {
     }
 }
 
-pub(super) mod strike_price {
-    use super::*;
-    pub(in crate::transaction) const ARG_NAME: &str = "strike-price";
-
-    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
-
-    const ARG_HELP: &str = "The gas price at the time of reservation.";
-
-    pub(in crate::transaction) fn arg() -> Arg {
-        Arg::new(ARG_NAME)
-            .long(ARG_NAME)
-            .required(false)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
-            .display_order(DisplayOrder::PaidAmount as usize)
-    }
-
-    pub fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_default()
-    }
-}
 
 pub(super) mod gas_price_tolerance {
     use super::*;
@@ -608,7 +555,7 @@ pub(super) fn apply_common_creation_options(
         .arg(pricing_mode::arg())
         .arg(gas_price_tolerance::arg())
         .arg(receipt::arg())
-        .arg(paid_amount::arg())
+        .arg(standard_payment::arg())
         .group(
             ArgGroup::new("Classic payment")
                 .arg(payment_amount::ARG_NAME)
@@ -619,7 +566,6 @@ pub(super) fn apply_common_creation_options(
         .group(
             ArgGroup::new("Reserved payment")
                 .arg(receipt::ARG_NAME)
-                .arg(paid_amount::ARG_NAME)
                 .required(false),
         )
         .group(
@@ -1319,7 +1265,6 @@ pub(super) mod redelegate {
 pub(super) mod invocable_entity {
     use super::*;
     use casper_client::cli::{CliError, TransactionBuilderParams};
-    use casper_types::addressable_entity;
 
     pub const NAME: &str = "invocable-entity";
     const ACCEPT_SESSION_ARGS: bool = true;
@@ -1611,12 +1556,6 @@ pub(super) mod transfer {
         let amount = transfer_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount)?;
 
-        let maybe_to_str = destination_account::get(matches);
-        let mut maybe_to = None;
-        if !maybe_to_str.is_empty() {
-            maybe_to = destination_account::parse_account_hash(maybe_to_str)?;
-        }
-
         let maybe_id = transfer_id::get(matches);
 
         let params = TransactionBuilderParams::Transfer {
@@ -1634,7 +1573,6 @@ pub(super) mod transfer {
         add_bid_subcommand
             .arg(source::arg())
             .arg(target::arg())
-            .arg(destination_account::arg())
             .arg(transfer_amount::arg())
             .arg(transfer_id::arg())
     }
@@ -1749,42 +1687,6 @@ pub(super) mod transfer_id {
     }
 }
 
-pub(super) mod destination_account {
-    use super::*;
-    use casper_client::cli::CliError;
-    use casper_types::account::AccountHash;
-
-    pub(in crate::transaction) const ARG_NAME: &str = "destination-account";
-    const ARG_VALUE_NAME: &str = "Formatted String";
-    const ARG_HELP: &str = "A formatted string representing an account hash designating the destination account for the transfer";
-
-    pub(in crate::transaction) fn arg() -> Arg {
-        Arg::new(ARG_NAME)
-            .long(ARG_NAME)
-            .required(false)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
-            .display_order(DisplayOrder::DestinationAccount as usize)
-    }
-
-    pub(in crate::transaction) fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_default()
-    }
-    pub(in crate::transaction) fn parse_account_hash(
-        maybe_account: &str,
-    ) -> Result<Option<AccountHash>, CliError> {
-        match AccountHash::from_formatted_str(maybe_account) {
-            Ok(account) => Ok(Some(account)),
-            Err(err) => Err(CliError::FailedToParseAccountHash {
-                context: "destination_account",
-                error: err,
-            }),
-        }
-    }
-}
 
 pub(super) fn build_transaction_str_params(
     matches: &ArgMatches,
@@ -1798,8 +1700,6 @@ pub(super) fn build_transaction_str_params(
     let gas_price_tolerance = gas_price_tolerance::get(matches);
     let payment_amount = payment_amount::get(matches);
     let receipt = receipt::get(matches);
-    let paid_amount = paid_amount::get(matches);
-    let strike_price = strike_price::get(matches);
     let standard_payment = standard_payment::get(matches);
 
     let maybe_output_path = output::get(matches).unwrap_or_default();
@@ -1821,8 +1721,6 @@ pub(super) fn build_transaction_str_params(
             payment_amount,
             gas_price_tolerance,
             receipt,
-            paid_amount,
-            strike_price,
             standard_payment,
         }
     } else {
@@ -1837,8 +1735,6 @@ pub(super) fn build_transaction_str_params(
             payment_amount,
             gas_price_tolerance,
             receipt,
-            paid_amount,
-            strike_price,
             standard_payment,
             ..Default::default()
         }
