@@ -64,10 +64,6 @@ pub struct TransactionStrParams<'a> {
     pub gas_price_tolerance: &'a str,
     /// The digest of a previous transaction that represents the receipt for the current transaction.
     pub receipt: &'a str,
-    /// The amount paid for the previous transaction that represents the receipt for the current transaction.
-    pub paid_amount: &'a str,
-    /// The gas price at the time of reservation.
-    pub strike_price: &'a str,
     /// Standard payment.
     pub standard_payment: &'a str,
 }
