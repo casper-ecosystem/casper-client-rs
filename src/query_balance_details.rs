@@ -1,7 +1,7 @@
 use std::str;
 
 use async_trait::async_trait;
-use clap::{ArgMatches, Command};
+use clap::{ArgGroup, ArgMatches, Command};
 
 use casper_client::cli::CliError;
 
@@ -21,6 +21,7 @@ enum DisplayOrder {
     NodeAddress,
     RpcId,
     BlockIdentifier,
+    StateRootHash,
     PurseIdentifier,
 }
 
@@ -43,6 +44,16 @@ impl ClientCommand for QueryBalanceDetails {
                 DisplayOrder::BlockIdentifier as usize,
                 false,
             ))
+            .arg(common::state_root_hash::arg(
+                DisplayOrder::StateRootHash as usize,
+                false,
+            ))
+            .group(
+                ArgGroup::new("state-identifier")
+                    .arg(common::block_identifier::ARG_NAME)
+                    .arg(common::state_root_hash::ARG_NAME)
+                    .required(false),
+            )
             .arg(common::purse_identifier::arg(
                 DisplayOrder::PurseIdentifier as usize,
                 true,
@@ -55,6 +66,7 @@ impl ClientCommand for QueryBalanceDetails {
         let verbosity_level = common::verbose::get(matches);
 
         let maybe_block_id = common::block_identifier::get(matches);
+        let maybe_state_root_hash = common::state_root_hash::get(matches).unwrap_or_default();
         let purse_id = common::purse_identifier::get(matches)?;
 
         casper_client::cli::query_balance_detials(
@@ -62,6 +74,7 @@ impl ClientCommand for QueryBalanceDetails {
             node_address,
             verbosity_level,
             maybe_block_id,
+            maybe_state_root_hash,
             purse_id.as_str(),
         )
         .await

@@ -27,18 +27,6 @@ pub struct QueryBalanceParams {
     pub purse_identifier: PurseIdentifier,
 }
 
-impl QueryBalanceParams {
-    pub(crate) fn new(
-        state_identifier: Option<GlobalStateIdentifier>,
-        purse_identifier: PurseIdentifier,
-    ) -> Self {
-        QueryBalanceParams {
-            state_identifier,
-            purse_identifier,
-        }
-    }
-}
-
 /// Result for "query_balance" RPC response.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct QueryBalanceResult {

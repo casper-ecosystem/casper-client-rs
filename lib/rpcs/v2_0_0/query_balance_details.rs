@@ -1,39 +1,24 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{BlockTime, Digest, ProtocolVersion, Timestamp, U512};
+use casper_types::{BlockTime, ProtocolVersion, U512};
 
-use crate::rpcs::{common::BlockIdentifier, PurseIdentifier};
+use crate::rpcs::{GlobalStateIdentifier, PurseIdentifier};
 
 pub(crate) const QUERY_BALANCE_DETAILS_METHOD: &str = "query_balance_details";
-
-/// Identifier of a balance.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
-pub enum BalanceStateIdentifier {
-    /// The balance at a specific block.
-    Block(BlockIdentifier),
-    /// The balance at a specific state root.
-    StateRoot {
-        /// The state root hash.
-        state_root_hash: Digest,
-        /// Timestamp for holds lookup.
-        timestamp: Timestamp,
-    },
-}
 
 /// Params for "query_balance_details" RPC request.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct QueryBalanceDetailsParams {
     /// The identifier for the state used for the query, if none is passed,
     /// the latest block will be used.
-    pub state_identifier: Option<BalanceStateIdentifier>,
+    pub state_identifier: Option<GlobalStateIdentifier>,
     /// The identifier to obtain the purse corresponding to balance query.
     pub purse_identifier: PurseIdentifier,
 }
 
 impl QueryBalanceDetailsParams {
     pub(crate) fn new(
-        state_identifier: Option<BalanceStateIdentifier>,
+        state_identifier: Option<GlobalStateIdentifier>,
         purse_identifier: PurseIdentifier,
     ) -> Self {
         QueryBalanceDetailsParams {

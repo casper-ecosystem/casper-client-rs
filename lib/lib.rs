@@ -91,9 +91,7 @@ use rpcs::{
         put_deploy::{PutDeployParams, PUT_DEPLOY_METHOD},
         put_transaction::{PutTransactionParams, PUT_TRANSACTION_METHOD},
         query_balance::{PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD},
-        query_balance_details::{
-            BalanceStateIdentifier, QueryBalanceDetailsParams, QUERY_BALANCE_DETAILS_METHOD,
-        },
+        query_balance_details::{QueryBalanceDetailsParams, QUERY_BALANCE_DETAILS_METHOD},
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
         speculative_exec_transaction::{SpeculativeExecTxnParams, SPECULATIVE_EXEC_TXN_METHOD},
@@ -422,11 +420,10 @@ pub async fn query_balance_details(
     rpc_id: JsonRpcId,
     node_address: &str,
     verbosity: Verbosity,
-    maybe_block_identifier: Option<BlockIdentifier>,
+    maybe_global_state_identifier: Option<GlobalStateIdentifier>,
     purse_identifier: PurseIdentifier,
 ) -> Result<SuccessResponse<QueryBalanceDetailsResult>, Error> {
-    let id = maybe_block_identifier.map(|block_id| BalanceStateIdentifier::Block(block_id));
-    let params = QueryBalanceDetailsParams::new(id, purse_identifier);
+    let params = QueryBalanceDetailsParams::new(maybe_global_state_identifier, purse_identifier);
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(QUERY_BALANCE_DETAILS_METHOD, Some(params))
         .await

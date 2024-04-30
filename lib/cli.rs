@@ -249,8 +249,8 @@ pub async fn query_balance(
 
 /// Retrieves a purse's balance and hold information from global state.
 ///
-/// `maybe_block_id` identifies the block to be used for the query. If both are empty,
-/// the latest block is used.
+/// `maybe_block_id` or `maybe_state_root_hash` identify the global state root hash to be used for
+/// the query.  If both are empty, the latest block is used.
 ///
 /// `purse_id` can be a properly-formatted public key, account hash, entity address or URef.
 ///
@@ -260,18 +260,20 @@ pub async fn query_balance_detials(
     node_address: &str,
     verbosity_level: u64,
     maybe_block_id: &str,
+    maybe_state_root_hash: &str,
     purse_id: &str,
 ) -> Result<SuccessResponse<QueryBalanceDetailsResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let maybe_block_identifier = parse::block_identifier(maybe_block_id)?;
+    let maybe_global_state_identifier =
+        parse::global_state_identifier(maybe_block_id, maybe_state_root_hash)?;
     let purse_identifier = parse::purse_identifier(purse_id)?;
 
     crate::query_balance_details(
         rpc_id,
         node_address,
         verbosity,
-        maybe_block_identifier,
+        maybe_global_state_identifier,
         purse_identifier,
     )
     .await
