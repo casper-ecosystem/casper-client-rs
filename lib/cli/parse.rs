@@ -1613,8 +1613,6 @@ mod tests {
             let payment_amount = "10";
             let gas_price_tolerance = "10";
             let standard_payment = "";
-            let paid_amount: u64 = 10;
-            let strike_price = "1";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
