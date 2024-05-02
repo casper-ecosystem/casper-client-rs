@@ -26,6 +26,5 @@ pub struct GetDeployResult {
     /// The deploy.
     pub deploy: Deploy,
     /// Execution info, if available.
-    #[serde(skip_serializing_if = "Option::is_none", flatten)]
     pub execution_info: Option<DeployExecutionInfo>,
 }
