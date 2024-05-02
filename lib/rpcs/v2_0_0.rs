@@ -6,6 +6,8 @@ pub(crate) mod get_dictionary_item;
 pub(crate) mod get_entity;
 pub(crate) mod get_node_status;
 pub(crate) mod put_transaction;
+pub(crate) mod query_balance;
+pub(crate) mod query_balance_details;
 pub(crate) mod speculative_exec_transaction;
 
 // The following RPCs are all unchanged from v1.6.0, so we just re-export them.
@@ -82,11 +84,6 @@ pub(crate) mod list_rpcs {
 pub(crate) mod put_deploy {
     pub use crate::rpcs::v1_6_0::put_deploy::PutDeployResult;
     pub(crate) use crate::rpcs::v1_6_0::put_deploy::{PutDeployParams, PUT_DEPLOY_METHOD};
-}
-
-pub(crate) mod query_balance {
-    pub use crate::rpcs::v1_6_0::query_balance::{PurseIdentifier, QueryBalanceResult};
-    pub(crate) use crate::rpcs::v1_6_0::query_balance::{QueryBalanceParams, QUERY_BALANCE_METHOD};
 }
 
 pub(crate) mod query_global_state {

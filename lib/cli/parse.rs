@@ -656,6 +656,7 @@ pub(super) fn global_state_identifier(
 pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
     const UREF_PREFIX: &str = "uref-";
+    const ENTITY_PREFIX: &str = "entity-";
 
     if purse_id.is_empty() {
         return Err(CliError::InvalidArgument {
@@ -672,6 +673,16 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
             }
         })?;
         return Ok(PurseIdentifier::MainPurseUnderAccountHash(account_hash));
+    }
+
+    if purse_id.starts_with(ENTITY_PREFIX) {
+        let entity_addr = EntityAddr::from_formatted_str(purse_id).map_err(|error| {
+            CliError::FailedToParseAddressableEntityHash {
+                context: "purse_identifier",
+                error,
+            }
+        })?;
+        return Ok(PurseIdentifier::MainPurseUnderEntityAddr(entity_addr));
     }
 
     if purse_id.starts_with(UREF_PREFIX) {
@@ -1602,8 +1613,6 @@ mod tests {
             let payment_amount = "10";
             let gas_price_tolerance = "10";
             let standard_payment = "";
-            let paid_amount: u64 = 10;
-            let strike_price = "1";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,

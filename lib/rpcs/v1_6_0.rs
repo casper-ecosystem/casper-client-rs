@@ -36,11 +36,6 @@ pub(crate) mod get_node_status {
     };
 }
 
-pub(crate) mod query_balance {
-    pub use crate::rpcs::v1_5_0::query_balance::{PurseIdentifier, QueryBalanceResult};
-    pub(crate) use crate::rpcs::v1_5_0::query_balance::{QueryBalanceParams, QUERY_BALANCE_METHOD};
-}
-
 pub(crate) mod speculative_exec {
     pub use crate::rpcs::v1_5_0::speculative_exec::SpeculativeExecResult;
     pub(crate) use crate::rpcs::v1_5_0::speculative_exec::{

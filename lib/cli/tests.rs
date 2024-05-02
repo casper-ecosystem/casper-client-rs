@@ -537,8 +537,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -599,8 +597,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -662,8 +658,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -716,8 +710,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -785,8 +777,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -858,8 +848,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -901,8 +889,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -948,8 +934,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -993,8 +977,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -1034,8 +1016,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -1082,8 +1062,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
 
@@ -1125,8 +1103,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
@@ -1160,8 +1136,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -1190,8 +1164,6 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "",
             receipt: SAMPLE_DIGEST,
-            paid_amount: "",
-            strike_price: "1",
             standard_payment: "true",
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {

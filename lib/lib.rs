@@ -68,8 +68,8 @@ use rpcs::{
         GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
         GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
         GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
-        PutDeployResult, PutTransactionResult, QueryBalanceResult, QueryGlobalStateResult,
-        SpeculativeExecResult, SpeculativeExecTxnResult,
+        PutDeployResult, PutTransactionResult, QueryBalanceDetailsResult, QueryBalanceResult,
+        QueryGlobalStateResult, SpeculativeExecResult, SpeculativeExecTxnResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
@@ -91,6 +91,7 @@ use rpcs::{
         put_deploy::{PutDeployParams, PUT_DEPLOY_METHOD},
         put_transaction::{PutTransactionParams, PUT_TRANSACTION_METHOD},
         query_balance::{PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD},
+        query_balance_details::{QueryBalanceDetailsParams, QUERY_BALANCE_DETAILS_METHOD},
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
         speculative_exec_transaction::{SpeculativeExecTxnParams, SPECULATIVE_EXEC_TXN_METHOD},
@@ -407,6 +408,24 @@ pub async fn query_balance(
     let params = QueryBalanceParams::new(maybe_global_state_identifier, purse_identifier);
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(QUERY_BALANCE_METHOD, Some(params))
+        .await
+}
+
+/// Retrieves a purse's balance from global state at a given [`Block`] or state root hash.
+///
+/// Sends a JSON-RPC `query_balance_details` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn query_balance_details(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    maybe_global_state_identifier: Option<GlobalStateIdentifier>,
+    purse_identifier: PurseIdentifier,
+) -> Result<SuccessResponse<QueryBalanceDetailsResult>, Error> {
+    let params = QueryBalanceDetailsParams::new(maybe_global_state_identifier, purse_identifier);
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(QUERY_BALANCE_DETAILS_METHOD, Some(params))
         .await
 }
 

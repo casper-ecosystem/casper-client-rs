@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{account::AccountHash, ProtocolVersion, PublicKey, URef, U512};
+use casper_types::{account::AccountHash, EntityAddr, PublicKey, URef};
 
 use crate::rpcs::common::GlobalStateIdentifier;
 
-pub(crate) const QUERY_BALANCE_METHOD: &str = "query_balance";
+pub use crate::rpcs::v1_5_0::query_balance::QueryBalanceResult;
+pub(crate) use crate::rpcs::v1_5_0::query_balance::QUERY_BALANCE_METHOD;
 
 /// Identifier of a purse.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -14,6 +15,8 @@ pub enum PurseIdentifier {
     MainPurseUnderPublicKey(PublicKey),
     /// The main purse of the account identified by this account hash.
     MainPurseUnderAccountHash(AccountHash),
+    /// The main purse of the account identified by this entity address.
+    MainPurseUnderEntityAddr(EntityAddr),
     /// The purse identified by this URef.
     PurseUref(URef),
 }
@@ -27,11 +30,14 @@ pub struct QueryBalanceParams {
     pub purse_identifier: PurseIdentifier,
 }
 
-/// Result for "query_balance" RPC response.
-#[derive(Serialize, Deserialize, Debug)]
-pub struct QueryBalanceResult {
-    /// The RPC API version.
-    pub api_version: ProtocolVersion,
-    /// The balance represented in motes.
-    pub balance: U512,
+impl QueryBalanceParams {
+    pub(crate) fn new(
+        state_identifier: Option<GlobalStateIdentifier>,
+        purse_identifier: PurseIdentifier,
+    ) -> Self {
+        QueryBalanceParams {
+            state_identifier,
+            purse_identifier,
+        }
+    }
 }
