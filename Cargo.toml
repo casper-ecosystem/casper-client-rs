@@ -27,7 +27,7 @@ doc = false
 [dependencies]
 async-trait = "0.1.59"
 base16 = "0.2.1"
-casper-types = { version = "4.0.1", git = "https://github.com/casper-network/casper-node.git", branch = "rustSDK-feat-2.0", features = [
+casper-types = { version = "3.0.0", git = "https://github.com/casper-network/casper-node.git", branch = "rustSDK-feat-2.0", features = [
     "std",
 ] }
 clap = { version = "4", features = ["cargo", "deprecated"] }
