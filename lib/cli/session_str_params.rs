@@ -71,13 +71,11 @@ impl<'a> SessionStrParams<'a> {
         session_bytes: Bytes,
         session_args_simple: Vec<&'a str>,
         session_args_json: &'a str,
-        session_args_complex: &'a str,
     ) -> Self {
         Self {
             session_bytes,
             session_args_simple,
             session_args_json,
-            session_args_complex,
             ..Default::default()
         }
     }

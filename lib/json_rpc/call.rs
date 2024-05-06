@@ -53,7 +53,7 @@ impl Call {
             None => JsonRpc::request(&self.rpc_id, method),
         };
 
-        #[cfg(not(any(feature = "sdk")))]
+        #[cfg(feature = "std-fs-io")]
         crate::json_pretty_print(&rpc_request, self.verbosity)?;
 
         let client = CLIENT.get_or_init(Client::new);
@@ -86,7 +86,7 @@ impl Call {
                     error,
                 })?;
 
-        #[cfg(not(any(feature = "sdk")))]
+        #[cfg(feature = "std-fs-io")]
         crate::json_pretty_print(&rpc_response, self.verbosity)?;
 
         let response_kind = match &rpc_response {

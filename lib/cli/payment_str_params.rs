@@ -1,3 +1,5 @@
+use casper_types::bytesrepr::Bytes;
+
 #[cfg(doc)]
 use crate::cli;
 

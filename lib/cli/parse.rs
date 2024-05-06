@@ -1,32 +1,26 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-#[cfg(not(any(feature = "sdk")))]
-use std::path::Path;
-use std::{convert::TryInto, fs, str::FromStr};
+use std::str::FromStr;
+#[cfg(feature = "std-fs-io")]
+use std::{fs, path::Path};
 
-#[cfg(not(any(feature = "sdk")))]
-use casper_types::SecretKey;
-use casper_types::{
-    account::AccountHash,
-    bytesrepr::{self, Bytes},
-    crypto, AsymmetricType, BlockHash, CLValue, DeployHash, Digest, ExecutableDeployItem, HashAddr,
-    Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff, Timestamp, UIntParseError, URef, U512,
-};
 use rand::Rng;
 
 use casper_types::{
-    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
-    EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs,
-    SecretKey, TimeDiff, Timestamp, UIntParseError, URef, U512,
+    account::AccountHash, crypto, AsymmetricType, BlockHash, DeployHash, Digest, EntityAddr,
+    ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, TimeDiff,
+    Timestamp, UIntParseError, URef, U512,
 };
+#[cfg(feature = "std-fs-io")]
+use casper_types::{bytesrepr::Bytes, SecretKey};
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
-#[cfg(not(any(feature = "sdk")))]
+#[cfg(feature = "std-fs-io")]
 use crate::OutputKind;
 use crate::{
     AccountIdentifier, BlockIdentifier, EntityIdentifier, GlobalStateIdentifier, JsonRpcId,
-    OutputKind, PurseIdentifier, Verbosity,
+    PurseIdentifier, Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -47,7 +41,7 @@ pub(super) fn verbosity(verbosity_level: u64) -> Verbosity {
     }
 }
 
-#[cfg(not(any(feature = "sdk")))]
+#[cfg(feature = "std-fs-io")]
 pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     if maybe_output_path.is_empty() {
         OutputKind::Stdout
@@ -56,7 +50,7 @@ pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     }
 }
 
-#[cfg(not(any(feature = "sdk")))]
+#[cfg(feature = "std-fs-io")]
 pub(super) fn secret_key_from_file<P: AsRef<Path>>(
     secret_key_path: P,
 ) -> Result<SecretKey, CliError> {
@@ -215,14 +209,36 @@ fn check_no_conflicting_arg_types(
 
     if count > 1 {
         return Err(CliError::ConflictingArguments {
-            context: "Conflicting {context} args (simple, and json) were provided".into(),
+            context: format!("parse_session_info {context} args conflict (simple json complex)",),
             args: vec![simple.join(", "), json.to_owned()],
         });
     }
     Ok(())
 }
 
-pub(crate) fn args_from_simple_or_json(
+/// Constructs a `RuntimeArgs` instance from either simple or JSON representation.
+///
+/// # Arguments
+///
+/// * `simple`: An optional `RuntimeArgs` representing simple arguments.
+/// * `json`: An optional `RuntimeArgs` representing arguments in JSON format.
+///
+/// # Returns
+///
+/// A `RuntimeArgs` instance representing the merged arguments from `simple` and `json`.
+///
+/// # Examples
+///
+/// ```
+/// use some_module::args_from_simple_or_json;
+/// use casper_types::RuntimeArgs;
+///
+/// let simple_args = RuntimeArgs::new(); // Simple arguments
+/// let json_args = RuntimeArgs::new();   // JSON arguments
+///
+/// let result_args = args_from_simple_or_json(Some(simple_args), Some(json_args));
+/// ```
+pub fn args_from_simple_or_json(
     simple: Option<RuntimeArgs>,
     json: Option<RuntimeArgs>,
 ) -> RuntimeArgs {
@@ -232,26 +248,6 @@ pub(crate) fn args_from_simple_or_json(
         (None, None) => RuntimeArgs::new(),
         _ => unreachable!("should not have more than one of simple, json or complex args"),
     }
-}
-
-fn check_no_conflicting_arg_types(
-    context: &str,
-    simple: &Vec<&str>,
-    json: &str,
-    complex: &str,
-) -> Result<(), CliError> {
-    let count = [!simple.is_empty(), !json.is_empty(), !complex.is_empty()]
-        .iter()
-        .filter(|&&x| x)
-        .count();
-
-    if count > 1 {
-        return Err(CliError::ConflictingArguments {
-            context: format!("parse_session_info {context} args conflict (simple json complex)",),
-            args: vec![simple.join(", "), json.to_owned(), complex.to_owned()],
-        });
-    }
-    Ok(())
 }
 
 /// Private macro for enforcing parameter validity.
@@ -264,7 +260,7 @@ fn check_no_conflicting_arg_types(
 /// - More than one parameter is non-empty.
 /// - Any parameter that is non-empty has requires[] requirements that are empty.
 macro_rules! check_exactly_one_not_empty {
-    ( context: $site:expr, $( ($x:expr) requires[$($y:expr),*] requires_empty[$($z:expr),*] ),+ $(,)? ) => {{
+    ( context: $site:tt, $( ($x:expr) requires[$($y:expr),*] requires_empty[$($z:expr),*] ),+ $(,)? ) => {{
 
         let field_is_empty_map = &[$(
             (stringify!($x), $x.is_empty())
@@ -323,7 +319,7 @@ macro_rules! check_exactly_one_not_empty {
                 conflicting_fields.push(format!("{}={}", name, value));
                 conflicting_fields.sort();
                 return Err(CliError::ConflictingArguments{
-                    context: $site,
+                    context: $site.to_string(),
                     args: conflicting_fields,
                 });
             }
@@ -340,7 +336,7 @@ macro_rules! check_exactly_one_not_empty {
                 .collect::<Vec<String>>();
             non_empty_fields_with_values.sort();
             return Err(CliError::ConflictingArguments {
-                context: $site,
+                context: $site.to_string(),
                 args: non_empty_fields_with_values,
             });
         }
@@ -365,15 +361,11 @@ pub(super) fn session_executable_deploy_item(
     } = params;
     // This is to make sure that we're using &str consistently in the macro call below.
     let is_session_transfer = if session_transfer { "true" } else { "" };
-
-    let session_bytes_str: String = if session_bytes.is_empty() {
-        String::default()
-    } else {
-        String::from_utf8_lossy(&session_bytes).into_owned()
-    };
+    // This is to make sure that we're using &str consistently in the macro call below.
+    let has_session_bytes = if session_bytes.is_empty() { "" } else { "true" };
 
     check_exactly_one_not_empty!(
-        context: "parse_session_info".into(),
+        context: "parse_session_info",
         (session_hash)
             requires[session_entry_point] requires_empty[session_version],
         (session_name)
@@ -383,8 +375,8 @@ pub(super) fn session_executable_deploy_item(
         (session_package_name)
             requires[session_entry_point] requires_empty[],
         (session_path)
-            requires[] requires_empty[session_entry_point, session_version],
-        (&session_bytes_str)
+            requires[] requires_empty[session_entry_point, session_version, has_session_bytes],
+        (has_session_bytes)
             requires[] requires_empty[session_entry_point, session_version, session_path],
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
@@ -496,8 +488,10 @@ pub(super) fn payment_executable_deploy_item(
         payment_version,
         payment_entry_point,
     } = params;
+    // This is to make sure that we're using &str consistently in the macro call below.
+    let has_payment_bytes = if payment_bytes.is_empty() { "" } else { "true" };
     check_exactly_one_not_empty!(
-        context: "parse_payment_info".into(),
+        context: "parse_payment_info",
         (payment_amount)
             requires[] requires_empty[payment_entry_point, payment_version],
         (payment_hash)
@@ -508,8 +502,12 @@ pub(super) fn payment_executable_deploy_item(
             requires[payment_entry_point] requires_empty[],
         (payment_package_name)
             requires[payment_entry_point] requires_empty[],
-        (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
+        (payment_path) requires[] requires_empty[payment_entry_point, payment_version, has_payment_bytes],
+        (has_payment_bytes)
+            requires[] requires_empty[payment_entry_point, payment_version, payment_path],
     );
+
+    check_no_conflicting_arg_types("payment", payment_args_simple, payment_args_json)?;
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {

@@ -20,7 +20,7 @@
 //! * `maybe_block_id` - Must be a hex-encoded, 32-byte hash digest or a `u64` representing the
 //!   [`Block`] height or empty.  If empty, the latest `Block` known on the server will be used.
 
-/// Deploy module.
+/// Functions for creating Deploys.
 pub mod deploy;
 mod deploy_str_params;
 mod dictionary_item_str_params;
@@ -30,24 +30,19 @@ pub mod parse;
 mod payment_str_params;
 mod session_str_params;
 mod simple_args;
-#[cfg(feature = "sdk")]
-pub use parse::account_identifier as parse_account_identifier;
-#[cfg(feature = "sdk")]
-pub use parse::purse_identifier as parse_purse_identifier;
-#[cfg(feature = "sdk")]
-pub use simple_args::insert_arg;
-
 #[cfg(test)]
 mod tests;
 mod transaction;
 mod transaction_builder_params;
 mod transaction_str_params;
 
+#[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{Deploy, Digest, URef};
+
+use casper_types::{Digest, URef};
 
 use crate::{
     rpcs::{
@@ -511,6 +506,7 @@ pub async fn list_rpcs(
 /// When `verbosity_level` is `0`, nothing is printed.  For `1`, the value is printed with long
 /// string fields shortened to a string indicating the character count of the field.  Greater than
 /// `1` is the same as for `1` except without abbreviation of long fields.
+#[cfg(feature = "std-fs-io")]
 pub fn json_pretty_print<T: ?Sized + Serialize>(
     value: &T,
     verbosity_level: u64,
