@@ -57,11 +57,11 @@ use std::{
 #[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
-#[cfg(feature = "std-fs-io")]
-use casper_types::SecretKey;
 #[cfg(doc)]
 use casper_types::{account::Account, Block, StoredValue, Transfer};
-use casper_types::{Deploy, DeployHash, Digest, Key, Transaction, TransactionV1, URef};
+use casper_types::{Deploy, DeployHash, Digest, Key, Transaction, URef};
+#[cfg(feature = "std-fs-io")]
+use casper_types::{SecretKey, TransactionV1};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
@@ -112,7 +112,6 @@ pub use verbosity::Verbosity;
 ///
 /// Note: this should be kept in sync with the value of `[deploys.max_deploy_size]` in the
 /// production chainspec.
-#[cfg(feature = "std-fs-io")]
 pub const MAX_SERIALIZED_SIZE_OF_DEPLOY: u32 = 1_024 * 1_024;
 
 /// Puts a [`Deploy`] to the network for execution.

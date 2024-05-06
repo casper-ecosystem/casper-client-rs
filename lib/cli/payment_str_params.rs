@@ -95,7 +95,7 @@ use crate::cli;
 /// ---
 ///
 /// **Note** while multiple payment args can be specified for a single payment code instance, only
-/// one of `payment_args_simple`, `payment_args_json` or `payment_args_complex` may be used.
+/// one of `payment_args_simple`, or `payment_args_json` may be used.
 #[derive(Default, Debug)]
 pub struct PaymentStrParams<'a> {
     pub(super) payment_amount: &'a str,
@@ -116,8 +116,7 @@ impl<'a> PaymentStrParams<'a> {
     ///
     /// * `payment_path` is the path to the compiled Wasm payment code.
     /// * See the struct docs for a description of [`payment_args_simple`](#payment_args_simple),
-    ///   [`payment_args_json`](#payment_args_json) and
-    ///   [`payment_args_complex`](#payment_args_complex).
+    ///   [`payment_args_json`](#payment_args_json)
     pub fn with_path(
         payment_path: &'a str,
         payment_args_simple: Vec<&'a str>,

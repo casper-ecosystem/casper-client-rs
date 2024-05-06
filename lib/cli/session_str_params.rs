@@ -25,7 +25,7 @@ use casper_types::bytesrepr::Bytes;
 /// ---
 ///
 /// **Note** while multiple session args can be specified for a single session code instance, only
-/// one of `session_args_simple`, `session_args_json` or `session_args_complex` may be used.
+/// one of `session_args_simple`, or `session_args_json` may be used.
 #[derive(Default, Debug)]
 pub struct SessionStrParams<'a> {
     pub(super) session_hash: &'a str,
@@ -46,8 +46,7 @@ impl<'a> SessionStrParams<'a> {
     ///
     /// * `session_path` is the path to the compiled Wasm session code.
     /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
-    ///   [`session_args_json`](#session_args_json) and
-    ///   [`session_args_complex`](#session_args_complex).
+    ///   [`session_args_json`](#session_args_json)
     pub fn with_path(
         session_path: &'a str,
         session_args_simple: Vec<&'a str>,
@@ -65,8 +64,7 @@ impl<'a> SessionStrParams<'a> {
     ///
     /// * `session_bytes` are the bytes of the compiled Wasm session code.
     /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
-    ///   [`session_args_json`](#session_args_json) and
-    ///   [`session_args_complex`](#session_args_complex).
+    ///   [`session_args_json`](#session_args_json)
     pub fn with_bytes(
         session_bytes: Bytes,
         session_args_simple: Vec<&'a str>,
@@ -87,8 +85,7 @@ impl<'a> SessionStrParams<'a> {
     /// * `session_entry_point` is the name of the method that will be used when calling the session
     ///   contract.
     /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
-    ///   [`session_args_json`](#session_args_json) and
-    ///   [`session_args_complex`](#session_args_complex).
+    ///   [`session_args_json`](#session_args_json)
     pub fn with_name(
         session_name: &'a str,
         session_entry_point: &'a str,
@@ -110,8 +107,7 @@ impl<'a> SessionStrParams<'a> {
     /// * `session_entry_point` is the name of the method that will be used when calling the session
     ///   contract.
     /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
-    ///   [`session_args_json`](#session_args_json) and
-    ///   [`session_args_complex`](#session_args_complex).
+    ///   [`session_args_json`](#session_args_json)
     pub fn with_hash(
         session_hash: &'a str,
         session_entry_point: &'a str,
@@ -135,8 +131,7 @@ impl<'a> SessionStrParams<'a> {
     /// * `session_entry_point` is the name of the method that will be used when calling the session
     ///   contract.
     /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
-    ///   [`session_args_json`](#session_args_json) and
-    ///   [`session_args_complex`](#session_args_complex).
+    ///   [`session_args_json`](#session_args_json)
     pub fn with_package_name(
         session_package_name: &'a str,
         session_version: &'a str,
@@ -163,8 +158,7 @@ impl<'a> SessionStrParams<'a> {
     /// * `session_entry_point` is the name of the method that will be used when calling the session
     ///   contract.
     /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
-    ///   [`session_args_json`](#session_args_json) and
-    ///   [`session_args_complex`](#session_args_complex).
+    ///   [`session_args_json`](#session_args_json)
     pub fn with_package_hash(
         session_package_hash: &'a str,
         session_version: &'a str,
@@ -185,8 +179,7 @@ impl<'a> SessionStrParams<'a> {
     /// Constructs a `SessionStrParams` representing a `Transfer` type of `Deploy`.
     ///
     /// * See the struct docs for a description of [`session_args_simple`](#session_args_simple),
-    ///   [`session_args_json`](#session_args_json) and
-    ///   [`session_args_complex`](#session_args_complex).
+    ///   [`session_args_json`](#session_args_json)
     pub fn with_transfer(session_args_simple: Vec<&'a str>, session_args_json: &'a str) -> Self {
         Self {
             is_session_transfer: true,

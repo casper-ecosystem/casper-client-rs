@@ -7,7 +7,7 @@ pub(crate) use crate::rpcs::v1_6_0::get_dictionary_item::GET_DICTIONARY_ITEM_MET
 use crate::Error;
 
 /// The identifier for a dictionary item.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub enum DictionaryItemIdentifier {
     /// A dictionary item identified via an [`Account`]'s named keys.

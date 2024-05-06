@@ -1,19 +1,21 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use std::str::FromStr;
+use std::fs;
 #[cfg(feature = "std-fs-io")]
-use std::{fs, path::Path};
+use std::path::Path;
+use std::str::FromStr;
 
 use rand::Rng;
 
+use casper_types::bytesrepr::Bytes;
+#[cfg(feature = "std-fs-io")]
+use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash, crypto, AsymmetricType, BlockHash, DeployHash, Digest, EntityAddr,
     ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, TimeDiff,
     Timestamp, UIntParseError, URef, U512,
 };
-#[cfg(feature = "std-fs-io")]
-use casper_types::{bytesrepr::Bytes, SecretKey};
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 #[cfg(feature = "std-fs-io")]
@@ -435,23 +437,27 @@ pub(super) fn session_executable_deploy_item(
             args: session_args,
         });
     }
-    let module_bytes = if !session_path.is_empty() {
-        fs::read(session_path)
-            .map_err(|error| crate::Error::IoError {
-                context: format!("unable to read session file at '{}'", session_path),
-                error,
-            })?
-            .into()
-    } else if !session_bytes.is_empty() {
+
+    let module_bytes = if !session_bytes.is_empty() {
         session_bytes
     } else {
-        Bytes::new()
+        #[cfg(feature = "std-fs-io")]
+        {
+            transaction_module_bytes(session_path)?
+        }
+        #[cfg(not(feature = "std-fs-io"))]
+        return Err(CliError::InvalidArgument {
+            context: "session_executable_deploy_item",
+            error: "missing session bytes".to_string(),
+        });
     };
+
     Ok(ExecutableDeployItem::ModuleBytes {
         module_bytes,
         args: session_args,
     })
 }
+
 /// Parse a transaction file into Bytes to be used in crafting a new session transaction
 pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
     let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {

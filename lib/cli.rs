@@ -61,6 +61,7 @@ use crate::{
 use crate::{Account, Block, Error, StoredValue, Transfer};
 #[cfg(doc)]
 use casper_types::PublicKey;
+#[cfg(feature = "std-fs-io")]
 pub use deploy::{
     make_deploy, make_transfer, put_deploy, send_deploy_file, sign_deploy_file,
     speculative_put_deploy, speculative_send_deploy_file, speculative_transfer, transfer,
@@ -74,9 +75,10 @@ pub use json_args::{
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
 pub use simple_args::help as simple_args_help;
+pub use transaction::{make_transaction, put_transaction};
+#[cfg(feature = "std-fs-io")]
 pub use transaction::{
-    make_transaction, put_transaction, send_transaction_file, sign_transaction_file,
-    speculative_send_transaction_file,
+    send_transaction_file, sign_transaction_file, speculative_send_transaction_file,
 };
 pub use transaction_builder_params::TransactionBuilderParams;
 pub use transaction_str_params::TransactionStrParams;
