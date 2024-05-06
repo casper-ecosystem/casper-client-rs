@@ -1,9 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-use casper_types::{BlockHashAndHeight, Deploy, ProtocolVersion};
+use casper_types::{BlockHash, Deploy, ProtocolVersion};
 
 pub(crate) use crate::rpcs::v1_4_5::get_deploy::{GetDeployParams, GET_DEPLOY_METHOD};
 use crate::types::LegacyExecutionResult;
+
+#[derive(Clone, Copy, Default, Eq, Serialize, Deserialize, Debug, PartialEq)]
+pub struct BlockHashAndHeight {
+    /// The hash of the block.
+    pub block_hash: BlockHash,
+    /// The height of the block.
+    pub block_height: u64,
+}
 
 /// The `result` field of a successful JSON-RPC response to an `info_get_deploy` request.
 #[derive(Serialize, Deserialize, Debug)]

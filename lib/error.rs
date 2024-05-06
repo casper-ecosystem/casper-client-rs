@@ -19,6 +19,9 @@ pub enum Error {
     #[error(transparent)]
     DeployBuild(#[from] casper_types::DeployBuilderError),
 
+    /// Failed to build Transaction
+    #[error(transparent)]
+    TransactionBuild(#[from] casper_types::TransactionV1BuilderError),
     /// Invalid [`Key`] variant.
     #[error("expected {} but got {}", .expected_variant, .actual)]
     InvalidKeyVariant {
@@ -146,6 +149,15 @@ pub enum Error {
     /// Failed to validate response.
     #[error("invalid response: {0}")]
     ResponseFailedValidation(#[from] ValidateResponseError),
+
+    /// An error that occurs when attempting to use a non UTF-8 string for a transaction.
+    #[error("invalid UTF-8 string: {context}: {error}")]
+    Utf8Error {
+        /// Contextual description of where this error occurred.
+        context: &'static str,
+        /// Underlying error.
+        error: std::str::Utf8Error,
+    },
 }
 
 impl From<ToBytesError> for Error {

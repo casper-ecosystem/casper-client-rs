@@ -56,7 +56,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::Account, Block, StoredValue, Transfer};
-use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, URef};
+use casper_types::{Deploy, DeployHash, Digest, Key, SecretKey, Transaction, TransactionV1, URef};
 
 pub use error::Error;
 use json_rpc::JsonRpcCall;
@@ -65,11 +65,12 @@ pub use output_kind::OutputKind;
 use rpcs::{
     common::{BlockIdentifier, GlobalStateIdentifier},
     results::{
-        GetAccountResult, GetAuctionInfoResult, GetBalanceResult, GetBlockResult,
-        GetBlockTransfersResult, GetChainspecResult, GetDeployResult, GetDictionaryItemResult,
-        GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult, GetPeersResult,
-        GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult, PutDeployResult,
-        QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
+        GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
+        GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
+        GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
+        GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
+        PutDeployResult, PutTransactionResult, QueryBalanceDetailsResult, QueryBalanceResult,
+        QueryGlobalStateResult, SpeculativeExecResult, SpeculativeExecTxnResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
@@ -80,6 +81,7 @@ use rpcs::{
         get_chainspec::GET_CHAINSPEC_METHOD,
         get_deploy::{GetDeployParams, GET_DEPLOY_METHOD},
         get_dictionary_item::{GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD},
+        get_entity::{EntityIdentifier, GetAddressableEntityParams, GET_ENTITY_METHOD},
         get_era_info::{GetEraInfoParams, GET_ERA_INFO_METHOD},
         get_era_summary::{GetEraSummaryParams, GET_ERA_SUMMARY_METHOD},
         get_node_status::GET_NODE_STATUS_METHOD,
@@ -88,9 +90,12 @@ use rpcs::{
         get_validator_changes::GET_VALIDATOR_CHANGES_METHOD,
         list_rpcs::LIST_RPCS_METHOD,
         put_deploy::{PutDeployParams, PUT_DEPLOY_METHOD},
+        put_transaction::{PutTransactionParams, PUT_TRANSACTION_METHOD},
         query_balance::{PurseIdentifier, QueryBalanceParams, QUERY_BALANCE_METHOD},
+        query_balance_details::{QueryBalanceDetailsParams, QUERY_BALANCE_DETAILS_METHOD},
         query_global_state::{QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD},
         speculative_exec::{SpeculativeExecParams, SPECULATIVE_EXEC_METHOD},
+        speculative_exec_transaction::{SpeculativeExecTxnParams, SPECULATIVE_EXEC_TXN_METHOD},
     },
     DictionaryItemIdentifier,
 };
@@ -119,6 +124,25 @@ pub async fn put_deploy(
         .await
 }
 
+/// Puts a [`Transaction`] to the network for execution
+///
+/// Sends a JSON-RPC `account_put_transaction` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn put_transaction(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    transaction: Transaction,
+) -> Result<SuccessResponse<PutTransactionResult>, Error> {
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(
+            PUT_TRANSACTION_METHOD,
+            Some(PutTransactionParams::new(transaction)),
+        )
+        .await
+}
+
 /// Puts a [`Deploy`] to a single node for speculative execution on that node only.
 ///
 /// Sends a JSON-RPC `speculative_exec` request to the specified node.
@@ -139,6 +163,26 @@ pub async fn speculative_exec(
         .await
 }
 
+/// Puts a [`Transction`] to a single node for speculative execution on that node only.
+///
+/// Sends a JSON-RPC speculative_exec request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn speculative_exec_txn(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    block_identifier: Option<BlockIdentifier>,
+    verbosity: Verbosity,
+    transaction: Transaction,
+) -> Result<SuccessResponse<SpeculativeExecTxnResult>, Error> {
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(
+            SPECULATIVE_EXEC_TXN_METHOD,
+            Some(SpeculativeExecTxnParams::new(block_identifier, transaction)),
+        )
+        .await
+}
+
 /// Outputs a [`Deploy`] to a file or stdout.
 ///
 /// As a file, the `Deploy` can subsequently be signed by other parties using [`sign_deploy_file`]
@@ -152,6 +196,19 @@ pub fn output_deploy(output: OutputKind, deploy: &Deploy) -> Result<(), Error> {
     output.commit()
 }
 
+/// Outputs a [`Transaction`] to a file or stdout.
+///
+/// As a file, the `Transaction` can subsequently be signed by other parties using [`sign_transaction_file`]
+/// and then read and sent to the network for execution using [`read_transaction_file`] and
+/// [`put_transaction`] respectively.
+///
+/// `output` specifies the output file and corresponding overwrite behaviour, or if
+/// `OutputKind::Stdout`, causes the `Transaction` to be printed `stdout`.
+pub fn output_transaction(output: OutputKind, transaction: &TransactionV1) -> Result<(), Error> {
+    write_transaction(transaction, output.get()?)?;
+    output.commit()
+}
+
 /// Reads a previously-saved [`Deploy`] from a file.
 pub fn read_deploy_file<P: AsRef<Path>>(deploy_path: P) -> Result<Deploy, Error> {
     let input = fs::read(deploy_path.as_ref()).map_err(|error| Error::IoError {
@@ -162,6 +219,18 @@ pub fn read_deploy_file<P: AsRef<Path>>(deploy_path: P) -> Result<Deploy, Error>
         error,
     })?;
     read_deploy(Cursor::new(input))
+}
+
+/// Reads a previously-saved [`Transaction`] from a file.
+pub fn read_transaction_file<P: AsRef<Path>>(transaction_path: P) -> Result<TransactionV1, Error> {
+    let input = fs::read(transaction_path.as_ref()).map_err(|error| Error::IoError {
+        context: format!(
+            "unable to read transaction file at '{}'",
+            transaction_path.as_ref().display()
+        ),
+        error,
+    })?;
+    read_transaction(Cursor::new(input))
 }
 
 /// Reads a previously-saved [`Deploy`] from a file, cryptographically signs it, and outputs it
@@ -183,6 +252,24 @@ pub fn sign_deploy_file<P: AsRef<Path>>(
     deploy.is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)?;
 
     write_deploy(&deploy, output.get()?)?;
+    output.commit()
+}
+
+/// Reads a previously-saved [`TransactionV1`] from a file, cryptographically signs it, and outputs it to a file or stdout.
+///
+/// `output` specifies the output file and corresponding overwrite behaviour, or if OutputKind::Stdout,
+/// causes the `Transaction` to be printed `stdout`.
+///
+pub fn sign_transaction_file<P: AsRef<Path>>(
+    input_path: P,
+    secret_key: &SecretKey,
+    output: OutputKind,
+) -> Result<(), Error> {
+    let mut transaction = read_transaction_file(input_path)?;
+
+    transaction.sign(secret_key);
+
+    write_transaction(&transaction, output.get()?)?;
     output.commit()
 }
 
@@ -325,6 +412,24 @@ pub async fn query_balance(
         .await
 }
 
+/// Retrieves a purse's balance from global state at a given [`Block`] or state root hash.
+///
+/// Sends a JSON-RPC `query_balance_details` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn query_balance_details(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    maybe_global_state_identifier: Option<GlobalStateIdentifier>,
+    purse_identifier: PurseIdentifier,
+) -> Result<SuccessResponse<QueryBalanceDetailsResult>, Error> {
+    let params = QueryBalanceDetailsParams::new(maybe_global_state_identifier, purse_identifier);
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(QUERY_BALANCE_DETAILS_METHOD, Some(params))
+        .await
+}
+
 /// Retrieves a [`StoredValue`] from a dictionary at a given state root hash.
 ///
 /// Sends a JSON-RPC `state_get_dictionary_item` request to the specified node.
@@ -376,6 +481,24 @@ pub async fn get_account(
     let params = GetAccountParams::new(account_identifier, maybe_block_identifier);
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(GET_ACCOUNT_METHOD, Some(params))
+        .await
+}
+
+/// Retrieves an [`EntityOrAccount`] at a given [`Block`].
+///
+/// Sends a JSON-RPC `state_get_entity` request to the specified node.
+///
+/// For details of the parameters, see [the module docs](crate#common-parameters).
+pub async fn get_entity(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    maybe_block_identifier: Option<BlockIdentifier>,
+    entity_identifier: EntityIdentifier,
+) -> Result<SuccessResponse<GetAddressableEntityResult>, Error> {
+    let params = GetAddressableEntityParams::new(entity_identifier, maybe_block_identifier);
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(GET_ENTITY_METHOD, Some(params))
         .await
 }
 
@@ -508,6 +631,20 @@ fn write_deploy<W: Write>(deploy: &Deploy, mut output: W) -> Result<(), Error> {
         })
 }
 
+fn write_transaction<W: Write>(transaction: &TransactionV1, mut output: W) -> Result<(), Error> {
+    let content =
+        serde_json::to_string_pretty(transaction).map_err(|error| Error::FailedToEncodeToJson {
+            context: "writing transaction",
+            error,
+        })?;
+    output
+        .write_all(content.as_bytes())
+        .map_err(|error| Error::IoError {
+            context: "unable to write transaction".to_owned(),
+            error,
+        })
+}
+
 fn read_deploy<R: Read>(input: R) -> Result<Deploy, Error> {
     let deploy: Deploy =
         serde_json::from_reader(input).map_err(|error| Error::FailedToDecodeFromJson {
@@ -516,6 +653,15 @@ fn read_deploy<R: Read>(input: R) -> Result<Deploy, Error> {
         })?;
     deploy.is_valid_size(MAX_SERIALIZED_SIZE_OF_DEPLOY)?;
     Ok(deploy)
+}
+
+fn read_transaction<R: Read>(input: R) -> Result<TransactionV1, Error> {
+    let transaction: TransactionV1 =
+        serde_json::from_reader(input).map_err(|error| Error::FailedToDecodeFromJson {
+            context: "reading transaction",
+            error,
+        })?;
+    Ok(transaction)
 }
 
 /// Retrieves era information from the network at a given switch [`Block`].

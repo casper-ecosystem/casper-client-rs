@@ -9,6 +9,7 @@ mod get_auction_info;
 mod get_balance;
 mod get_chainspec;
 mod get_dictionary_item;
+mod get_entity;
 mod get_era_info;
 mod get_era_summary;
 mod get_node_status;
@@ -18,12 +19,15 @@ mod get_validator_changes;
 mod keygen;
 mod list_rpcs;
 mod query_balance;
+mod query_balance_details;
 mod query_global_state;
+mod transaction;
 
 use std::process;
 
 use clap::{crate_version, Command};
 use get_balance::GetBalance;
+use get_entity::GetEntity;
 use once_cell::sync::Lazy;
 
 use casper_client::{cli, rpcs::results::GetChainspecResult, SuccessResponse};
@@ -49,6 +53,7 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
+use transaction::{MakeTransaction, PutTransaction, SendTransaction, SignTransaction};
 
 const APP_NAME: &str = "Casper client";
 
@@ -70,8 +75,12 @@ static VERSION: Lazy<String> =
 enum DisplayOrder {
     PutDeploy,
     MakeDeploy,
+    PutTransaction,
+    MakeTransaction,
     SignDeploy,
+    SignTransaction,
     SendDeploy,
+    SendTransaction,
     Transfer,
     MakeTransfer,
     GetDeploy,
@@ -86,6 +95,7 @@ enum DisplayOrder {
     QueryBalance,
     GetDictionaryItem,
     GetAccount,
+    GetEntity,
     GetAuctionInfo,
     GetValidatorChanges,
     GetPeers,
@@ -103,8 +113,18 @@ fn cli() -> Command {
         .about("A client for interacting with the Casper network")
         .subcommand(PutDeploy::build(DisplayOrder::PutDeploy as usize))
         .subcommand(MakeDeploy::build(DisplayOrder::MakeDeploy as usize))
+        .subcommand(PutTransaction::build(DisplayOrder::PutTransaction as usize))
+        .subcommand(MakeTransaction::build(
+            DisplayOrder::MakeTransaction as usize,
+        ))
         .subcommand(SignDeploy::build(DisplayOrder::SignDeploy as usize))
+        .subcommand(SignTransaction::build(
+            DisplayOrder::SignTransaction as usize,
+        ))
         .subcommand(SendDeploy::build(DisplayOrder::SendDeploy as usize))
+        .subcommand(SendTransaction::build(
+            DisplayOrder::SendTransaction as usize,
+        ))
         .subcommand(Transfer::build(DisplayOrder::Transfer as usize))
         .subcommand(MakeTransfer::build(DisplayOrder::MakeTransfer as usize))
         .subcommand(GetBalance::build(DisplayOrder::GetBalance as usize).hide(true))
@@ -127,6 +147,7 @@ fn cli() -> Command {
             DisplayOrder::GetDictionaryItem as usize,
         ))
         .subcommand(GetAccount::build(DisplayOrder::GetAccount as usize))
+        .subcommand(GetEntity::build(DisplayOrder::GetEntity as usize))
         .subcommand(GetAuctionInfo::build(DisplayOrder::GetAuctionInfo as usize))
         .subcommand(GetValidatorChanges::build(
             DisplayOrder::GetValidatorChanges as usize,
@@ -154,8 +175,12 @@ async fn main() {
     let result = match subcommand_name {
         PutDeploy::NAME => PutDeploy::run(matches).await,
         MakeDeploy::NAME => MakeDeploy::run(matches).await,
+        PutTransaction::NAME => PutTransaction::run(matches).await,
+        MakeTransaction::NAME => MakeTransaction::run(matches).await,
         SignDeploy::NAME => SignDeploy::run(matches).await,
+        SignTransaction::NAME => SignTransaction::run(matches).await,
         SendDeploy::NAME => SendDeploy::run(matches).await,
+        SendTransaction::NAME => SendTransaction::run(matches).await,
         Transfer::NAME => Transfer::run(matches).await,
         MakeTransfer::NAME => MakeTransfer::run(matches).await,
         GetDeploy::NAME => GetDeploy::run(matches).await,
@@ -170,6 +195,7 @@ async fn main() {
         QueryBalance::NAME => QueryBalance::run(matches).await,
         GetDictionaryItem::NAME => GetDictionaryItem::run(matches).await,
         GetAccount::NAME => GetAccount::run(matches).await,
+        GetEntity::NAME => GetEntity::run(matches).await,
         GetAuctionInfo::NAME => GetAuctionInfo::run(matches).await,
         GetValidatorChanges::NAME => GetValidatorChanges::run(matches).await,
         GetPeers::NAME => GetPeers::run(matches).await,

@@ -8,11 +8,11 @@ pub use super::v2_0_0::get_block_transfers::GetBlockTransfersResult;
 pub use super::v2_0_0::get_chainspec::GetChainspecResult;
 pub use super::v2_0_0::get_deploy::{DeployExecutionInfo, GetDeployResult};
 pub use super::v2_0_0::get_dictionary_item::GetDictionaryItemResult;
+pub use super::v2_0_0::get_entity::GetAddressableEntityResult;
 pub use super::v2_0_0::get_era_info::{EraSummary, GetEraInfoResult};
 pub use super::v2_0_0::get_era_summary::GetEraSummaryResult;
 pub use super::v2_0_0::get_node_status::{
-    ActivationPoint, AvailableBlockRange, BlockSyncStatus, BlockSynchronizerStatus,
-    GetNodeStatusResult, MinimalBlockInfo, NextUpgrade, ReactorState,
+    AvailableBlockRange, GetNodeStatusResult, MinimalBlockInfo, NextUpgrade,
 };
 pub use super::v2_0_0::get_peers::{GetPeersResult, PeerEntry};
 pub use super::v2_0_0::get_state_root_hash::GetStateRootHashResult;
@@ -25,6 +25,9 @@ pub use super::v2_0_0::list_rpcs::{
     SchemaParam,
 };
 pub use super::v2_0_0::put_deploy::PutDeployResult;
+pub use super::v2_0_0::put_transaction::PutTransactionResult;
 pub use super::v2_0_0::query_balance::QueryBalanceResult;
+pub use super::v2_0_0::query_balance_details::QueryBalanceDetailsResult;
 pub use super::v2_0_0::query_global_state::QueryGlobalStateResult;
 pub use super::v2_0_0::speculative_exec::SpeculativeExecResult;
+pub use super::v2_0_0::speculative_exec_transaction::SpeculativeExecTxnResult;

@@ -18,6 +18,7 @@ enum DisplayOrder {
     StateRootHash,
     AccountHash,
     ContractHash,
+    EntityAddr,
     DictionaryName,
     DictionaryItemKey,
     DictionarySeedURef,
@@ -99,6 +100,23 @@ mod contract_hash {
 
     pub(super) fn arg() -> Arg {
         key::arg(ARG_NAME, ARG_HELP, DisplayOrder::ContractHash as usize)
+    }
+
+    pub(super) fn get(matches: &ArgMatches) -> Result<String, CliError> {
+        key::get(ARG_NAME, matches)
+    }
+}
+
+mod entity_addr {
+    use super::*;
+
+    pub(crate) const ARG_NAME: &str = "entity-addr";
+    const ARG_HELP: &str = "This must be a properly formatted entity address. The format is \
+        \"entity-contract-<HEX STRING>\" for contracts and \"entity-account-<HEX STRING>\" for \
+        accounts.";
+
+    pub(super) fn arg() -> Arg {
+        key::arg(ARG_NAME, ARG_HELP, DisplayOrder::EntityAddr as usize)
     }
 
     pub(super) fn get(matches: &ArgMatches) -> Result<String, CliError> {
@@ -227,6 +245,7 @@ impl ClientCommand for GetDictionaryItem {
             ))
             .arg(account_hash::arg())
             .arg(contract_hash::arg())
+            .arg(entity_addr::arg())
             .arg(seed_uref::arg())
             .arg(dictionary_address::arg())
             .arg(dictionary_name::arg())
@@ -235,6 +254,7 @@ impl ClientCommand for GetDictionaryItem {
                 ArgGroup::new("dictionary-identifier")
                     .arg(account_hash::ARG_NAME)
                     .arg(contract_hash::ARG_NAME)
+                    .arg(entity_addr::ARG_NAME)
                     .arg(seed_uref::ARG_NAME)
                     .arg(dictionary_address::ARG_NAME)
                     .required(true),
@@ -250,6 +270,7 @@ impl ClientCommand for GetDictionaryItem {
 
         let account_hash = account_hash::get(matches)?;
         let contract_hash = contract_hash::get(matches)?;
+        let entity_addr = entity_addr::get(matches)?;
         let dictionary_name = dictionary_name::get(matches);
         let seed_uref = seed_uref::get(matches);
         let dictionary_key = dictionary_address::get(matches);
@@ -265,6 +286,12 @@ impl ClientCommand for GetDictionaryItem {
         } else if !contract_hash.is_empty() && !dictionary_name.is_empty() {
             DictionaryItemStrParams::ContractNamedKey {
                 hash_addr: &contract_hash,
+                dictionary_name,
+                dictionary_item_key,
+            }
+        } else if !entity_addr.is_empty() && !dictionary_name.is_empty() {
+            DictionaryItemStrParams::EntityNamedKey {
+                entity_addr: &entity_addr,
                 dictionary_name,
                 dictionary_item_key,
             }

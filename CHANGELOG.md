@@ -15,9 +15,15 @@ All notable changes to this project will be documented in this file.  The format
 
 ### Added
 * Add module to support node 2.0.0 RPCs.
+* Add `make-transaction` command for creating transactions to support node 2.0.0.
+* Add `sign-transaction` command for signing transactions to support node 2.0.0.
+* Add `put-transaction` command for sending transactions to support node 2.0.0.
+* Add support for new node RPC method `state_get_entity`, used in the binary's new `get-entity` subcommand.
+* Add `send-transaciton` command for sending previously made and signed transaction files to the network.
 
 ### Changed
 * Update to match change to node RPC `info_get_deploy`.
+* Update to match change to node RPC `info_get_status` used in the binary's `get-node-status` subcommand.
 
 ### Removed
 * Remove following public types which are now available in `casper_types`:

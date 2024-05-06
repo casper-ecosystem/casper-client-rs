@@ -1,4 +1,4 @@
-//! The JSON-RPC request and response types at v1.5.0 of casper-node.
+//! The JSON-RPC request and response types at v1.6.0 of casper-node.
 
 pub(crate) mod get_account;
 
@@ -10,6 +10,9 @@ pub(crate) mod get_chainspec {
 }
 
 pub(crate) mod get_deploy {
+    // This lint should be re-enabled once the client is updated to handle multiple different node
+    // node versions.
+    #[allow(unused_imports)]
     pub use crate::rpcs::v1_5_0::get_deploy::GetDeployResult;
     // This lint should be re-enabled once the client is updated to handle multiple different node
     // node versions.
@@ -26,15 +29,11 @@ pub(crate) mod get_era_summary {
 
 pub(crate) mod get_node_status {
     pub(crate) use crate::rpcs::v1_5_0::get_node_status::GET_NODE_STATUS_METHOD;
+    #[allow(unused_imports)]
     pub use crate::rpcs::v1_5_0::get_node_status::{
         ActivationPoint, AvailableBlockRange, BlockSyncStatus, BlockSynchronizerStatus,
         GetNodeStatusResult, MinimalBlockInfo, NextUpgrade, ReactorState,
     };
-}
-
-pub(crate) mod query_balance {
-    pub use crate::rpcs::v1_5_0::query_balance::{PurseIdentifier, QueryBalanceResult};
-    pub(crate) use crate::rpcs::v1_5_0::query_balance::{QueryBalanceParams, QUERY_BALANCE_METHOD};
 }
 
 pub(crate) mod speculative_exec {
@@ -57,6 +56,9 @@ pub(crate) mod get_balance {
 }
 
 pub(crate) mod get_block {
+    // This lint should be re-enabled once the client is updated to handle multiple different node
+    // node versions.
+    #[allow(unused_imports)]
     pub use crate::rpcs::v1_5_0::get_block::GetBlockResult;
     pub(crate) use crate::rpcs::v1_5_0::get_block::{GetBlockParams, GET_BLOCK_METHOD};
 }
@@ -69,12 +71,8 @@ pub(crate) mod get_block_transfers {
 }
 
 pub(crate) mod get_dictionary_item {
-    pub use crate::rpcs::v1_5_0::get_dictionary_item::{
-        DictionaryItemIdentifier, GetDictionaryItemResult,
-    };
-    pub(crate) use crate::rpcs::v1_5_0::get_dictionary_item::{
-        GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD,
-    };
+    pub use crate::rpcs::v1_5_0::get_dictionary_item::GetDictionaryItemResult;
+    pub(crate) use crate::rpcs::v1_5_0::get_dictionary_item::GET_DICTIONARY_ITEM_METHOD;
 }
 
 pub(crate) mod get_era_info {

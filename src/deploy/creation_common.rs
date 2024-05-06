@@ -32,7 +32,6 @@ pub(super) enum DisplayOrder {
     SessionCode,
     SessionArgSimple,
     SessionArgsJson,
-    SessionArgsComplex,
     SessionHash,
     SessionName,
     SessionPackageHash,
@@ -45,7 +44,6 @@ pub(super) enum DisplayOrder {
     PaymentCode,
     PaymentArgSimple,
     PaymentArgsJson,
-    PaymentArgsComplex,
     PaymentHash,
     PaymentName,
     PaymentPackageHash,
@@ -121,21 +119,11 @@ pub(super) mod show_json_args_examples {
 pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
     let session_args_simple = arg_simple::session::get(matches);
     let session_args_json = args_json::session::get(matches);
-    let session_args_complex = args_complex::session::get(matches);
     if is_session_transfer::get(matches) {
-        return SessionStrParams::with_transfer(
-            session_args_simple,
-            session_args_json,
-            session_args_complex,
-        );
+        return SessionStrParams::with_transfer(session_args_simple, session_args_json);
     }
     if let Some(session_path) = session_path::get(matches) {
-        return SessionStrParams::with_path(
-            session_path,
-            session_args_simple,
-            session_args_json,
-            session_args_complex,
-        );
+        return SessionStrParams::with_path(session_path, session_args_simple, session_args_json);
     }
     let session_entry_point = session_entry_point::get(matches);
     if let Some(session_hash) = session_hash::get(matches) {
@@ -144,7 +132,6 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_entry_point,
             session_args_simple,
             session_args_json,
-            session_args_complex,
         );
     }
     if let Some(session_name) = session_name::get(matches) {
@@ -153,7 +140,6 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_entry_point,
             session_args_simple,
             session_args_json,
-            session_args_complex,
         );
     }
     let session_version = session_version::get(matches);
@@ -164,7 +150,6 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_entry_point,
             session_args_simple,
             session_args_json,
-            session_args_complex,
         );
     }
     if let Some(session_package_name) = session_package_name::get(matches) {
@@ -174,7 +159,6 @@ pub(super) fn session_str_params(matches: &ArgMatches) -> SessionStrParams<'_> {
             session_entry_point,
             session_args_simple,
             session_args_json,
-            session_args_complex,
         );
     }
     unreachable!("clap arg groups and parsing should prevent this")
@@ -186,14 +170,8 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
     }
     let payment_args_simple = arg_simple::payment::get(matches);
     let payment_args_json = args_json::payment::get(matches);
-    let payment_args_complex = args_complex::payment::get(matches);
     if let Some(payment_path) = payment_path::get(matches) {
-        return PaymentStrParams::with_path(
-            payment_path,
-            payment_args_simple,
-            payment_args_json,
-            payment_args_complex,
-        );
+        return PaymentStrParams::with_path(payment_path, payment_args_simple, payment_args_json);
     }
     let payment_entry_point = payment_entry_point::get(matches);
     if let Some(payment_hash) = payment_hash::get(matches) {
@@ -202,7 +180,6 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_entry_point,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
         );
     }
     if let Some(payment_name) = payment_name::get(matches) {
@@ -211,7 +188,6 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_entry_point,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
         );
     }
     let payment_version = payment_version::get(matches);
@@ -222,7 +198,6 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_entry_point,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
         );
     }
     if let Some(payment_package_name) = payment_package_name::get(matches) {
@@ -232,7 +207,6 @@ pub(super) fn payment_str_params(matches: &ArgMatches) -> PaymentStrParams<'_> {
             payment_entry_point,
             payment_args_simple,
             payment_args_json,
-            payment_args_complex,
         );
     }
     unreachable!("clap arg groups and parsing should prevent this")
@@ -510,62 +484,6 @@ pub(super) mod args_json {
     }
 }
 
-/// Handles providing the arg for and retrieval of complex session and payment args. These are read
-/// in from a file.
-pub(super) mod args_complex {
-    use super::*;
-
-    const ARG_VALUE_NAME: &str = common::ARG_PATH;
-    const ARG_HELP: &str =
-        "Path to file containing 'ToBytes'-encoded named and typed args for passing to the Wasm \
-        code";
-
-    pub(in crate::deploy) mod session {
-        use super::*;
-
-        pub const ARG_NAME: &str = "session-args-complex";
-
-        pub fn arg() -> Arg {
-            super::arg(ARG_NAME, DisplayOrder::SessionArgsComplex as usize)
-                .requires(super::session::ARG_NAME)
-        }
-
-        pub fn get(matches: &ArgMatches) -> &str {
-            matches
-                .get_one::<String>(ARG_NAME)
-                .map(String::as_str)
-                .unwrap_or_default()
-        }
-    }
-
-    pub(in crate::deploy) mod payment {
-        use super::*;
-
-        pub const ARG_NAME: &str = "payment-args-complex";
-
-        pub fn arg() -> Arg {
-            super::arg(ARG_NAME, DisplayOrder::PaymentArgsComplex as usize)
-                .requires(super::payment::ARG_NAME)
-        }
-
-        pub fn get(matches: &ArgMatches) -> &str {
-            matches
-                .get_one::<String>(ARG_NAME)
-                .map(String::as_str)
-                .unwrap_or_default()
-        }
-    }
-
-    fn arg(name: &'static str, order: usize) -> Arg {
-        Arg::new(name)
-            .long(name)
-            .required(false)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
-            .display_order(order)
-    }
-}
-
 /// Handles providing the arg for and retrieval of the payment code bytes.
 pub(super) mod payment_path {
     use super::*;
@@ -664,13 +582,11 @@ pub(super) fn apply_common_session_options(subcommand: Command) -> Command {
     subcommand
         .arg(arg_simple::session::arg())
         .arg(args_json::session::arg())
-        .arg(args_complex::session::arg())
         // Group the session-arg args so only one style is used to ensure consistent ordering.
         .group(
             ArgGroup::new(SESSION_ARG_GROUP)
                 .arg(arg_simple::session::ARG_NAME)
                 .arg(args_json::session::ARG_NAME)
-                .arg(args_complex::session::ARG_NAME)
                 .required(false),
         )
         .arg(is_session_transfer::arg())
@@ -717,13 +633,11 @@ pub(crate) fn apply_common_payment_options(
     subcommand
         .arg(arg_simple::payment::arg())
         .arg(args_json::payment::arg())
-        .arg(args_complex::payment::arg())
         .group(
             // Ensure these three forms of inputting payment-args are mutually exclusive.
             ArgGroup::new("payment-args")
                 .arg(arg_simple::payment::ARG_NAME)
                 .arg(args_json::payment::ARG_NAME)
-                .arg(args_complex::payment::ARG_NAME)
                 .required(false),
         )
         .arg(standard_payment_amount::arg(default_amount))
