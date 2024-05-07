@@ -255,7 +255,7 @@ pub async fn query_balance(
 /// `purse_id` can be a properly-formatted public key, account hash, entity address or URef.
 ///
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
-pub async fn query_balance_detials(
+pub async fn query_balance_details(
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
