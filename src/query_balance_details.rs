@@ -69,7 +69,7 @@ impl ClientCommand for QueryBalanceDetails {
         let maybe_state_root_hash = common::state_root_hash::get(matches).unwrap_or_default();
         let purse_id = common::purse_identifier::get(matches)?;
 
-        casper_client::cli::query_balance_detials(
+        casper_client::cli::query_balance_details(
             maybe_rpc_id,
             node_address,
             verbosity_level,
