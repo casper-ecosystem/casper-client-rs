@@ -6,8 +6,7 @@ use casper_types::{
 use super::transaction::get_maybe_secret_key;
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
 use crate::rpcs::results::{PutDeployResult, SpeculativeExecResult};
-use crate::SuccessResponse;
-use crate::MAX_SERIALIZED_SIZE_OF_DEPLOY;
+use crate::{SuccessResponse, MAX_SERIALIZED_SIZE_OF_DEPLOY};
 
 /// Creates a [`Deploy`] and sends it to the network for execution.
 ///
