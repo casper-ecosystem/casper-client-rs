@@ -33,8 +33,7 @@ required-features = [
 
 [features]
 default = ["async-trait", "clap", "clap_complete", "tokio", "std-fs-io"]
-# std-fs-io = ["casper-types/std-fs-io"]
-std-fs-io = []
+std-fs-io = ["casper-types/std-fs-io"]
 
 [dependencies]
 async-trait = { version = "0.1.74", optional = true }
@@ -73,7 +72,7 @@ tempfile = "3.8.1"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-casper-types = { git = "https://github.com/casper-network/casper-node", branch = "feat-2.0" }
+casper-types = { git = "https://github.com/casper-network/casper-node", branch = "rustSDK-feat-2.0" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
