@@ -8,7 +8,7 @@ use casper_types::{
     account::AccountHash, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff, Timestamp, URef,
 };
 use casper_types::{CLValueError, KeyFromStrError, UIntParseError, URefFromStrError};
-use uint::FromDecStrErr;
+pub use uint::FromDecStrErr;
 
 use crate::cli::JsonArgsError;
 #[cfg(doc)]

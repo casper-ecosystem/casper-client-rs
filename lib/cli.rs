@@ -68,13 +68,13 @@ pub use deploy::{
 };
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
-pub use error::CliError;
+pub use error::{CliError, FromDecStrErr};
 pub use json_args::{
     help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails, JsonArg,
 };
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
-pub use simple_args::help as simple_args_help;
+pub use simple_args::{help as simple_args_help, insert_arg};
 pub use transaction::{make_transaction, put_transaction};
 #[cfg(feature = "std-fs-io")]
 pub use transaction::{
