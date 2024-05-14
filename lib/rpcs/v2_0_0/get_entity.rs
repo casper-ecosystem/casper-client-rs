@@ -1,6 +1,7 @@
 use casper_types::{
     account::{Account, AccountHash},
-    AddressableEntity, EntityAddr, ProtocolVersion, PublicKey,
+    addressable_entity::NamedKeys,
+    AddressableEntity, EntityAddr, EntryPointValue, ProtocolVersion, PublicKey,
 };
 use serde::{Deserialize, Serialize};
 
@@ -23,8 +24,15 @@ pub enum EntityIdentifier {
 /// An addressable entity or a legacy account.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EntityOrAccount {
-    /// An addressable entity.
-    AddressableEntity(AddressableEntity),
+    /// An addressable entity with named keys and entry points.
+    AddressableEntity {
+        /// The addressable entity.
+        entity: AddressableEntity,
+        /// The named keys of the addressable entity.
+        named_keys: NamedKeys,
+        /// The entry points of the addressable entity.
+        entry_points: Vec<EntryPointValue>,
+    },
     /// A legacy account.
     LegacyAccount(Account),
 }
