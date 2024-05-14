@@ -23,6 +23,7 @@ pub(super) enum DisplayOrder {
     Input,
     Output,
     Force,
+    GasPriceTolerance,
     TransferAmount,
     TransferTargetAccount,
     TransferId,
@@ -423,6 +424,37 @@ pub(super) mod arg_simple {
             .display_order(order)
     }
 }
+
+pub(super) mod gas_price_tolerance {
+    use super::*;
+    pub(crate) const ARG_NAME: &str = "gas-price-tolerance";
+
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+
+    const ARG_ALIAS: &str = "gas-price";
+    const ARG_SHORT: char = 'g';
+    const ARG_HELP: &str =
+        "The maximum gas price that the user is willing to pay for the transaction";
+
+    pub(crate) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .alias(ARG_ALIAS)
+            .short(ARG_SHORT)
+            .required(true)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::GasPriceTolerance as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
 
 /// Handles providing the arg for and retrieval of JSON session and payment args.
 pub(super) mod args_json {
