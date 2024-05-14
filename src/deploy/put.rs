@@ -20,7 +20,7 @@ impl ClientCommand for PutDeploy {
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
             .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
             .arg(creation_common::speculative_exec::arg())
-            .arg(creation_common::gas_price_tolerance::arg());
+            .arg(creation_common::gas_price::arg());
         let subcommand = creation_common::apply_common_session_options(subcommand);
         let subcommand = creation_common::apply_common_payment_options(subcommand, None);
         creation_common::apply_common_creation_options(subcommand, true, true)
@@ -40,7 +40,7 @@ impl ClientCommand for PutDeploy {
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
         let session_account = creation_common::session_account::get(matches)?;
-        let gas_price = creation_common::gas_price_tolerance::get(matches);
+        let gas_price = creation_common::gas_price::get(matches);
         let session_str_params = creation_common::session_str_params(matches);
         let payment_str_params = creation_common::payment_str_params(matches);
 

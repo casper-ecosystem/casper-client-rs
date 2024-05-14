@@ -23,7 +23,7 @@ pub(super) enum DisplayOrder {
     Input,
     Output,
     Force,
-    GasPriceTolerance,
+    GasPrice,
     TransferAmount,
     TransferTargetAccount,
     TransferId,
@@ -425,13 +425,12 @@ pub(super) mod arg_simple {
     }
 }
 
-pub(super) mod gas_price_tolerance {
+pub(super) mod gas_price {
     use super::*;
-    pub(crate) const ARG_NAME: &str = "gas-price-tolerance";
+    pub(crate) const ARG_NAME: &str = "gas-price";
 
     const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
 
-    const ARG_ALIAS: &str = "gas-price";
     const ARG_SHORT: char = 'g';
     const ARG_HELP: &str =
         "The maximum gas price that the user is willing to pay for the transaction";
@@ -439,12 +438,11 @@ pub(super) mod gas_price_tolerance {
     pub(crate) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .alias(ARG_ALIAS)
             .short(ARG_SHORT)
             .required(true)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::GasPriceTolerance as usize)
+            .display_order(DisplayOrder::GasPrice as usize)
     }
 
     pub fn get(matches: &ArgMatches) -> &str {

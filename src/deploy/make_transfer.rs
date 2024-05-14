@@ -39,7 +39,7 @@ impl ClientCommand for MakeTransfer {
         creation_common::show_simple_arg_examples_and_exit_if_required(matches);
         creation_common::show_json_args_examples_and_exit_if_required(matches);
 
-        let gas_price = creation_common::gas_price_tolerance::get(matches);
+        let gas_price = creation_common::gas_price::get(matches);
 
         let amount = transfer::amount::get(matches);
         let target_account = transfer::target_account::get(matches);
