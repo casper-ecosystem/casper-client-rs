@@ -48,7 +48,7 @@ tempfile = "3.7.1"
 vergen = { version = "7", default-features = false, features = ["git"] }
 
 [patch.crates-io]
-casper-types = { git = "https://github.com/darthsiroftardis/casper-node.git", branch = "block-restructure" }
+casper-types = { git = "https://github.com/casper-network/casper-node.git", branch = "feat-2.0" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
