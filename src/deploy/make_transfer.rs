@@ -39,6 +39,8 @@ impl ClientCommand for MakeTransfer {
         creation_common::show_simple_arg_examples_and_exit_if_required(matches);
         creation_common::show_json_args_examples_and_exit_if_required(matches);
 
+        let gas_price = creation_common::gas_price_tolerance::get(matches);
+
         let amount = transfer::amount::get(matches);
         let target_account = transfer::target_account::get(matches);
         let transfer_id = transfer::transfer_id::get(matches);
@@ -65,6 +67,7 @@ impl ClientCommand for MakeTransfer {
                 ttl,
                 chain_name,
                 session_account: &session_account,
+                gas_price_tolerance: gas_price,
             },
             payment_str_params,
             force,
