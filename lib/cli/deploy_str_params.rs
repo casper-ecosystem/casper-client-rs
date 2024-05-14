@@ -29,4 +29,6 @@ pub struct DeployStrParams<'a> {
     /// If `session_account` is empty, the account's public key will be derived from the provided
     /// `secret_key`.  It is an error for both fields to be empty.
     pub session_account: &'a str,
+    /// Gas price for the deploy.
+    pub gas_price_tolerance: &'a str,
 }
