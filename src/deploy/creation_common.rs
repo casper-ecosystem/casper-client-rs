@@ -439,7 +439,7 @@ pub(super) mod gas_price {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .required(true)
+            .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::GasPrice as usize)
