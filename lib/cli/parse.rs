@@ -184,7 +184,6 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
 /// * `context` - A string indicating the context in which the arguments are checked.
 /// * `simple` - A vector of strings representing simple arguments.
 /// * `json` - A string representing JSON-formatted arguments.
-/// * `complex` - A string representing complex arguments.
 ///
 /// # Returns
 ///
@@ -211,7 +210,7 @@ fn check_no_conflicting_arg_types(
 
     if count > 1 {
         return Err(CliError::ConflictingArguments {
-            context: format!("parse_session_info {context} args conflict (simple json complex)",),
+            context: format!("{context} args conflict (simple json)",),
             args: vec![simple.join(", "), json.to_owned()],
         });
     }
@@ -232,13 +231,14 @@ fn check_no_conflicting_arg_types(
 /// # Examples
 ///
 /// ```
-/// use some_module::args_from_simple_or_json;
+/// use casper_client::cli::parse::args_from_simple_or_json;
 /// use casper_types::RuntimeArgs;
 ///
 /// let simple_args = RuntimeArgs::new(); // Simple arguments
 /// let json_args = RuntimeArgs::new();   // JSON arguments
 ///
-/// let result_args = args_from_simple_or_json(Some(simple_args), Some(json_args));
+/// let _result_args = args_from_simple_or_json(Some(simple_args), None);
+/// let _result_args = args_from_simple_or_json(None, Some(json_args));
 /// ```
 pub fn args_from_simple_or_json(
     simple: Option<RuntimeArgs>,
@@ -248,7 +248,7 @@ pub fn args_from_simple_or_json(
     match (simple, json) {
         (Some(args), None) | (None, Some(args)) => args,
         (None, None) => RuntimeArgs::new(),
-        _ => unreachable!("should not have more than one of simple, json or complex args"),
+        _ => unreachable!("should not have more than one of simple, json args"),
     }
 }
 
@@ -384,12 +384,13 @@ pub(super) fn session_executable_deploy_item(
             requires[] requires_empty[session_entry_point, session_version]
     );
 
-    check_no_conflicting_arg_types("session", session_args_simple, session_args_json)?;
+    check_no_conflicting_arg_types("parse_session_info", session_args_simple, session_args_json)?;
 
     let session_args = args_from_simple_or_json(
         arg_simple::session::parse(session_args_simple)?,
         args_json::session::parse(session_args_json)?,
     );
+
     if session_transfer {
         if session_args.is_empty() {
             return Err(CliError::InvalidArgument {
@@ -513,7 +514,12 @@ pub(super) fn payment_executable_deploy_item(
             requires[] requires_empty[payment_entry_point, payment_version, payment_path],
     );
 
-    check_no_conflicting_arg_types("payment", payment_args_simple, payment_args_json)?;
+    check_no_conflicting_arg_types("parse_payment_info", payment_args_simple, payment_args_json)?;
+
+    let payment_args = args_from_simple_or_json(
+        arg_simple::payment::parse(payment_args_simple)?,
+        args_json::payment::parse(payment_args_json)?,
+    );
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
         return Ok(ExecutableDeployItem::ModuleBytes {
@@ -526,14 +532,6 @@ pub(super) fn payment_executable_deploy_item(
         context: "payment_entry_point",
         error: payment_entry_point.to_string(),
     };
-
-    //Check that we only have one of simple or json args, this is relevant for the SDK, but not in the context of the client.
-    check_no_conflicting_arg_types("payment", payment_args_simple, payment_args_json)?;
-
-    let payment_args = args_from_simple_or_json(
-        arg_simple::payment::parse(payment_args_simple)?,
-        args_json::payment::parse(payment_args_json)?,
-    );
 
     if let Some(payment_name) = name(payment_name) {
         return Ok(ExecutableDeployItem::StoredContractByName {
@@ -957,7 +955,7 @@ mod tests {
 
     #[test]
     fn should_fail_to_parse_conflicting_arg_types() {
-        let test_context = "parsing session args conflict (simple json complex)";
+        let test_context = "parse_session_info args conflict (simple json)".to_string();
         let actual_error = session_executable_deploy_item(SessionStrParams {
             session_hash: "",
             session_name: "name",
@@ -966,7 +964,7 @@ mod tests {
             session_path: "",
             session_bytes: Bytes::new(),
             session_args_simple: vec!["something:u32='0'"],
-            session_args_json: "",
+            session_args_json: "{\"name\":\"entry_point_name\",\"type\":\"Bool\",\"value\":false}",
             session_version: "",
             session_entry_point: "entrypoint",
             is_session_transfer: false,
@@ -974,15 +972,16 @@ mod tests {
         .unwrap_err();
 
         assert!(
-            matches!(
-                actual_error,
-                CliError::ConflictingArguments { ref context, .. } if context == test_context
-            ),
+            match actual_error {
+                CliError::ConflictingArguments { ref context, .. } if *context == test_context =>
+                    true,
+                _ => false,
+            },
             "{:?}",
             actual_error
         );
 
-        let test_context = "parsing payment args conflict (simple json complex)";
+        let test_context = "parse_payment_info args conflict (simple json)";
         let actual_error = payment_executable_deploy_item(PaymentStrParams {
             payment_amount: "",
             payment_hash: "name",
@@ -992,7 +991,7 @@ mod tests {
             payment_path: "",
             payment_bytes: Bytes::new(),
             payment_args_simple: vec!["something:u32='0'"],
-            payment_args_json: "",
+            payment_args_json: "{\"name\":\"entry_point_name\",\"type\":\"Bool\",\"value\":false}",
             payment_version: "",
             payment_entry_point: "entrypoint",
         })
@@ -1228,7 +1227,7 @@ mod tests {
         ///         assert!(matches!(
         ///             info,
         ///             Err(CliError::ConflictingArguments {
-        ///                 context: "parse_session_info".into(),
+        ///                 context: "parse_session_info".to_string(),
         ///                 args: conflicting
         ///             }
         ///             ))
@@ -1277,10 +1276,11 @@ mod tests {
                                 format!("{}={}", stringify!($con), $con_value),
                             ];
                             conflicting.sort();
+                            let _context_string = $context.to_string();
                             assert!(matches!(
                                 info,
                                 Err(CliError::ConflictingArguments {
-                                    context: $context.to_string(),
+                                    context: _context_string,
                                     ..
                                 }
                                 ))

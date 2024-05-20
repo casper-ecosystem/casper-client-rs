@@ -399,11 +399,13 @@ fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned
     );
 
     assert!(transfer_deploy.is_err());
+    let _error_string =
+        "allow_unsigned_deploy was false, but no secret key was provided".to_string();
     assert!(matches!(
         transfer_deploy.unwrap_err(),
         CliError::InvalidArgument {
-            context: "new_transfer (secret_key, allow_unsigned_deploy)",
-            error: _
+            context: "new_transfer",
+            error: _error_string,
         }
     ));
 }
@@ -421,11 +423,13 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, false);
 
     assert!(transfer_deploy.is_err());
+    let _error_stirng =
+        "allow_unsigned_deploy was false, but no secret key was provided".to_string();
     assert!(matches!(
         transfer_deploy.unwrap_err(),
         CliError::InvalidArgument {
-            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
-            error: _
+            context: "with_payment_and_session",
+            error: _error_stirng
         }
     ));
 }
@@ -1175,11 +1179,13 @@ mod transaction {
             create_transaction(transaction_builder_params, transaction_string_params, false);
         assert!(transaction.is_err(), "{:?}", transaction);
         println!("{:?}", transaction);
+        let _error_string =
+            "allow_unsigned_deploy was false, but no secret key was provided".to_string();
         assert!(matches!(
             transaction.unwrap_err(),
             CliError::InvalidArgument {
-                context: "create_transaction (secret_key, allow_unsigned_deploy)",
-                error: _
+                context: "create_transaction",
+                error: _error_string
             }
         ));
     }
