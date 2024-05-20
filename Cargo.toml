@@ -34,7 +34,9 @@ std-fs-io = ["casper-types/std-fs-io"]
 [dependencies]
 async-trait = { version = "0.1.74", optional = true }
 base16 = "0.2.1"
-casper-types = { version = "5.0.0", features = ["std"] }
+casper-types = { git = "https://github.com/casper-network/casper-node", branch = "rustSDK-feat-2.0", features = [
+    "std",
+] }
 clap = { version = "4.4.10", optional = true, features = [
     "cargo",
     "deprecated",
