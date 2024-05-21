@@ -1,7 +1,8 @@
 use casper_types::{
     account::{Account, AccountHash},
     addressable_entity::NamedKeys,
-    AddressableEntity, EntityAddr, EntryPointValue, ProtocolVersion, PublicKey,
+    AddressableEntity as CasperTypesAddressableEntity, EntityAddr, EntryPointValue,
+    ProtocolVersion, PublicKey,
 };
 use serde::{Deserialize, Serialize};
 
@@ -21,18 +22,19 @@ pub enum EntityIdentifier {
     EntityAddr(EntityAddr),
 }
 
+/// An addressable entity with named keys and entry points.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AddressableEntity {
+    entity: CasperTypesAddressableEntity,
+    named_keys: NamedKeys,
+    entry_points: Vec<EntryPointValue>,
+}
+
 /// An addressable entity or a legacy account.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EntityOrAccount {
     /// An addressable entity with named keys and entry points.
-    AddressableEntity {
-        /// The addressable entity.
-        entity: AddressableEntity,
-        /// The named keys of the addressable entity.
-        named_keys: NamedKeys,
-        /// The entry points of the addressable entity.
-        entry_points: Vec<EntryPointValue>,
-    },
+    AddressableEntity(AddressableEntity),
     /// A legacy account.
     LegacyAccount(Account),
 }
@@ -75,26 +77,8 @@ pub struct GetAddressableEntityResult {
 impl GetAddressableEntityResult {
     /// Returns the addressable entity if present.
     pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
-        if let EntityOrAccount::AddressableEntity { entity, .. } = &self.entity {
+        if let EntityOrAccount::AddressableEntity(entity) = &self.entity {
             Some(entity)
-        } else {
-            None
-        }
-    }
-
-    /// Returns the named keys if the entity is an addressable entity.
-    pub fn named_keys(&self) -> Option<&NamedKeys> {
-        if let EntityOrAccount::AddressableEntity { named_keys, .. } = &self.entity {
-            Some(named_keys)
-        } else {
-            None
-        }
-    }
-
-    /// Returns the entry points if the entity is an addressable entity.
-    pub fn entry_points(&self) -> Option<&Vec<EntryPointValue>> {
-        if let EntityOrAccount::AddressableEntity { entry_points, .. } = &self.entity {
-            Some(entry_points)
         } else {
             None
         }
