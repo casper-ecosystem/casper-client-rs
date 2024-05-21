@@ -39,6 +39,26 @@ pub enum EntityOrAccount {
     LegacyAccount(Account),
 }
 
+impl EntityOrAccount {
+    /// Returns the addressable entity if present.
+    pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
+        if let EntityOrAccount::AddressableEntity(addressable_entity) = &self {
+            Some(addressable_entity)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the legacy account if present.
+    pub fn legacy_account(&self) -> Option<&Account> {
+        if let EntityOrAccount::LegacyAccount(account) = &self {
+            Some(account)
+        } else {
+            None
+        }
+    }
+}
+
 /// Params for "state_get_entity" RPC request
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
@@ -69,27 +89,7 @@ pub struct GetAddressableEntityResult {
     /// The RPC API version.
     pub api_version: ProtocolVersion,
     /// The addressable entity or a legacy account.
-    pub entity: EntityOrAccount,
+    pub entity_result: EntityOrAccount,
     /// The Merkle proof.
     pub merkle_proof: String,
-}
-
-impl GetAddressableEntityResult {
-    /// Returns the addressable entity if present.
-    pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
-        if let EntityOrAccount::AddressableEntity(entity) = &self.entity {
-            Some(entity)
-        } else {
-            None
-        }
-    }
-
-    /// Returns the legacy account if present.
-    pub fn legacy_account(&self) -> Option<&Account> {
-        if let EntityOrAccount::LegacyAccount(account) = &self.entity {
-            Some(account)
-        } else {
-            None
-        }
-    }
 }
