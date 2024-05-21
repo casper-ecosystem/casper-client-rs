@@ -23,7 +23,7 @@ pub enum EntityIdentifier {
 }
 
 /// An addressable entity with named keys and entry points.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct AddressableEntity {
     entity: CasperTypesAddressableEntity,
     named_keys: NamedKeys,
@@ -41,18 +41,18 @@ pub enum EntityOrAccount {
 
 impl EntityOrAccount {
     /// Returns the addressable entity if present.
-    pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
+    pub fn addressable_entity(&self) -> Option<AddressableEntity> {
         if let EntityOrAccount::AddressableEntity(addressable_entity) = &self {
-            Some(addressable_entity)
+            Some(addressable_entity.clone())
         } else {
             None
         }
     }
 
     /// Returns the legacy account if present.
-    pub fn legacy_account(&self) -> Option<&Account> {
+    pub fn legacy_account(&self) -> Option<Account> {
         if let EntityOrAccount::LegacyAccount(account) = &self {
-            Some(account)
+            Some(account.clone())
         } else {
             None
         }
