@@ -31,7 +31,7 @@ pub struct AddressableEntity {
 }
 
 /// An addressable entity or a legacy account.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub enum EntityOrAccount {
     /// An addressable entity with named keys and entry points.
     AddressableEntity(AddressableEntity),
