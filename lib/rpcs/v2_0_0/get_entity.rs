@@ -83,7 +83,7 @@ impl GetAddressableEntityParams {
 }
 
 /// Result for "state_get_entity" RPC response.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetAddressableEntityResult {
     /// The RPC API version.
