@@ -71,3 +71,23 @@ pub struct GetAddressableEntityResult {
     /// The Merkle proof.
     pub merkle_proof: String,
 }
+
+impl GetAddressableEntityResult {
+    /// Returns the addressable entity if present.
+    pub fn get_addressable_entity(&self) -> Option<&AddressableEntity> {
+        if let EntityOrAccount::AddressableEntity { entity, .. } = &self.entity {
+            Some(entity)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the legacy account if present.
+    pub fn get_legacy_account(&self) -> Option<&Account> {
+        if let EntityOrAccount::LegacyAccount(account) = &self.entity {
+            Some(account)
+        } else {
+            None
+        }
+    }
+}
