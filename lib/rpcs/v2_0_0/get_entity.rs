@@ -74,7 +74,7 @@ pub struct GetAddressableEntityResult {
 
 impl GetAddressableEntityResult {
     /// Returns the addressable entity if present.
-    pub fn get_addressable_entity(&self) -> Option<&AddressableEntity> {
+    pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
         if let EntityOrAccount::AddressableEntity { entity, .. } = &self.entity {
             Some(entity)
         } else {
@@ -83,7 +83,7 @@ impl GetAddressableEntityResult {
     }
 
     /// Returns the legacy account if present.
-    pub fn get_legacy_account(&self) -> Option<&Account> {
+    pub fn legacy_account(&self) -> Option<&Account> {
         if let EntityOrAccount::LegacyAccount(account) = &self.entity {
             Some(account)
         } else {
