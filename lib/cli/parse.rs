@@ -795,7 +795,7 @@ pub fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier,
 /// `entity_identifier` can be a formatted public key, in the form of a hex-formatted string,
 /// a pem file, or a file containing a hex formatted string, or a formatted string representing
 /// an account hash.  It may not be empty.
-pub(super) fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentifier, CliError> {
+pub fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentifier, CliError> {
     const ENTITY_PREFIX: &str = "entity-";
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
