@@ -72,22 +72,40 @@ pub struct GetAddressableEntityResult {
     pub merkle_proof: String,
 }
 
-impl GetAddressableEntityResult {
-    /// Returns the addressable entity if present.
-    pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
-        if let EntityOrAccount::AddressableEntity { entity, .. } = &self.entity {
-            Some(entity)
-        } else {
-            None
-        }
-    }
+// impl GetAddressableEntityResult {
+//     /// Returns the addressable entity if present.
+//     pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
+//         if let EntityOrAccount::AddressableEntity { entity, .. } = &self.entity {
+//             Some(entity)
+//         } else {
+//             None
+//         }
+//     }
 
-    /// Returns the legacy account if present.
-    pub fn legacy_account(&self) -> Option<&Account> {
-        if let EntityOrAccount::LegacyAccount(account) = &self.entity {
-            Some(account)
-        } else {
-            None
-        }
-    }
-}
+//     /// Returns the named keys if the entity is an addressable entity.
+//     pub fn named_keys(&self) -> Option<&NamedKeys> {
+//         if let EntityOrAccount::AddressableEntity { named_keys, .. } = &self.entity {
+//             Some(named_keys)
+//         } else {
+//             None
+//         }
+//     }
+
+//     /// Returns the entry points if the entity is an addressable entity.
+//     pub fn entry_points(&self) -> Option<&Vec<EntryPointValue>> {
+//         if let EntityOrAccount::AddressableEntity { entry_points, .. } = &self.entity {
+//             Some(entry_points)
+//         } else {
+//             None
+//         }
+//     }
+
+//     /// Returns the legacy account if present.
+//     pub fn legacy_account(&self) -> Option<&Account> {
+//         if let EntityOrAccount::LegacyAccount(account) = &self.entity {
+//             Some(account)
+//         } else {
+//             None
+//         }
+//     }
+// }
