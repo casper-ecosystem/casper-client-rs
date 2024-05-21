@@ -89,7 +89,7 @@ pub struct GetAddressableEntityResult {
     /// The RPC API version.
     pub api_version: ProtocolVersion,
     /// The addressable entity or a legacy account.
-    pub entity_result: EntityOrAccount,
+    pub entity: EntityOrAccount,
     /// The Merkle proof.
     pub merkle_proof: String,
 }
