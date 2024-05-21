@@ -25,9 +25,9 @@ pub enum EntityIdentifier {
 /// An addressable entity with named keys and entry points.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct AddressableEntity {
-    entity: CasperTypesAddressableEntity,
-    named_keys: NamedKeys,
-    entry_points: Vec<EntryPointValue>,
+    pub entity: CasperTypesAddressableEntity,
+    pub named_keys: NamedKeys,
+    pub entry_points: Vec<EntryPointValue>,
 }
 
 /// An addressable entity or a legacy account.
