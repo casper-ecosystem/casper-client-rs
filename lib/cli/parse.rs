@@ -8,7 +8,7 @@ use rand::Rng;
 use casper_types::{
     account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
     EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs,
-    SecretKey, TimeDiff, Timestamp, UIntParseError, URef, U512,
+    SecretKey, TimeDiff, Timestamp, TransferTarget, UIntParseError, URef, U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -413,6 +413,23 @@ pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
         error,
     })?;
     Ok(Bytes::from(module_bytes))
+}
+
+/// Parses transfer target from a string for use with the transaction builder
+pub fn transfer_target(target_str: &str) -> Result<TransferTarget, CliError> {
+    if let Ok(public_key) = PublicKey::from_hex(target_str) {
+        return Ok(TransferTarget::PublicKey(public_key));
+    }
+    if let Ok(public_key) = PublicKey::from_file(target_str) {
+        return Ok(TransferTarget::PublicKey(public_key));
+    }
+    if let Ok(account_hash) = AccountHash::from_formatted_str(target_str) {
+        return Ok(TransferTarget::AccountHash(account_hash));
+    }
+    if let Ok(uref) = URef::from_formatted_str(target_str) {
+        return Ok(TransferTarget::URef(uref));
+    }
+    Err(CliError::FailedToParseTransferTarget)
 }
 
 /// Parses a URef from a formatted string for the purposes of creating transactions.
