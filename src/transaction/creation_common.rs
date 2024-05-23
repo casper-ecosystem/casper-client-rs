@@ -1550,7 +1550,7 @@ pub(super) mod transfer {
         };
 
         let target_str = target::get(matches);
-        let target = parse::uref(target_str)?;
+        let target = parse::transfer_target(target_str)?;
 
         let amount = transfer_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount)?;
