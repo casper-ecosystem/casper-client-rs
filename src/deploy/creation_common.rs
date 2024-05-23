@@ -453,7 +453,6 @@ pub(super) mod gas_price {
     }
 }
 
-
 /// Handles providing the arg for and retrieval of JSON session and payment args.
 pub(super) mod args_json {
     use super::*;
