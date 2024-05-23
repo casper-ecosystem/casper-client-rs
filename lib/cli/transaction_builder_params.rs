@@ -1,5 +1,5 @@
 use casper_types::bytesrepr::Bytes;
-use casper_types::{AddressableEntityHash, PackageHash, PublicKey, URef, U512};
+use casper_types::{AddressableEntityHash, PackageHash, PublicKey, TransferTarget, URef, U512};
 
 /// An enum representing the parameters needed to construct a transaction builder
 /// for the commands concerning the creation of a transaction
@@ -87,7 +87,7 @@ pub enum TransactionBuilderParams<'a> {
         /// Source of the transfer transaction
         maybe_source: Option<URef>,
         /// Target of the transfer transaction
-        target: URef,
+        target: TransferTarget,
         /// The amount of motes for the undelegate transaction
         amount: U512,
         /// The optional id for the transfer transaction

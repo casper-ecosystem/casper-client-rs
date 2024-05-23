@@ -433,10 +433,7 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
 mod transaction {
     use super::*;
     use crate::Error::TransactionBuild;
-    use casper_types::{
-        bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget,
-        TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError,
-    };
+    use casper_types::{bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget, TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError, TransferTarget};
     const SAMPLE_TRANSACTION: &str = r#"{
   "hash": "f868596bbfd729547ffa25c3421df29d6650cec73e9fe3d0aff633fe2d6ac952",
   "header": {
@@ -1044,6 +1041,8 @@ mod transaction {
         )
         .unwrap();
 
+        let transfer_target = TransferTarget::URef(target_uref);
+
         let maybe_source = Some(source_uref);
 
         let source_uref_cl = &CLValue::from_t(Some(&source_uref)).unwrap();
@@ -1067,7 +1066,7 @@ mod transaction {
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
             maybe_source,
-            target: target_uref,
+            target: transfer_target,
             amount: Default::default(),
             maybe_id: None,
         };
@@ -1107,7 +1106,7 @@ mod transaction {
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
             maybe_source: Default::default(),
-            target: Default::default(),
+            target: TransferTarget::URef(Default::default()),
             amount: Default::default(),
             maybe_id: None,
         };
