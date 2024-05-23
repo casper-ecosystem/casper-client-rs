@@ -1588,7 +1588,7 @@ pub(super) mod source {
     pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required(true)
+            .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::Source as usize)
