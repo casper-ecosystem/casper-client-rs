@@ -52,6 +52,5 @@ pub struct GetTransactionResult {
     /// The transaction.
     pub transaction: Transaction,
     /// Execution info, if available.
-    #[serde(skip_serializing_if = "Option::is_none", flatten)]
     pub execution_info: Option<ExecutionInfo>,
 }
