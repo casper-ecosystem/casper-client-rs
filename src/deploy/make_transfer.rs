@@ -24,6 +24,7 @@ impl ClientCommand for MakeTransfer {
             .arg(transfer::amount::arg())
             .arg(transfer::target_account::arg())
             .arg(transfer::transfer_id::arg())
+            .arg(creation_common::gas_price::arg())
             .arg(common::force::arg(
                 creation_common::DisplayOrder::Force as usize,
                 true,

@@ -110,6 +110,7 @@ impl ClientCommand for Transfer {
             .arg(creation_common::speculative_exec::arg())
             .arg(amount::arg())
             .arg(target_account::arg())
+            .arg(creation_common::gas_price::arg())
             .arg(transfer_id::arg());
         let subcommand = creation_common::apply_common_payment_options(
             subcommand,
