@@ -50,8 +50,9 @@ use crate::{
             GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
             GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
             GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
-            GetPeersResult, GetStateRootHashResult, GetTransactionResult, GetValidatorChangesResult, ListRpcsResult,
-            QueryBalanceDetailsResult, QueryBalanceResult, QueryGlobalStateResult,
+            GetPeersResult, GetStateRootHashResult, GetTransactionResult,
+            GetValidatorChangesResult, ListRpcsResult, QueryBalanceDetailsResult,
+            QueryBalanceResult, QueryGlobalStateResult,
         },
         DictionaryItemIdentifier,
     },
@@ -121,12 +122,12 @@ pub async fn get_transaction(
 ) -> Result<SuccessResponse<GetTransactionResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy_hash = parse::transaction_hash(transaction_hash)?;
+    let transaction_hash = parse::transaction_hash(transaction_hash)?;
     crate::get_transaction(
         rpc_id,
         node_address,
         verbosity,
-        deploy_hash,
+        transaction_hash,
         finalized_approvals,
     )
     .await
