@@ -59,7 +59,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::Account, Block, StoredValue, Transfer};
-use casper_types::{Deploy, DeployHash, Digest, Key, Transaction, URef};
+use casper_types::{Deploy, DeployHash, Digest, Key, Transaction, TransactionHash, URef};
 #[cfg(feature = "std-fs-io")]
 use casper_types::{SecretKey, TransactionV1};
 
@@ -74,9 +74,10 @@ use rpcs::{
         GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
         GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
         GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
-        GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
-        PutDeployResult, PutTransactionResult, QueryBalanceDetailsResult, QueryBalanceResult,
-        QueryGlobalStateResult, SpeculativeExecResult, SpeculativeExecTxnResult,
+        GetPeersResult, GetStateRootHashResult, GetTransactionResult, GetValidatorChangesResult,
+        ListRpcsResult, PutDeployResult, PutTransactionResult, QueryBalanceDetailsResult,
+        QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
+        SpeculativeExecTxnResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
@@ -93,6 +94,7 @@ use rpcs::{
         get_node_status::GET_NODE_STATUS_METHOD,
         get_peers::GET_PEERS_METHOD,
         get_state_root_hash::{GetStateRootHashParams, GET_STATE_ROOT_HASH_METHOD},
+        get_transaction::{GetTransactionParams, GET_TRANSACTION_METHOD},
         get_validator_changes::GET_VALIDATOR_CHANGES_METHOD,
         list_rpcs::LIST_RPCS_METHOD,
         put_deploy::{PutDeployParams, PUT_DEPLOY_METHOD},
@@ -303,6 +305,32 @@ pub async fn get_deploy(
         .send_request(
             GET_DEPLOY_METHOD,
             Some(GetDeployParams::new(deploy_hash, finalized_approvals)),
+        )
+        .await
+}
+
+/// Retrieves a [`Transaction`] and its metadata (i.e. execution results) from the network.
+///
+/// Sends a JSON-RPC `info_get_transaction` request to the specified node.
+///
+/// `finalized_approvals` defines whether to return the `Transaction` with its approvals as finalized by
+/// consensus of the validators on the network, or as originally received by the specified node.
+///
+/// For details of the other parameters, see [the module docs](crate#common-parameters).
+pub async fn get_transaction(
+    rpc_id: JsonRpcId,
+    node_address: &str,
+    verbosity: Verbosity,
+    transaction_hash: TransactionHash,
+    finalized_approvals: bool,
+) -> Result<SuccessResponse<GetTransactionResult>, Error> {
+    JsonRpcCall::new(rpc_id, node_address, verbosity)
+        .send_request(
+            GET_TRANSACTION_METHOD,
+            Some(GetTransactionParams::new(
+                transaction_hash,
+                finalized_approvals,
+            )),
         )
         .await
 }

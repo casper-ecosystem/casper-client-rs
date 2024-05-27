@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.  The format
 * Add `make-transaction` command for creating transactions to support node 2.0.0.
 * Add `sign-transaction` command for signing transactions to support node 2.0.0.
 * Add `put-transaction` command for sending transactions to support node 2.0.0.
+* Add support for new node RPC method `info_get_transaction`, used in the binary's new `get-transaction` subcommand.
 * Add support for new node RPC method `state_get_entity`, used in the binary's new `get-entity` subcommand.
 * Add `send-transaciton` command for sending previously made and signed transaction files to the network.
 

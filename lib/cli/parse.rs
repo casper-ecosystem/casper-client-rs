@@ -8,13 +8,13 @@ use std::str::FromStr;
 
 use rand::Rng;
 
-use casper_types::bytesrepr::Bytes;
 #[cfg(feature = "std-fs-io")]
 use casper_types::SecretKey;
 use casper_types::{
-    account::AccountHash, crypto, AsymmetricType, BlockHash, DeployHash, Digest, EntityAddr,
-    ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs, TimeDiff,
-    Timestamp, UIntParseError, URef, U512,
+    account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
+    EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs,
+    TimeDiff, Timestamp, TransactionHash, TransactionV1Hash, TransferTarget, UIntParseError, URef,
+    U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
@@ -466,6 +466,23 @@ pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
         error,
     })?;
     Ok(Bytes::from(module_bytes))
+}
+
+/// Parses transfer target from a string for use with the transaction builder
+pub fn transfer_target(target_str: &str) -> Result<TransferTarget, CliError> {
+    if let Ok(public_key) = PublicKey::from_hex(target_str) {
+        return Ok(TransferTarget::PublicKey(public_key));
+    }
+    if let Ok(public_key) = PublicKey::from_file(target_str) {
+        return Ok(TransferTarget::PublicKey(public_key));
+    }
+    if let Ok(account_hash) = AccountHash::from_formatted_str(target_str) {
+        return Ok(TransferTarget::AccountHash(account_hash));
+    }
+    if let Ok(uref) = URef::from_formatted_str(target_str) {
+        return Ok(TransferTarget::URef(uref));
+    }
+    Err(CliError::FailedToParseTransferTarget)
 }
 
 /// Parses a URef from a formatted string for the purposes of creating transactions.
@@ -920,6 +937,15 @@ pub(super) fn pricing_mode(
             error: "Invalid pricing mode identifier".to_string(),
         }),
     }
+}
+
+pub(super) fn transaction_hash(transaction_hash: &str) -> Result<TransactionHash, CliError> {
+    let digest =
+        Digest::from_hex(transaction_hash).map_err(|error| CliError::FailedToParseDigest {
+            context: "failed to parse digest from string for transaction hash",
+            error,
+        })?;
+    Ok(TransactionHash::from(TransactionV1Hash::from(digest)))
 }
 
 #[cfg(test)]
@@ -1775,6 +1801,35 @@ mod tests {
             );
             assert!(parsed.is_err());
             assert!(matches!(parsed, Err(CliError::InvalidArgument { .. })));
+        }
+    }
+    mod transaction_hash {
+        use super::*;
+        const VALID_HASH: &str = "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e6";
+        const INVALID_HASH: &str =
+            "09dcee4b212cfd53642ab323fbef07dafafc6f945a80a00147f62910a915c4e";
+        #[test]
+        fn should_parse_transaction_hash() {
+            let parsed = transaction_hash(VALID_HASH);
+            assert!(parsed.is_ok());
+            assert_eq!(
+                parsed.unwrap(),
+                TransactionHash::from(TransactionV1Hash::from(
+                    Digest::from_hex(VALID_HASH).unwrap()
+                ))
+            );
+        }
+        #[test]
+        fn should_fail_to_parse_incorrect_hash() {
+            let parsed = transaction_hash(INVALID_HASH);
+            assert!(parsed.is_err());
+            assert!(matches!(
+                parsed,
+                Err(CliError::FailedToParseDigest {
+                    context: "failed to parse digest from string for transaction hash",
+                    ..
+                })
+            ));
         }
     }
 }

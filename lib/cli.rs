@@ -50,7 +50,7 @@ use crate::{
             GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
             GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
             GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
-            GetPeersResult, GetStateRootHashResult, GetValidatorChangesResult, ListRpcsResult,
+            GetPeersResult, GetStateRootHashResult, GetTransactionResult, GetValidatorChangesResult, ListRpcsResult,
             QueryBalanceDetailsResult, QueryBalanceResult, QueryGlobalStateResult,
         },
         DictionaryItemIdentifier,
@@ -108,6 +108,30 @@ pub async fn get_deploy(
     .map_err(CliError::from)
 }
 
+/// Retrieves a [`Transaction`] from the network.
+///
+/// `transaction_hash` must be a hex-encoded, 32-byte hash digest.  For details of the other parameters,
+/// see [the module docs](crate::cli#common-parameters).
+pub async fn get_transaction(
+    maybe_rpc_id: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    transaction_hash: &str,
+    finalized_approvals: bool,
+) -> Result<SuccessResponse<GetTransactionResult>, CliError> {
+    let rpc_id = parse::rpc_id(maybe_rpc_id);
+    let verbosity = parse::verbosity(verbosity_level);
+    let deploy_hash = parse::transaction_hash(transaction_hash)?;
+    crate::get_transaction(
+        rpc_id,
+        node_address,
+        verbosity,
+        deploy_hash,
+        finalized_approvals,
+    )
+    .await
+    .map_err(CliError::from)
+}
 /// Retrieves a [`Block`] from the network.
 ///
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).

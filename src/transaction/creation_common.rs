@@ -1550,7 +1550,7 @@ pub(super) mod transfer {
         };
 
         let target_str = target::get(matches);
-        let target = parse::uref(target_str)?;
+        let target = parse::transfer_target(target_str)?;
 
         let amount = transfer_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount)?;
@@ -1588,7 +1588,7 @@ pub(super) mod source {
     pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
-            .required(true)
+            .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .display_order(DisplayOrder::Source as usize)

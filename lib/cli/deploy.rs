@@ -256,7 +256,10 @@ pub fn with_payment_and_session(
     session_params: SessionStrParams,
     allow_unsigned_deploy: bool,
 ) -> Result<Deploy, CliError> {
-    let gas_price: u64 = deploy_params.gas_price_tolerance.parse::<u64>().unwrap_or(DEFAULT_GAS_PRICE);
+    let gas_price: u64 = deploy_params
+        .gas_price_tolerance
+        .parse::<u64>()
+        .unwrap_or(DEFAULT_GAS_PRICE);
     let chain_name = deploy_params.chain_name.to_string();
     let session = parse::session_executable_deploy_item(session_params)?;
     let payment = parse::payment_executable_deploy_item(payment_params)?;
@@ -327,7 +330,10 @@ pub fn new_transfer(
     let timestamp = parse::timestamp(deploy_params.timestamp)?;
     let ttl = parse::ttl(deploy_params.ttl)?;
     let maybe_session_account = parse::session_account(deploy_params.session_account)?;
-    let gas_price: u64 = deploy_params.gas_price_tolerance.parse::<u64>().unwrap_or(DEFAULT_GAS_PRICE);
+    let gas_price: u64 = deploy_params
+        .gas_price_tolerance
+        .parse::<u64>()
+        .unwrap_or(DEFAULT_GAS_PRICE);
 
     let mut deploy_builder =
         DeployBuilder::new_transfer(chain_name, amount, source_purse, target, maybe_transfer_id)
