@@ -43,7 +43,7 @@ pub struct QueryBalanceDetailsResult {
 }
 
 /// A hold on an account's balance.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 pub struct BalanceHoldWithProof {
     /// The block time at which the hold was created.
     pub time: BlockTime,
