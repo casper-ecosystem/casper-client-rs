@@ -479,6 +479,7 @@ mod transaction {
     ],
     "target": "Native",
     "entry_point": "Transfer",
+    "transaction_kind": 0,
     "scheduling": "Standard"
   },
   "approvals": []
