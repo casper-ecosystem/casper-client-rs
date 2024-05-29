@@ -13,6 +13,6 @@ pub(crate) mod v2_0_0;
 
 pub use v2_0_0::{
     get_account::AccountIdentifier, get_dictionary_item::DictionaryItemIdentifier,
-    get_entity::EntityIdentifier, query_balance::PurseIdentifier,
+    get_entity::{EntityIdentifier, EntityOrAccount}, query_balance::PurseIdentifier,
     query_global_state::GlobalStateIdentifier,
 };
