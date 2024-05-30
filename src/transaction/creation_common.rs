@@ -1498,11 +1498,9 @@ pub(super) mod session {
         let transaction_bytes =
             parse::transaction_module_bytes(transaction_path_str.unwrap_or_default())?;
 
-        let entry_point = session_entry_point::get(matches);
 
         let params = TransactionBuilderParams::Session {
             transaction_bytes,
-            entry_point,
         };
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
