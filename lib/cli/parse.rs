@@ -468,13 +468,15 @@ pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
 }
 
 /// Parses transfer target from a string for use with the transaction builder
-#[cfg(feature = "std-fs-io")]
 pub fn transfer_target(target_str: &str) -> Result<TransferTarget, CliError> {
     if let Ok(public_key) = PublicKey::from_hex(target_str) {
         return Ok(TransferTarget::PublicKey(public_key));
     }
-    if let Ok(public_key) = PublicKey::from_file(target_str) {
-        return Ok(TransferTarget::PublicKey(public_key));
+    #[cfg(feature = "std-fs-io")]
+    {
+        if let Ok(public_key) = PublicKey::from_file(target_str) {
+            return Ok(TransferTarget::PublicKey(public_key));
+        }
     }
     if let Ok(account_hash) = AccountHash::from_formatted_str(target_str) {
         return Ok(TransferTarget::AccountHash(account_hash));
