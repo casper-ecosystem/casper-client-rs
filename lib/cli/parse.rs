@@ -8,13 +8,14 @@ use std::str::FromStr;
 
 use rand::Rng;
 
+#[cfg(feature = "std-fs-io")]
+use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
     EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs,
-    TimeDiff, Timestamp, TransactionHash, TransactionV1Hash, UIntParseError, URef, U512,
+    TimeDiff, Timestamp, TransactionHash, TransactionV1Hash, TransferTarget, UIntParseError, URef,
+    U512,
 };
-#[cfg(feature = "std-fs-io")]
-use casper_types::{SecretKey, TransferTarget};
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 #[cfg(feature = "std-fs-io")]
