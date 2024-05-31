@@ -483,6 +483,7 @@ mod transaction {
     ],
     "target": "Native",
     "entry_point": "Transfer",
+    "transaction_kind": 0,
     "scheduling": "Standard"
   },
   "approvals": []
@@ -1022,7 +1023,6 @@ mod transaction {
 
         let transaction_builder_params = TransactionBuilderParams::Session {
             transaction_bytes,
-            entry_point: "entry-point-session",
         };
         let transaction =
             create_transaction(transaction_builder_params, transaction_string_params, true);
@@ -1030,7 +1030,7 @@ mod transaction {
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "session");
         assert_eq!(
             transaction.as_ref().unwrap().body().entry_point(),
-            &TransactionEntryPoint::Custom("entry-point-session".to_string())
+            &TransactionEntryPoint::Call
         );
         assert_eq!(transaction.as_ref().unwrap().body().target(), target);
     }

@@ -79,8 +79,6 @@ pub enum TransactionBuilderParams<'a> {
     Session {
         /// The Bytes to be run by the execution engine for the session transaction
         transaction_bytes: Bytes,
-        /// The entry point for the session transaction
-        entry_point: &'a str,
     },
     /// Parameters for the transfer variant of the transaction builder
     Transfer {
