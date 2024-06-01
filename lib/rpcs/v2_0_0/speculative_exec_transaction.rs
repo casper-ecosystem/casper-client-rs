@@ -30,7 +30,7 @@ impl SpeculativeExecTxnParams {
 }
 
 /// Result for "speculative_exec_txn" and "speculative_exec" RPC responses.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct SpeculativeExecTxnResult {
     /// The RPC API version.
