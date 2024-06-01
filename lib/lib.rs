@@ -171,7 +171,7 @@ pub async fn speculative_exec(
         .await
 }
 
-/// Puts a [`Transction`] to a single node for speculative execution on that node only.
+/// Puts a [`Transaction`] to a single node for speculative execution on that node only.
 ///
 /// Sends a JSON-RPC speculative_exec request to the specified node.
 ///
