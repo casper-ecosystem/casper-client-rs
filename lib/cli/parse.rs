@@ -854,7 +854,7 @@ pub fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentifier, Cl
     Ok(EntityIdentifier::PublicKey(public_key))
 }
 
-pub(super) fn pricing_mode(
+pub fn pricing_mode(
     pricing_mode_identifier_str: &str,
     maybe_payment_amount_str: &str,
     maybe_gas_price_tolerance_str: &str,
