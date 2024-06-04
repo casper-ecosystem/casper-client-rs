@@ -34,14 +34,14 @@ pub fn create_transaction(
         "create_transaction",
     )?;
 
-    let timestamp = parse::timestamp(transaction_params.timestamp)?;
+    // let timestamp = parse::timestamp(transaction_params.timestamp)?;
     let ttl = parse::ttl(transaction_params.ttl)?;
     let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
 
     let mut transaction_builder = make_transaction_builder(builder_params)?;
 
     transaction_builder = transaction_builder
-        .with_timestamp(timestamp)
+        //  .with_timestamp(timestamp)
         .with_ttl(ttl)
         .with_chain_name(chain_name);
 
