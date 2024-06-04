@@ -20,30 +20,30 @@ pub fn create_transaction(
     transaction_params: TransactionStrParams,
     allow_unsigned_transaction: bool,
 ) -> Result<TransactionV1, CliError> {
-    let chain_name = transaction_params.chain_name.to_string();
-    if transaction_params.payment_amount.is_empty() {
-        return Err(CliError::InvalidArgument {
-            context: "create_transaction (payment_amount)",
-            error: "payment_amount is required to be non empty".to_string(),
-        });
-    }
+    // let chain_name = transaction_params.chain_name.to_string();
+    // if transaction_params.payment_amount.is_empty() {
+    //     return Err(CliError::InvalidArgument {
+    //         context: "create_transaction (payment_amount)",
+    //         error: "payment_amount is required to be non empty".to_string(),
+    //     });
+    // }
 
-    let maybe_secret_key = get_maybe_secret_key(
-        transaction_params.secret_key,
-        allow_unsigned_transaction,
-        "create_transaction",
-    )?;
+    // let maybe_secret_key = get_maybe_secret_key(
+    //     transaction_params.secret_key,
+    //     allow_unsigned_transaction,
+    //     "create_transaction",
+    // )?;
 
     // let timestamp = parse::timestamp(transaction_params.timestamp)?;
     //let ttl = parse::ttl(transaction_params.ttl)?;
-    let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
+    //let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
 
     let mut transaction_builder = make_transaction_builder(builder_params)?;
 
-    transaction_builder = transaction_builder
-        //  .with_timestamp(timestamp)
-        // .with_ttl(ttl)
-        .with_chain_name(chain_name);
+    // transaction_builder = transaction_builder
+    //     //  .with_timestamp(timestamp)
+    //     // .with_ttl(ttl)
+    //     .with_chain_name(chain_name);
 
     // if transaction_params.pricing_mode.is_empty() {
     //     return Err(CliError::InvalidArgument {
@@ -90,10 +90,10 @@ pub fn create_transaction(
     //     transaction_builder = transaction_builder.with_secret_key(secret_key);
     // }
 
-    if let Some(account) = maybe_session_account {
-        transaction_builder =
-            transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
-    }
+    // if let Some(account) = maybe_session_account {
+    //     transaction_builder =
+    //         transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
+    // }
 
     let txn = transaction_builder.build().map_err(crate::Error::from)?;
     Ok(txn)
