@@ -113,7 +113,7 @@ pub fn make_transaction(
     builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams<'_>,
     #[allow(unused_variables)] force: bool,
-) -> Result<String, CliError> {
+) -> Result<TransactionV1, CliError> {
     let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
     #[cfg(feature = "std-fs-io")]
     {
