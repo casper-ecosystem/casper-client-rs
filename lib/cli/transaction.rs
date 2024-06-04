@@ -180,7 +180,7 @@ pub fn create_transaction2(
     // }
 
     // let txn = transaction_builder.build().map_err(crate::Error::from)?;
-    Ok("yoyoyoyo".to_string())
+    Ok(format!("{:?}", builder_params))
 }
 
 /// Creates a [`Transaction`] and outputs it to a file or stdout if the `std-fs-io` feature is enabled.
