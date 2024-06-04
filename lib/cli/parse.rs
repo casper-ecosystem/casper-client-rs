@@ -65,8 +65,12 @@ pub(super) fn secret_key_from_file<P: AsRef<Path>>(
 }
 
 pub(super) fn timestamp(value: &str) -> Result<Timestamp, CliError> {
+    #[cfg(any(feature = "std-fs-io", test))]
+    let timestamp = Timestamp::now();
+    #[cfg(not(any(feature = "std-fs-io", test)))]
+    let timestamp = Timestamp::zero();
     if value.is_empty() {
-        return Ok(Timestamp::now());
+        return Ok(timestamp);
     }
     Timestamp::from_str(value).map_err(|error| CliError::FailedToParseTimestamp {
         context: "timestamp",
