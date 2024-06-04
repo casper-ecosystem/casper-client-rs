@@ -45,55 +45,55 @@ pub fn create_transaction(
         .with_ttl(ttl)
         .with_chain_name(chain_name);
 
-    if transaction_params.pricing_mode.is_empty() {
-        return Err(CliError::InvalidArgument {
-            context: "create_transaction (pricing_mode)",
-            error: "pricing_mode is required to be non empty".to_string(),
-        });
-    }
-    let pricing_mode = if transaction_params.payment_amount.to_lowercase().as_str() == "reserved" {
-        let digest = Digest::from_hex(transaction_params.receipt).map_err(|error| {
-            CliError::FailedToParseDigest {
-                context: "pricing_digest",
-                error,
-            }
-        })?;
+    // if transaction_params.pricing_mode.is_empty() {
+    //     return Err(CliError::InvalidArgument {
+    //         context: "create_transaction (pricing_mode)",
+    //         error: "pricing_mode is required to be non empty".to_string(),
+    //     });
+    // }
+    // let pricing_mode = if transaction_params.payment_amount.to_lowercase().as_str() == "reserved" {
+    //     let digest = Digest::from_hex(transaction_params.receipt).map_err(|error| {
+    //         CliError::FailedToParseDigest {
+    //             context: "pricing_digest",
+    //             error,
+    //         }
+    //     })?;
 
-        parse::pricing_mode(
-            transaction_params.pricing_mode,
-            transaction_params.payment_amount,
-            transaction_params.gas_price_tolerance,
-            transaction_params.standard_payment,
-            Some(digest),
-        )?
-    } else {
-        parse::pricing_mode(
-            transaction_params.pricing_mode,
-            transaction_params.payment_amount,
-            transaction_params.gas_price_tolerance,
-            transaction_params.standard_payment,
-            None,
-        )?
-    };
+    //     parse::pricing_mode(
+    //         transaction_params.pricing_mode,
+    //         transaction_params.payment_amount,
+    //         transaction_params.gas_price_tolerance,
+    //         transaction_params.standard_payment,
+    //         Some(digest),
+    //     )?
+    // } else {
+    //     parse::pricing_mode(
+    //         transaction_params.pricing_mode,
+    //         transaction_params.payment_amount,
+    //         transaction_params.gas_price_tolerance,
+    //         transaction_params.standard_payment,
+    //         None,
+    //     )?
+    // };
 
-    transaction_builder = transaction_builder.with_pricing_mode(pricing_mode);
+    // transaction_builder = transaction_builder.with_pricing_mode(pricing_mode);
 
-    let maybe_json_args = parse::args_json::session::parse(transaction_params.session_args_json)?;
-    let maybe_simple_args =
-        parse::arg_simple::session::parse(&transaction_params.session_args_simple)?;
+    // let maybe_json_args = parse::args_json::session::parse(transaction_params.session_args_json)?;
+    // let maybe_simple_args =
+    //     parse::arg_simple::session::parse(&transaction_params.session_args_simple)?;
 
-    let args = parse::args_from_simple_or_json(maybe_simple_args, maybe_json_args);
-    if !args.is_empty() {
-        transaction_builder = transaction_builder.with_runtime_args(args);
-    }
-    if let Some(secret_key) = &maybe_secret_key {
-        transaction_builder = transaction_builder.with_secret_key(secret_key);
-    }
+    // let args = parse::args_from_simple_or_json(maybe_simple_args, maybe_json_args);
+    // if !args.is_empty() {
+    //     transaction_builder = transaction_builder.with_runtime_args(args);
+    // }
+    // if let Some(secret_key) = &maybe_secret_key {
+    //     transaction_builder = transaction_builder.with_secret_key(secret_key);
+    // }
 
-    if let Some(account) = maybe_session_account {
-        transaction_builder =
-            transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
-    }
+    // if let Some(account) = maybe_session_account {
+    //     transaction_builder =
+    //         transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
+    // }
 
     let txn = transaction_builder.build().map_err(crate::Error::from)?;
     Ok(txn)
@@ -307,9 +307,7 @@ pub fn make_transaction_builder(
             );
             Ok(transaction_builder)
         }
-        TransactionBuilderParams::Session {
-            transaction_bytes,
-        } => {
+        TransactionBuilderParams::Session { transaction_bytes } => {
             let transaction_builder = TransactionV1Builder::new_session(
                 TransactionSessionKind::Standard,
                 transaction_bytes,
