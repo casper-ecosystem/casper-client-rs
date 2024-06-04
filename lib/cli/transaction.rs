@@ -122,7 +122,7 @@ pub fn create_transaction2(
     //let ttl = parse::ttl(transaction_params.ttl)?;
     //let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
 
-    let mut transaction_builder = make_transaction_builder(builder_params)?;
+    // let mut transaction_builder = make_transaction_builder(builder_params)?;
 
     // transaction_builder = transaction_builder
     //     //  .with_timestamp(timestamp)
