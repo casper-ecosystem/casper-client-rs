@@ -134,18 +134,19 @@ pub async fn put_transaction(
     verbosity_level: u64,
     builder_params: TransactionBuilderParams<'_>,
     transaction_params: TransactionStrParams<'_>,
-) -> Result<SuccessResponse<PutTransactionResult>, CliError> {
+) -> Result<String, CliError> {
     let rpc_id = parse::rpc_id(rpc_id_str);
     let verbosity_level = parse::verbosity(verbosity_level);
     let transaction = create_transaction(builder_params, transaction_params, false)?;
-    put_transaction_rpc_handler(
-        rpc_id,
-        node_address,
-        verbosity_level,
-        Transaction::V1(transaction),
-    )
-    .await
-    .map_err(CliError::from)
+    // put_transaction_rpc_handler(
+    //     rpc_id,
+    //     node_address,
+    //     verbosity_level,
+    //     Transaction::V1(transaction),
+    // )
+    // .await
+    // .map_err(CliError::from)
+    Ok(transaction.to_string())
 }
 ///
 /// Reads a previously-saved [`TransactionV1`] from a file and sends it to the network for execution.
