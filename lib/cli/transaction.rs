@@ -307,14 +307,10 @@ pub fn make_transaction_builder(
             );
             Ok(transaction_builder)
         }
-        TransactionBuilderParams::Session {
-            transaction_bytes,
-            entry_point,
-        } => {
+        TransactionBuilderParams::Session { transaction_bytes } => {
             let transaction_builder = TransactionV1Builder::new_session(
                 TransactionSessionKind::Standard,
                 transaction_bytes,
-                entry_point,
             );
             Ok(transaction_builder)
         }
