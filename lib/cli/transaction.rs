@@ -122,7 +122,7 @@ pub fn create_transaction2(
     //let ttl = parse::ttl(transaction_params.ttl)?;
     //let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
 
-    // let mut transaction_builder = make_transaction_builder(builder_params)?;
+    let mut transaction_builder = make_transaction_builder(builder_params)?;
 
     // transaction_builder = transaction_builder
     //     //  .with_timestamp(timestamp)
@@ -180,7 +180,7 @@ pub fn create_transaction2(
     // }
 
     // let txn = transaction_builder.build().map_err(crate::Error::from)?;
-    Ok(format!("{:?}", builder_params))
+    Ok(format!("sdfsdfsdfsdf"))
 }
 
 /// Creates a [`Transaction`] and outputs it to a file or stdout if the `std-fs-io` feature is enabled.
