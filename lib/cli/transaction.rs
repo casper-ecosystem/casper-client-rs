@@ -28,22 +28,22 @@ pub fn create_transaction(
         });
     }
 
-    let maybe_secret_key = get_maybe_secret_key(
-        transaction_params.secret_key,
-        allow_unsigned_transaction,
-        "create_transaction",
-    )?;
+    // let maybe_secret_key = get_maybe_secret_key(
+    //     transaction_params.secret_key,
+    //     allow_unsigned_transaction,
+    //     "create_transaction",
+    // )?;
 
-    let timestamp = parse::timestamp(transaction_params.timestamp)?;
-    let ttl = parse::ttl(transaction_params.ttl)?;
-    let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
+    // let timestamp = parse::timestamp(transaction_params.timestamp)?;
+    // let ttl = parse::ttl(transaction_params.ttl)?;
+    // let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
 
     let mut transaction_builder = make_transaction_builder(builder_params)?;
 
-    transaction_builder = transaction_builder
-        .with_timestamp(timestamp)
-        .with_ttl(ttl)
-        .with_chain_name(chain_name);
+    // transaction_builder = transaction_builder
+    //     .with_timestamp(timestamp)
+    //     .with_ttl(ttl)
+    //     .with_chain_name(chain_name);
 
     // if transaction_params.pricing_mode.is_empty() {
     //     return Err(CliError::InvalidArgument {
