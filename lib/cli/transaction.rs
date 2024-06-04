@@ -19,7 +19,7 @@ pub fn create_transaction(
     builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams,
     allow_unsigned_transaction: bool,
-) -> Result<TransactionV1, CliError> {
+) -> Result<String, CliError> {
     let chain_name = transaction_params.chain_name.to_string();
     if transaction_params.payment_amount.is_empty() {
         return Err(CliError::InvalidArgument {
@@ -38,7 +38,7 @@ pub fn create_transaction(
     // let ttl = parse::ttl(transaction_params.ttl)?;
     // let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
 
-    let mut transaction_builder = make_transaction_builder(builder_params)?;
+    //  let mut transaction_builder = make_transaction_builder(builder_params)?;
 
     // transaction_builder = transaction_builder
     //     .with_timestamp(timestamp)
@@ -95,8 +95,8 @@ pub fn create_transaction(
     //         transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
     // }
 
-    let txn = transaction_builder.build().map_err(crate::Error::from)?;
-    Ok(txn)
+    // let txn = transaction_builder.build().map_err(crate::Error::from)?;
+    Ok("test".to_string())
 }
 
 /// Creates a [`Transaction`] and outputs it to a file or stdout if the `std-fs-io` feature is enabled.
@@ -113,14 +113,14 @@ pub fn make_transaction(
     builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams<'_>,
     #[allow(unused_variables)] force: bool,
-) -> Result<TransactionV1, CliError> {
+) -> Result<String, CliError> {
     let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
     #[cfg(feature = "std-fs-io")]
     {
         let output = parse::output_kind(transaction_params.output_path, force);
         let _ = crate::output_transaction(output, &transaction).map_err(CliError::from);
     }
-    Ok(transaction)
+    Ok(transaction.to_string())
 }
 
 /// Creates a [`Transaction`] and sends it to the network for execution.
