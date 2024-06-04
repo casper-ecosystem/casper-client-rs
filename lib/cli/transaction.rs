@@ -114,13 +114,13 @@ pub fn make_transaction(
     transaction_params: TransactionStrParams<'_>,
     #[allow(unused_variables)] force: bool,
 ) -> Result<String, CliError> {
-    // let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
+    let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
     #[cfg(feature = "std-fs-io")]
     {
         let output = parse::output_kind(transaction_params.output_path, force);
         let _ = crate::output_transaction(output, &transaction).map_err(CliError::from);
     }
-    Ok("tes".to_string())
+    Ok(transaction)
 }
 
 /// Creates a [`Transaction`] and sends it to the network for execution.
