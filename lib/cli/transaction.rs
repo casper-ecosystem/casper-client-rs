@@ -99,6 +99,90 @@ pub fn create_transaction(
     Ok(txn)
 }
 
+pub fn create_transaction2(
+    builder_params: TransactionBuilderParams,
+    transaction_params: TransactionStrParams,
+    allow_unsigned_transaction: bool,
+) -> Result<String, CliError> {
+    // let chain_name = transaction_params.chain_name.to_string();
+    // if transaction_params.payment_amount.is_empty() {
+    //     return Err(CliError::InvalidArgument {
+    //         context: "create_transaction (payment_amount)",
+    //         error: "payment_amount is required to be non empty".to_string(),
+    //     });
+    // }
+
+    // let maybe_secret_key = get_maybe_secret_key(
+    //     transaction_params.secret_key,
+    //     allow_unsigned_transaction,
+    //     "create_transaction",
+    // )?;
+
+    // let timestamp = parse::timestamp(transaction_params.timestamp)?;
+    //let ttl = parse::ttl(transaction_params.ttl)?;
+    //let maybe_session_account = parse::session_account(&transaction_params.initiator_addr)?;
+
+    let mut transaction_builder = make_transaction_builder(builder_params)?;
+
+    // transaction_builder = transaction_builder
+    //     //  .with_timestamp(timestamp)
+    //     // .with_ttl(ttl)
+    //     .with_chain_name(chain_name);
+
+    // if transaction_params.pricing_mode.is_empty() {
+    //     return Err(CliError::InvalidArgument {
+    //         context: "create_transaction (pricing_mode)",
+    //         error: "pricing_mode is required to be non empty".to_string(),
+    //     });
+    // }
+    // let pricing_mode = if transaction_params.payment_amount.to_lowercase().as_str() == "reserved" {
+    //     let digest = Digest::from_hex(transaction_params.receipt).map_err(|error| {
+    //         CliError::FailedToParseDigest {
+    //             context: "pricing_digest",
+    //             error,
+    //         }
+    //     })?;
+
+    //     parse::pricing_mode(
+    //         transaction_params.pricing_mode,
+    //         transaction_params.payment_amount,
+    //         transaction_params.gas_price_tolerance,
+    //         transaction_params.standard_payment,
+    //         Some(digest),
+    //     )?
+    // } else {
+    //     parse::pricing_mode(
+    //         transaction_params.pricing_mode,
+    //         transaction_params.payment_amount,
+    //         transaction_params.gas_price_tolerance,
+    //         transaction_params.standard_payment,
+    //         None,
+    //     )?
+    // };
+
+    // transaction_builder = transaction_builder.with_pricing_mode(pricing_mode);
+
+    // let maybe_json_args = parse::args_json::session::parse(transaction_params.session_args_json)?;
+    // let maybe_simple_args =
+    //     parse::arg_simple::session::parse(&transaction_params.session_args_simple)?;
+
+    // let args = parse::args_from_simple_or_json(maybe_simple_args, maybe_json_args);
+    // if !args.is_empty() {
+    //     transaction_builder = transaction_builder.with_runtime_args(args);
+    // }
+    // if let Some(secret_key) = &maybe_secret_key {
+    //     transaction_builder = transaction_builder.with_secret_key(secret_key);
+    // }
+
+    // if let Some(account) = maybe_session_account {
+    //     transaction_builder =
+    //         transaction_builder.with_initiator_addr(InitiatorAddr::PublicKey(account));
+    // }
+
+    // let txn = transaction_builder.build().map_err(crate::Error::from)?;
+    Ok("yoyoyoyo".to_string())
+}
+
 /// Creates a [`Transaction`] and outputs it to a file or stdout if the `std-fs-io` feature is enabled.
 ///
 /// As a file, the `Transaction` can subsequently be signed by other parties using [`sign_transaction_file`]
@@ -128,8 +212,8 @@ pub fn make_transaction2(
     transaction_params: TransactionStrParams<'_>,
     #[allow(unused_variables)] force: bool,
 ) -> Result<String, CliError> {
-    let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
-    Ok("testing".to_string())
+    let transaction = create_transaction2(builder_params, transaction_params.clone(), true)?;
+    Ok(transaction)
 }
 
 /// Creates a [`Transaction`] and sends it to the network for execution.
