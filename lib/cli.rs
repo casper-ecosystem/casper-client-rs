@@ -76,7 +76,7 @@ pub use json_args::{
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
 pub use simple_args::{help as simple_args_help, insert_arg};
-pub use transaction::{make_transaction, make_transaction2, put_transaction};
+pub use transaction::{make_transaction, put_transaction};
 #[cfg(feature = "std-fs-io")]
 pub use transaction::{
     send_transaction_file, sign_transaction_file, speculative_send_transaction_file,
