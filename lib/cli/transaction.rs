@@ -128,8 +128,8 @@ pub fn make_transaction2(
     transaction_params: TransactionStrParams<'_>,
     #[allow(unused_variables)] force: bool,
 ) -> Result<String, CliError> {
-    //let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
-    Ok("test".to_string())
+    let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
+    Ok("testing".to_string())
 }
 
 /// Creates a [`Transaction`] and sends it to the network for execution.
