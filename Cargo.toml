@@ -26,7 +26,7 @@ std-fs-io = ["casper-types/std-fs-io"]
 [dependencies]
 async-trait = { version = "0.1.59", default-features = false, optional = true }
 base16 = "0.2.1"
-casper-types = { version = "5.0.0", features = ["std", "std-fs-io"] }
+casper-types = { version = "5.0.0", features = ["std"] }
 clap = { version = "4", features = [
   "cargo",
   "deprecated",
