@@ -521,6 +521,8 @@ mod transaction {
     fn should_create_add_bid_transaction() {
         let secret_key = SecretKey::generate_ed25519().unwrap();
         let amount = U512::from(1000);
+        let minimum_delegation_amount = 100u64;
+        let maximum_delegation_amount = 10000u64;
         let public_key = PublicKey::from(&secret_key);
 
         let amount_cl = &CLValue::from_t(amount).unwrap();
@@ -546,6 +548,8 @@ mod transaction {
             public_key,
             delegation_rate: 0,
             amount,
+            minimum_delegation_amount,
+            maximum_delegation_amount,
         };
 
         let transaction =
@@ -1126,6 +1130,9 @@ mod transaction {
     }
     #[test]
     fn should_create_transaction_with_secret_key_but_no_initiator_addr() {
+        let minimum_delegation_amount = 100u64;
+        let maximum_delegation_amount = 10000u64;
+
         let transaction_string_params = TransactionStrParams {
             secret_key: "resources/test.pem",
             timestamp: "",
@@ -1145,6 +1152,8 @@ mod transaction {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
             delegation_rate: 0,
             amount: U512::from(10),
+            minimum_delegation_amount,
+            maximum_delegation_amount,
         };
         let transaction =
             create_transaction(transaction_builder_params, transaction_string_params, true);
@@ -1154,6 +1163,9 @@ mod transaction {
 
     #[test]
     fn should_fail_to_create_transaction_with_no_secret_and_no_unsigned_transactions() {
+        let minimum_delegation_amount = 100u64;
+        let maximum_delegation_amount = 10000u64;
+
         let transaction_string_params = TransactionStrParams {
             secret_key: "",
             timestamp: "",
@@ -1173,6 +1185,8 @@ mod transaction {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
             delegation_rate: 0,
             amount: U512::from(10),
+            minimum_delegation_amount,
+            maximum_delegation_amount,
         };
         let transaction =
             create_transaction(transaction_builder_params, transaction_string_params, false);

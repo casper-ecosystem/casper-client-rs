@@ -31,7 +31,8 @@ pub(super) enum DisplayOrder {
     Timestamp,
     Ttl,
     ChainName,
-    DelegationRate,
+    MaximumDelegationRate,
+    MinimumDelegationRate,
     Source,
     SessionArgSimple,
     SessionArgsJson,
@@ -875,7 +876,7 @@ mod delegation_rate {
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP)
             .required(true)
-            .display_order(DisplayOrder::DelegationRate as usize)
+            .display_order(DisplayOrder::MinimumDelegationRate as usize)
     }
 
     pub fn get(matches: &ArgMatches) -> &str {
@@ -890,6 +891,78 @@ mod delegation_rate {
             .parse::<u8>()
             .map_err(|err| CliError::FailedToParseInt {
                 context: "Add Bid",
+                error: err,
+            })
+    }
+}
+
+
+mod minimum_delegation_amount {
+    use super::*;
+    use casper_client::cli::CliError;
+    pub const ARG_NAME: &str = "minimum-delegation-amount";
+    const ALIAS: &str = "min-amount";
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+    const ARG_HELP: &str = "the minimum delegation amount for the add-bid transaction";
+
+    pub fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .value_name(ARG_VALUE_NAME)
+            .alias(ALIAS)
+            .help(ARG_HELP)
+            .required(true)
+            .display_order(DisplayOrder::MinimumDelegationRate as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+
+    pub(super) fn parse_delegation_amount(value: &str) -> Result<u64, CliError> {
+        value
+            .parse::<u64>()
+            .map_err(|err| CliError::FailedToParseInt {
+                context: "Add Bid: Minimum delegation amount",
+                error: err,
+            })
+    }
+}
+
+
+mod maximum_delegation_amount {
+    use super::*;
+    use casper_client::cli::CliError;
+    pub const ARG_NAME: &str = "maximum-delegation-amount";
+    const ALIAS: &str = "max-amount";
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+    const ARG_HELP: &str = "the maximum delegation amount for the add-bid transaction";
+
+    pub fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .value_name(ARG_VALUE_NAME)
+            .alias(ALIAS)
+            .help(ARG_HELP)
+            .required(true)
+            .display_order(DisplayOrder::MaximumDelegationRate as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+
+    pub(super) fn parse_delegation_amount(value: &str) -> Result<u64, CliError> {
+        value
+            .parse::<u64>()
+            .map_err(|err| CliError::FailedToParseInt {
+                context: "Add Bid: Maximum delegation amount",
                 error: err,
             })
     }
@@ -1039,10 +1112,19 @@ pub(super) mod add_bid {
         let amount_str = transaction_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
 
+        let minimum_amount_string = minimum_delegation_amount::get(matches);
+        let minimum_delegation_amount = minimum_delegation_amount::parse_delegation_amount(minimum_amount_string)?;
+
+        let maximum_amount_string = maximum_delegation_amount::get(matches);
+        let maximum_delegation_amount = maximum_delegation_amount::parse_delegation_amount(maximum_amount_string)?;
+
+
         let params = TransactionBuilderParams::AddBid {
             public_key,
             delegation_rate,
             amount,
+            minimum_delegation_amount,
+            maximum_delegation_amount
         };
 
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
@@ -1055,6 +1137,8 @@ pub(super) mod add_bid {
             .arg(delegation_rate::arg())
             .arg(public_key::arg(DisplayOrder::PublicKey as usize))
             .arg(transaction_amount::arg())
+            .arg(minimum_delegation_amount::arg())
+            .arg(maximum_delegation_amount::arg())
     }
 }
 pub(super) mod withdraw_bid {
