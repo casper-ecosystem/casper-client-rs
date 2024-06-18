@@ -433,18 +433,65 @@ pub(super) mod transfer_amount {
 
 pub(super) mod pricing_mode {
     use super::*;
+    use clap::{builder::PossibleValue, value_parser, ValueEnum};
+    use std::str::FromStr;
+
     pub(in crate::transaction) const ARG_NAME: &str = "pricing-mode";
 
-    const ARG_VALUE_NAME: &str = common::ARG_STRING;
+    const ARG_VALUE_NAME: &str = "classic|reserved|fixed";
     const ARG_HELP: &str = "Used to identify the payment mode chosen to execute the transaction";
+    const ARG_DEFAULT: &str = PricingMode::FIXED;
 
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
             .value_name(ARG_VALUE_NAME)
+            .default_value(ARG_DEFAULT)
             .help(ARG_HELP)
             .display_order(DisplayOrder::PricingMode as usize)
+            .value_parser(value_parser!(PricingMode))
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    pub(super) enum PricingMode {
+        Classic,
+        Reserved,
+        Fixed,
+    }
+
+    impl PricingMode {
+        // Define constants for the string values
+        const CLASSIC: &'static str = "classic";
+        const RESERVED: &'static str = "reserved";
+        const FIXED: &'static str = "fixed";
+    }
+
+    impl ValueEnum for PricingMode {
+        fn value_variants<'a>() -> &'a [Self] {
+            &[Self::Classic, Self::Reserved, Self::Fixed]
+        }
+
+        fn to_possible_value(&self) -> Option<PossibleValue> {
+            Some(match self {
+                Self::Classic => PossibleValue::new(PricingMode::CLASSIC),
+                Self::Reserved => PossibleValue::new(PricingMode::RESERVED),
+                Self::Fixed => PossibleValue::new(PricingMode::FIXED),
+            })
+        }
+    }
+
+    impl FromStr for PricingMode {
+        type Err = String;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            match s.to_lowercase().as_str() {
+                PricingMode::CLASSIC => Ok(Self::Classic),
+                PricingMode::RESERVED => Ok(Self::Reserved),
+                PricingMode::FIXED => Ok(Self::Fixed),
+                _ => Err(format!("'{}' is not a valid pricing option", s)),
+            }
+        }
     }
 
     pub fn get(matches: &ArgMatches) -> &str {

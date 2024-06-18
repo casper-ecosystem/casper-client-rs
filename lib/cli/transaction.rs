@@ -52,7 +52,7 @@ pub fn create_transaction(
             error: "pricing_mode is required to be non empty".to_string(),
         });
     }
-    let pricing_mode = if transaction_params.payment_amount.to_lowercase().as_str() == "reserved" {
+    let pricing_mode = if transaction_params.pricing_mode.to_lowercase().as_str() == "reserved" {
         let digest = Digest::from_hex(transaction_params.receipt).map_err(|error| {
             CliError::FailedToParseDigest {
                 context: "pricing_digest",
