@@ -180,9 +180,13 @@ pub enum CliError {
     #[error("Failed to parse a package address")]
     FailedToParsePackageAddr,
 
-    ///Failed to parse a transfer target
+    /// Failed to parse a transfer target
     #[error("Failed to parse a transfer target")]
     FailedToParseTransferTarget,
+
+    /// Failed to parse transaction category.
+    #[error("Failed to parse a transaction category")]
+    FailedToParseTransactionCategory,
 }
 
 impl From<CLValueError> for CliError {

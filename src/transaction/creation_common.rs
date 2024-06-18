@@ -30,6 +30,7 @@ pub(super) enum DisplayOrder {
     TransferId,
     Timestamp,
     Ttl,
+    TransactionCategory,
     ChainName,
     MaximumDelegationRate,
     MinimumDelegationRate,
@@ -638,6 +639,83 @@ pub(super) mod transaction_path {
     }
 }
 
+pub(super) mod transaction_category {
+    use std::str::FromStr;
+
+    use casper_types::TransactionCategory;
+    use clap::{value_parser, ValueEnum};
+
+    use super::*;
+
+    const ARG_NAME: &str = "category";
+    const ARG_SHORT: char = 'c';
+    const ARG_VALUE_NAME: &str = "install-upgrade|large|medium|small";
+    const ARG_HELP: &str = "Transaction category";
+
+    #[derive(Debug, Clone, Copy)]
+    pub(super) enum Category {
+        InstallUpgrade,
+        Large,
+        Medium,
+        Small,
+    }
+
+    impl Category {
+        pub(super) fn into_transaction_v1_category(self) -> TransactionCategory {
+            match self {
+                Self::InstallUpgrade => TransactionCategory::InstallUpgrade,
+                Self::Large => TransactionCategory::Large,
+                Self::Medium => TransactionCategory::Medium,
+                Self::Small => TransactionCategory::Small,
+            }
+        }
+    }
+
+    impl ValueEnum for Category {
+        fn value_variants<'a>() -> &'a [Self] {
+            &[Self::InstallUpgrade, Self::Large, Self::Medium, Self::Small]
+        }
+
+        fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
+            Some(match self {
+                Self::InstallUpgrade => clap::builder::PossibleValue::new("install-upgrade"),
+                Self::Large => clap::builder::PossibleValue::new("large"),
+                Self::Medium => clap::builder::PossibleValue::new("medium"),
+                Self::Small => clap::builder::PossibleValue::new("small"),
+            })
+        }
+    }
+
+    impl FromStr for Category {
+        type Err = String;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            match s.to_lowercase().as_str() {
+                "install-upgrade" => Ok(Category::InstallUpgrade),
+                "large" => Ok(Category::Large),
+                "medium" => Ok(Category::Medium),
+                "small" => Ok(Category::Small),
+                _ => Err(format!("'{}' is not a valid size option", s)),
+            }
+        }
+    }
+
+    pub fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .required(true)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::TransactionCategory as usize)
+            .value_parser(value_parser!(Category))
+    }
+
+    pub(super) fn get(matches: &ArgMatches) -> Option<&Category> {
+        matches.get_one(ARG_NAME)
+    }
+}
+
 pub(super) mod public_key {
     use super::*;
     use casper_client::cli::CliError;
@@ -896,7 +974,6 @@ mod delegation_rate {
     }
 }
 
-
 mod minimum_delegation_amount {
     use super::*;
     use casper_client::cli::CliError;
@@ -931,7 +1008,6 @@ mod minimum_delegation_amount {
             })
     }
 }
-
 
 mod maximum_delegation_amount {
     use super::*;
@@ -1113,18 +1189,19 @@ pub(super) mod add_bid {
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
 
         let minimum_amount_string = minimum_delegation_amount::get(matches);
-        let minimum_delegation_amount = minimum_delegation_amount::parse_delegation_amount(minimum_amount_string)?;
+        let minimum_delegation_amount =
+            minimum_delegation_amount::parse_delegation_amount(minimum_amount_string)?;
 
         let maximum_amount_string = maximum_delegation_amount::get(matches);
-        let maximum_delegation_amount = maximum_delegation_amount::parse_delegation_amount(maximum_amount_string)?;
-
+        let maximum_delegation_amount =
+            maximum_delegation_amount::parse_delegation_amount(maximum_amount_string)?;
 
         let params = TransactionBuilderParams::AddBid {
             public_key,
             delegation_rate,
             amount,
             minimum_delegation_amount,
-            maximum_delegation_amount
+            maximum_delegation_amount,
         };
 
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
@@ -1582,9 +1659,12 @@ pub(super) mod session {
         let transaction_bytes =
             parse::transaction_module_bytes(transaction_path_str.unwrap_or_default())?;
 
+        let transaction_category = *transaction_category::get(matches)
+            .ok_or(CliError::FailedToParseTransactionCategory)?;
 
         let params = TransactionBuilderParams::Session {
             transaction_bytes,
+            transaction_category: transaction_category.into_transaction_v1_category(),
         };
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
@@ -1594,6 +1674,7 @@ pub(super) mod session {
         add_bid_subcommand
             .arg(transaction_path::arg())
             .arg(session_entry_point::arg())
+            .arg(transaction_category::arg())
     }
 }
 

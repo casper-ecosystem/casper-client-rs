@@ -11,8 +11,7 @@ use crate::{
     SuccessResponse,
 };
 use casper_types::{
-    Digest, InitiatorAddr, SecretKey, Transaction, TransactionSessionKind, TransactionV1,
-    TransactionV1Builder,
+    Digest, InitiatorAddr, SecretKey, Transaction, TransactionV1, TransactionV1Builder,
 };
 
 pub fn create_transaction(
@@ -232,10 +231,15 @@ pub fn make_transaction_builder(
             delegation_rate,
             amount,
             minimum_delegation_amount,
-            maximum_delegation_amount
+            maximum_delegation_amount,
         } => {
-            let transaction_builder =
-                TransactionV1Builder::new_add_bid(public_key, delegation_rate, amount, minimum_delegation_amount, maximum_delegation_amount)?;
+            let transaction_builder = TransactionV1Builder::new_add_bid(
+                public_key,
+                delegation_rate,
+                amount,
+                minimum_delegation_amount,
+                maximum_delegation_amount,
+            )?;
             Ok(transaction_builder)
         }
         TransactionBuilderParams::Delegate {
@@ -309,11 +313,12 @@ pub fn make_transaction_builder(
             );
             Ok(transaction_builder)
         }
-        TransactionBuilderParams::Session { transaction_bytes } => {
-            let transaction_builder = TransactionV1Builder::new_session(
-                TransactionSessionKind::Standard,
-                transaction_bytes,
-            );
+        TransactionBuilderParams::Session {
+            transaction_bytes,
+            transaction_category,
+        } => {
+            let transaction_builder =
+                TransactionV1Builder::new_session(transaction_category, transaction_bytes);
             Ok(transaction_builder)
         }
         TransactionBuilderParams::Transfer {
