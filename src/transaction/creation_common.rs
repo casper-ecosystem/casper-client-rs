@@ -23,6 +23,7 @@ pub(super) enum DisplayOrder {
     SecretKey,
     SpeculativeExec,
     TransactionPath,
+    TransactionCategory,
     Output,
     Force,
     Target,
@@ -638,6 +639,36 @@ pub(super) mod transaction_path {
     }
 }
 
+pub(super) mod transaction_category {
+    use casper_types::TransactionCategory;
+
+    use super::*;
+
+    const ARG_NAME: &str = "transaction-category";
+    const ARG_SHORT: char = 'c';
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+    const ARG_HELP: &str = "The category of a Transaction";
+
+    pub fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .required(true)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::TransactionCategory as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> TransactionCategory {
+        match matches.try_get_one::<TransactionCategory>(ARG_NAME) {
+            Ok(maybe_count) => maybe_count
+                .copied()
+                .unwrap_or(TransactionCategory::default()),
+            Err(_) => TransactionCategory::default(),
+        }
+    }
+}
+
 pub(super) mod public_key {
     use super::*;
     use casper_client::cli::CliError;
@@ -896,7 +927,6 @@ mod delegation_rate {
     }
 }
 
-
 mod minimum_delegation_amount {
     use super::*;
     use casper_client::cli::CliError;
@@ -931,7 +961,6 @@ mod minimum_delegation_amount {
             })
     }
 }
-
 
 mod maximum_delegation_amount {
     use super::*;
@@ -1113,18 +1142,19 @@ pub(super) mod add_bid {
         let amount = transaction_amount::parse_transaction_amount(amount_str)?;
 
         let minimum_amount_string = minimum_delegation_amount::get(matches);
-        let minimum_delegation_amount = minimum_delegation_amount::parse_delegation_amount(minimum_amount_string)?;
+        let minimum_delegation_amount =
+            minimum_delegation_amount::parse_delegation_amount(minimum_amount_string)?;
 
         let maximum_amount_string = maximum_delegation_amount::get(matches);
-        let maximum_delegation_amount = maximum_delegation_amount::parse_delegation_amount(maximum_amount_string)?;
-
+        let maximum_delegation_amount =
+            maximum_delegation_amount::parse_delegation_amount(maximum_amount_string)?;
 
         let params = TransactionBuilderParams::AddBid {
             public_key,
             delegation_rate,
             amount,
             minimum_delegation_amount,
-            maximum_delegation_amount
+            maximum_delegation_amount,
         };
 
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
@@ -1132,8 +1162,8 @@ pub(super) mod add_bid {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(delegation_rate::arg())
             .arg(public_key::arg(DisplayOrder::PublicKey as usize))
             .arg(transaction_amount::arg())
@@ -1179,8 +1209,8 @@ pub(super) mod withdraw_bid {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(public_key::arg(DisplayOrder::PublicKey as usize))
             .arg(transaction_amount::arg())
     }
@@ -1230,8 +1260,8 @@ pub(super) mod delegate {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(delegator::arg())
             .arg(validator::arg())
             .arg(transaction_amount::arg())
@@ -1282,8 +1312,8 @@ pub(super) mod undelegate {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(delegator::arg())
             .arg(validator::arg())
             .arg(transaction_amount::arg())
@@ -1336,8 +1366,8 @@ pub(super) mod redelegate {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(delegator::arg())
             .arg(validator::arg())
             .arg(new_validator::arg())
@@ -1386,8 +1416,8 @@ pub(super) mod invocable_entity {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(entity_addr::arg())
             .arg(session_entry_point::arg())
     }
@@ -1432,8 +1462,8 @@ pub(super) mod invocable_entity_alias {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(entity_alias_arg::arg())
             .arg(session_entry_point::arg())
     }
@@ -1482,8 +1512,8 @@ pub(super) mod package {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(package_addr::arg())
             .arg(session_version::arg())
             .arg(session_entry_point::arg())
@@ -1533,8 +1563,8 @@ pub(super) mod package_alias {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(package_name_arg::arg())
             .arg(session_version::arg())
             .arg(session_entry_point::arg())
@@ -1544,6 +1574,7 @@ pub(super) mod session {
     use super::*;
     use crate::cli::parse;
     use casper_client::cli::{CliError, TransactionBuilderParams};
+    use casper_types::TransactionCategory;
 
     pub const NAME: &str = "session";
 
@@ -1579,20 +1610,23 @@ pub(super) mod session {
             });
         }
 
+        let transaction_category: TransactionCategory = transaction_category::get(matches);
+
         let transaction_bytes =
             parse::transaction_module_bytes(transaction_path_str.unwrap_or_default())?;
 
-
         let params = TransactionBuilderParams::Session {
+            transaction_category,
             transaction_bytes,
         };
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(transaction_path::arg())
+            .arg(transaction_category::arg())
             .arg(session_entry_point::arg())
     }
 }
@@ -1650,8 +1684,8 @@ pub(super) mod transfer {
         Ok((params, transaction_str_params))
     }
 
-    fn add_args(add_bid_subcommand: Command) -> Command {
-        add_bid_subcommand
+    fn add_args(subcommand: Command) -> Command {
+        subcommand
             .arg(source::arg())
             .arg(target::arg())
             .arg(transfer_amount::arg())
