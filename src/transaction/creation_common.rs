@@ -461,7 +461,6 @@ pub(super) mod pricing_mode {
     }
 
     impl PricingMode {
-        // Define constants for the string values
         const CLASSIC: &'static str = "classic";
         const RESERVED: &'static str = "reserved";
         const FIXED: &'static str = "fixed";
