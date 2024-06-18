@@ -16,6 +16,7 @@ pub use super::v2_0_0::get_node_status::{
 };
 pub use super::v2_0_0::get_peers::{GetPeersResult, PeerEntry};
 pub use super::v2_0_0::get_state_root_hash::GetStateRootHashResult;
+pub use super::v2_0_0::get_transaction::GetTransactionResult;
 pub use super::v2_0_0::get_validator_changes::{
     GetValidatorChangesResult, ValidatorChange, ValidatorChangeInEra, ValidatorChanges,
 };
@@ -31,4 +32,3 @@ pub use super::v2_0_0::query_balance_details::QueryBalanceDetailsResult;
 pub use super::v2_0_0::query_global_state::QueryGlobalStateResult;
 pub use super::v2_0_0::speculative_exec::SpeculativeExecResult;
 pub use super::v2_0_0::speculative_exec_transaction::SpeculativeExecTxnResult;
-pub use super::v2_0_0::get_transaction::GetTransactionResult;

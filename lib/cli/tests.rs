@@ -433,7 +433,10 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
 mod transaction {
     use super::*;
     use crate::Error::TransactionBuild;
-    use casper_types::{bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget, TransactionRuntime, TransactionSessionKind, TransactionTarget, TransactionV1BuilderError, TransferTarget};
+    use casper_types::{
+        bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget,
+        TransactionRuntime, TransactionTarget, TransactionV1BuilderError, TransferTarget,
+    };
     const SAMPLE_TRANSACTION: &str = r#"{
   "hash": "f868596bbfd729547ffa25c3421df29d6650cec73e9fe3d0aff633fe2d6ac952",
   "header": {
@@ -479,7 +482,7 @@ mod transaction {
     ],
     "target": "Native",
     "entry_point": "Transfer",
-    "transaction_kind": 0,
+    "transaction_category": 0,
     "scheduling": "Standard"
   },
   "approvals": []
@@ -1001,7 +1004,6 @@ mod transaction {
     fn should_create_session_transaction() {
         let transaction_bytes = Bytes::from(vec![1u8; 32]);
         let target = &TransactionTarget::Session {
-            kind: TransactionSessionKind::Standard,
             runtime: TransactionRuntime::VmCasperV1,
             module_bytes: transaction_bytes.clone(),
         };
@@ -1023,6 +1025,7 @@ mod transaction {
 
         let transaction_builder_params = TransactionBuilderParams::Session {
             transaction_bytes,
+            transaction_category: casper_types::TransactionCategory::Large,
         };
         let transaction =
             create_transaction(transaction_builder_params, transaction_string_params, true);
