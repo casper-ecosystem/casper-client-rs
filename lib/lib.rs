@@ -69,9 +69,10 @@ use rpcs::{
         GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
         GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
         GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
-        GetPeersResult, GetStateRootHashResult, GetTransactionResult,GetValidatorChangesResult, ListRpcsResult,
-        PutDeployResult, PutTransactionResult, QueryBalanceDetailsResult, QueryBalanceResult,
-        QueryGlobalStateResult, SpeculativeExecResult, SpeculativeExecTxnResult,
+        GetPeersResult, GetStateRootHashResult, GetTransactionResult, GetValidatorChangesResult,
+        ListRpcsResult, PutDeployResult, PutTransactionResult, QueryBalanceDetailsResult,
+        QueryBalanceResult, QueryGlobalStateResult, SpeculativeExecResult,
+        SpeculativeExecTxnResult,
     },
     v2_0_0::{
         get_account::{AccountIdentifier, GetAccountParams, GET_ACCOUNT_METHOD},
