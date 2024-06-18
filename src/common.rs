@@ -47,12 +47,13 @@ pub mod node_address {
     const ARG_VALUE_NAME: &str = "HOST:PORT";
     const ARG_DEFAULT: &str = "http://localhost:7777";
     const ARG_HELP: &str = "Hostname or IP and port of node on which HTTP service is running";
+    const ARG_ENV: &str = "CASPER_NODE_ADDRESS";
 
     pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
-            .env("CASPER_NODE_ADDRESS")
+            .env(ARG_ENV)
             .required(false)
             .default_value(ARG_DEFAULT)
             .value_name(ARG_VALUE_NAME)
