@@ -52,6 +52,7 @@ pub mod node_address {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .short(ARG_SHORT)
+            .env("CASPER_NODE_ADDRESS")
             .required(false)
             .default_value(ARG_DEFAULT)
             .value_name(ARG_VALUE_NAME)
