@@ -381,9 +381,18 @@ pub async fn get_balance(
 
 /// Retrieves an [`Account`] at a given [`Block`].
 ///
-/// `public_key` is the public key as a formatted string associated with the `Account`.
-///
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
+///
+/// # Parameters
+/// - `maybe_rpc_id`: The optional RPC ID as a string slice.
+/// - `node_address`: The address of the node as a string slice.
+/// - `verbosity_level`: The verbosity level as a 64-bit unsigned integer.
+/// - `maybe_block_id`: The optional block ID as a string slice.
+/// - `account_identifier`: The account identifier as a string slice.
+///
+/// # Returns
+/// - `Result<SuccessResponse<GetAccountResult>, CliError>`: The result containing either a successful response with the account details or a `CliError`.
+
 pub async fn get_account(
     maybe_rpc_id: &str,
     node_address: &str,
@@ -409,20 +418,28 @@ pub async fn get_account(
 
 /// Retrieves an [`EntityOrAccount`] at a given [`Block`].
 ///
-/// `public_key` is the public key as a formatted string associated with the `Account`.
-///
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
+///
+/// # Parameters
+/// - `maybe_rpc_id`: The optional RPC ID as a string slice.
+/// - `node_address`: The address of the node as a string slice.
+/// - `verbosity_level`: The verbosity level as a 64-bit unsigned integer.
+/// - `maybe_block_id`: The optional block ID as a string slice.
+/// - `entity_identifier`: The entity identifier as a string slice.
+///
+/// # Returns
+/// - `Result<SuccessResponse<GetAddressableEntityResult>, CliError>`: The result containing either a successful response with the entity details or a `CliError`.
 pub async fn get_entity(
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
     maybe_block_id: &str,
-    account_identifier: &str,
+    entity_identifier: &str,
 ) -> Result<SuccessResponse<GetAddressableEntityResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let maybe_block_id = parse::block_identifier(maybe_block_id)?;
-    let entity_identifier = parse::entity_identifier(account_identifier)?;
+    let entity_identifier = parse::entity_identifier(entity_identifier)?;
 
     crate::get_entity(
         rpc_id,
