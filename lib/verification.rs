@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{cmp::min, io, path::Path};
 
 use bytes::{BufMut, Bytes, BytesMut};
 use casper_types::Key;
@@ -17,8 +17,9 @@ use crate::{
     Error, Verbosity,
 };
 
-const MAX_RETRIES: usize = 1200;
-const RETRY_DELAY: Duration = Duration::from_secs(3);
+const MAX_RETRIES: u32 = 10;
+const BASE_DELAY: Duration = Duration::from_secs(3);
+const MAX_DELAY: Duration = Duration::from_secs(300);
 
 static GIT_DIR_NAME: &str = ".git";
 static TARGET_DIR_NAME: &str = "target";
@@ -36,7 +37,7 @@ static TARGET_DIR_NAME: &str = "target";
 ///
 /// The compressed tar archive as a `Bytes` object, or an `std::io::Error` if an error occurs during
 /// the archiving process.
-pub fn build_archive(path: &Path) -> Result<Bytes, std::io::Error> {
+pub fn build_archive(path: &Path) -> Result<Bytes, io::Error> {
     let buffer = BytesMut::new().writer();
     let encoder = GzEncoder::new(buffer, Compression::best());
     let mut archive = TarBuilder::new(encoder);
@@ -67,9 +68,9 @@ pub fn build_archive(path: &Path) -> Result<Bytes, std::io::Error> {
 ///
 /// # Arguments
 ///
-/// * `deploy_hash` - The hash of the deployed contract.
-/// * `public_key` - The public key associated with the contract.
+/// * `key` - The key of the deployed contract.
 /// * `base_url` - The base path of the verification URL.
+/// * `code_archive` - Base64-encoded tar-gzipped archive of the source code.
 /// * `verbosity` - The verbosity level of the verification process.
 ///
 /// # Returns
@@ -156,8 +157,10 @@ async fn wait_for_verification_finished(
     verbosity: Verbosity,
 ) {
     let mut retries = MAX_RETRIES;
+    let mut delay = BASE_DELAY;
+
     while retries != 0 {
-        sleep(RETRY_DELAY).await;
+        sleep(delay).await;
 
         match get_verification_status(base_url, http_client, key).await {
             Ok(status) => {
@@ -175,6 +178,7 @@ async fn wait_for_verification_finished(
         };
 
         retries -= 1;
+        delay = min(delay * 2, MAX_DELAY);
     }
 }
 
