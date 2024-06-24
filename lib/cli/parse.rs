@@ -1616,7 +1616,7 @@ mod tests {
         #[test]
         fn should_parse_fixed_pricing_mode_identifier() {
             let pricing_mode_str = "fixed";
-            let payment_amount = "10";
+            let payment_amount = "";
             let gas_price_tolerance = "10";
             let standard_payment = "";
             let parsed = pricing_mode(
@@ -1637,8 +1637,8 @@ mod tests {
         #[test]
         fn should_parse_reserved_pricing_mode() {
             let pricing_mode_str = "reserved";
-            let payment_amount = "10";
-            let gas_price_tolerance = "10";
+            let payment_amount = "";
+            let gas_price_tolerance = "";
             let standard_payment = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
@@ -1678,10 +1678,28 @@ mod tests {
                 }
             );
         }
+
         #[test]
         fn should_fail_to_parse_invalid_pricing_mode() {
             let pricing_mode_str = "invalid";
             let payment_amount = "10";
+            let standard_payment = "true";
+            let gas_price_tolerance = "10";
+            let parsed = pricing_mode(
+                pricing_mode_str,
+                payment_amount,
+                gas_price_tolerance,
+                standard_payment,
+                None,
+            );
+            assert!(parsed.is_err());
+            assert!(matches!(parsed, Err(CliError::InvalidArgument { .. })));
+        }
+
+        #[test]
+        fn should_fail_to_parse_classic_without_amount() {
+            let pricing_mode_str = "classic";
+            let payment_amount = "";
             let standard_payment = "true";
             let gas_price_tolerance = "10";
             let parsed = pricing_mode(
