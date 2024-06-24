@@ -13,12 +13,6 @@ pub fn create_transaction(
     allow_unsigned_transaction: bool,
 ) -> Result<TransactionV1, CliError> {
     let chain_name = transaction_params.chain_name.to_string();
-    if transaction_params.payment_amount.is_empty() {
-        return Err(CliError::InvalidArgument {
-            context: "create_transaction (payment_amount)",
-            error: "payment_amount is required to be non empty".to_string(),
-        });
-    }
 
     let maybe_secret_key = if allow_unsigned_transaction && transaction_params.secret_key.is_empty()
     {
