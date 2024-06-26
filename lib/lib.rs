@@ -51,12 +51,11 @@ mod verbosity;
 mod verification;
 mod verification_types;
 
-use std::env::current_dir;
+use std::{env::current_dir, path::Path};
 #[cfg(feature = "std-fs-io")]
 use std::{
     fs,
     io::{Cursor, Read, Write},
-    path::Path,
 };
 
 #[cfg(feature = "std-fs-io")]
