@@ -21,6 +21,7 @@ doc = false
 
 [features]
 default = ["async-trait", "clap", "clap_complete", "tokio", "std-fs-io"]
+tokio = ["tokio/macros", "tokio/rt", "tokio/sync"]
 std-fs-io = ["casper-types/std-fs-io"]
 
 [dependencies]
@@ -52,7 +53,7 @@ serde-map-to-array = "1.1.1"
 serde_json = { version = "1", features = ["preserve_order"] }
 tar = { version = "0.4.41", default-features = false }
 thiserror = "1.0.50"
-tokio = { version = "1.23.0", features = [
+tokio = { version = "1.38.1", features = [
   "macros",
   "net",
   "rt-multi-thread",

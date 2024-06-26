@@ -47,14 +47,13 @@ mod verbosity;
 mod verification;
 mod verification_types;
 
-use std::env::current_dir;
+use std::{env::current_dir, path::Path};
+#[cfg(feature = "std-fs-io")]
 use std::{
     fs,
     io::{Cursor, Read, Write},
-    path::Path,
 };
 
-use openapi::models::VerificationDetails;
 #[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
