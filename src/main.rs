@@ -56,7 +56,7 @@ const APP_NAME: &str = "Casper client";
 
 static VERSION: Lazy<String> =
     Lazy::new(
-        || match option_env!("GIT_SHA_SHORT").map(|sha| sha.to_lowercase()) {
+        || match option_env!("GIT_SHA_SHORT").map(str::to_lowercase) {
             None => crate_version!().to_string(),
             Some(git_sha_short) => {
                 if git_sha_short.to_lowercase() == "unknown" {
@@ -193,7 +193,7 @@ async fn main() {
 
     let mut verbosity_level = common::verbose::get(matches);
     if verbosity_level == 0 {
-        verbosity_level += 1
+        verbosity_level += 1;
     }
 
     match result {
