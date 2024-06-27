@@ -87,16 +87,22 @@ pub async fn send_verification_request(
         code_archive,
     };
 
-    let mut headers = HeaderMap::new();
-    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    fn make_client() -> reqwest::Result<Client> {
+        let mut headers = HeaderMap::new();
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-    let Ok(http_client) = ClientBuilder::new()
-        .default_headers(headers)
+        let builder = ClientBuilder::new()
+            .default_headers(headers)
+            .user_agent("casper-client-rs");
+
         // https://github.com/hyperium/hyper/issues/2136
-        .pool_max_idle_per_host(0)
-        .user_agent("casper-client-rs")
-        .build()
-    else {
+        #[cfg(not(target_arch = "wasm32"))]
+        let builder = builder.pool_max_idle_per_host(0);
+
+        builder.build()
+    }
+
+    let Ok(http_client) = make_client() else {
         eprintln!("Failed to build HTTP client");
         return Err(Error::FailedToConstructHttpClient);
     };

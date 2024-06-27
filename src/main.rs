@@ -234,7 +234,7 @@ async fn main() {
 
     let mut verbosity_level = common::verbose::get(matches);
     if verbosity_level == 0 {
-        verbosity_level += 1
+        verbosity_level += 1;
     }
 
     match result {
