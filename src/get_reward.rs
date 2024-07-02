@@ -31,7 +31,6 @@ mod key {
     pub(super) fn arg(arg_name: &'static str, arg_help: &'static str, display_order: usize) -> Arg {
         Arg::new(arg_name)
             .long(arg_name)
-            .required(false)
             .value_name(ARG_VALUE_NAME)
             .help(arg_help)
             .display_order(display_order)
@@ -76,7 +75,7 @@ mod validator {
         "A public key of the validator, formatted as a hex-encoded string or a path to a file";
 
     pub(super) fn arg() -> Arg {
-        key::arg(ARG_NAME, ARG_HELP, DisplayOrder::Validator as usize)
+        key::arg(ARG_NAME, ARG_HELP, DisplayOrder::Validator as usize).required(true)
     }
 
     pub(super) fn get(matches: &ArgMatches) -> Result<String, CliError> {
@@ -92,7 +91,7 @@ mod delegator {
         "A public key of the delegator, formatted as a hex-encoded string or a path to a file";
 
     pub(super) fn arg() -> Arg {
-        key::arg(ARG_NAME, ARG_HELP, DisplayOrder::Delegator as usize)
+        key::arg(ARG_NAME, ARG_HELP, DisplayOrder::Delegator as usize).required(false)
     }
 
     pub(super) fn get(matches: &ArgMatches) -> Result<String, CliError> {
