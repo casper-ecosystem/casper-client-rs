@@ -410,3 +410,36 @@ pub(super) mod purse_uref {
         matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
+
+/// Handles providing the arg for and retrieval of the era ID.
+pub mod era_identifier {
+    use super::*;
+
+    pub(crate) const ARG_NAME: &str = "era-identifier";
+    const ARG_SHORT: char = 'e';
+    const ARG_VALUE_NAME: &str = "INTEGER";
+    const ARG_HELP: &str = "Integer identifying the era";
+    const ARG_HELP_WITH_EXTRA_INFO: &str =
+        "Integer identifying the era. If not given, the last completed era will be used";
+
+    pub(crate) fn arg(order: usize, extra_help_string: bool) -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .short(ARG_SHORT)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .help(if extra_help_string {
+                ARG_HELP_WITH_EXTRA_INFO
+            } else {
+                ARG_HELP
+            })
+            .display_order(order)
+    }
+
+    pub(crate) fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}

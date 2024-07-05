@@ -14,8 +14,8 @@ use casper_types::{
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
 use crate::{
-    AccountIdentifier, BlockIdentifier, EntityIdentifier, GlobalStateIdentifier, JsonRpcId,
-    OutputKind, PurseIdentifier, Verbosity,
+    rpcs::EraIdentifier, AccountIdentifier, BlockIdentifier, EntityIdentifier,
+    GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -793,6 +793,33 @@ pub(super) fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentif
         }
     })?;
     Ok(EntityIdentifier::PublicKey(public_key))
+}
+
+/// `era_identifier` must be an integer representing the era ID.
+pub(super) fn era_identifier(era_identifier: &str) -> Result<Option<EraIdentifier>, CliError> {
+    if era_identifier.is_empty() {
+        return Ok(None);
+    }
+    let era_id = era_identifier
+        .parse()
+        .map_err(|error| CliError::FailedToParseInt {
+            context: "era_identifier",
+            error,
+        })?;
+    Ok(Some(EraIdentifier::Era(era_id)))
+}
+
+/// `public_key` must be a public key formatted as a hex-encoded string,
+pub(super) fn public_key(public_key: &str) -> Result<Option<PublicKey>, CliError> {
+    if public_key.is_empty() {
+        return Ok(None);
+    }
+    let key =
+        PublicKey::from_hex(public_key).map_err(|error| CliError::FailedToParsePublicKey {
+            context: "public_key".to_owned(),
+            error,
+        })?;
+    Ok(Some(key))
 }
 
 pub(super) fn pricing_mode(
@@ -1605,6 +1632,50 @@ mod tests {
             //This is the public key from above with several characters removed
             let public_key = "01567f0f205e83291312cd82988d66143d376cee7de904dd26054bbb69b3c80";
             let parsed = entity_identifier(public_key);
+            assert!(parsed.is_err());
+        }
+    }
+
+    mod era_identifier {
+        use casper_types::EraId;
+
+        use super::*;
+
+        #[test]
+        pub fn should_parse_valid_era_id() {
+            let era_id = "123";
+            let parsed = era_identifier(era_id).unwrap();
+            assert!(
+                matches!(parsed, Some(EraIdentifier::Era(id)) if id == EraId::new(123)),
+                "{:?}",
+                parsed
+            );
+        }
+
+        #[test]
+        pub fn should_fail_to_parse_invalid_era_id() {
+            let era_id = "invalid";
+            let parsed = era_identifier(era_id);
+            assert!(parsed.is_err());
+        }
+    }
+
+    mod public_key {
+        use super::*;
+
+        #[test]
+        pub fn should_parse_valid_public_key() {
+            let str = "01567f0f205e83291312cd82988d66143d376cee7de904dd2605d3f4bbb69b3c80";
+            let parsed = public_key(str).unwrap();
+            let expected = PublicKey::from_hex(str).unwrap();
+            assert_eq!(parsed, Some(expected));
+        }
+
+        #[test]
+        pub fn should_fail_to_parse_invalid_public_key() {
+            //This is the public key from above with several characters removed
+            let str = "01567f0f205e83291312cd82988d66143d376cee7de904dd26054bbb69b3c80";
+            let parsed = public_key(str);
             assert!(parsed.is_err());
         }
     }
