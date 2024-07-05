@@ -33,6 +33,7 @@ use get_reward::GetReward;
 use once_cell::sync::Lazy;
 
 use casper_client::{cli, rpcs::results::GetChainspecResult, SuccessResponse};
+use query_balance_details::QueryBalanceDetails;
 
 use crate::transaction::GetTransaction;
 use account_address::AccountAddress;
@@ -97,6 +98,7 @@ enum DisplayOrder {
     GetEraInfo,
     QueryGlobalState,
     QueryBalance,
+    QueryBalanceDetails,
     GetDictionaryItem,
     GetAccount,
     GetEntity,
@@ -149,6 +151,9 @@ fn cli() -> Command {
             DisplayOrder::QueryGlobalState as usize,
         ))
         .subcommand(QueryBalance::build(DisplayOrder::QueryBalance as usize))
+        .subcommand(QueryBalanceDetails::build(
+            DisplayOrder::QueryBalanceDetails as usize,
+        ))
         .subcommand(GetDictionaryItem::build(
             DisplayOrder::GetDictionaryItem as usize,
         ))
@@ -201,6 +206,7 @@ async fn main() {
         GetEraInfo::NAME => GetEraInfo::run(matches).await,
         QueryGlobalState::NAME => QueryGlobalState::run(matches).await,
         QueryBalance::NAME => QueryBalance::run(matches).await,
+        QueryBalanceDetails::NAME => QueryBalanceDetails::run(matches).await,
         GetDictionaryItem::NAME => GetDictionaryItem::run(matches).await,
         GetAccount::NAME => GetAccount::run(matches).await,
         GetEntity::NAME => GetEntity::run(matches).await,
