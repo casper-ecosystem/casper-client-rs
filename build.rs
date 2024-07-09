@@ -7,12 +7,12 @@ fn main() {
     match get_git_commit_hash() {
         // If the git commit hash is retrieved successfully, set the environment variable
         Ok(git_hash) => {
-            println!("cargo:rustc-env={}={}", GIT_HASH_ENV_VAR, git_hash);
+            println!("cargo:rustc-env={GIT_HASH_ENV_VAR}={git_hash}");
         }
         // If there's an error retrieving the git commit hash, print a note and set the environment variable to "unknown"
         Err(e) => {
             eprintln!("Note: Failed to get git commit hash: {}", e);
-            println!("cargo:rustc-env={}={}", GIT_HASH_ENV_VAR, "unknown");
+            println!("cargo:rustc-env={GIT_HASH_ENV_VAR}=unknown");
         }
     }
 }
