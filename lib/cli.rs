@@ -50,7 +50,7 @@ use crate::{
             GetAccountResult, GetAddressableEntityResult, GetAuctionInfoResult, GetBalanceResult,
             GetBlockResult, GetBlockTransfersResult, GetChainspecResult, GetDeployResult,
             GetDictionaryItemResult, GetEraInfoResult, GetEraSummaryResult, GetNodeStatusResult,
-            GetPeersResult, GetStateRootHashResult, GetTransactionResult,
+            GetPeersResult, GetRewardResult, GetStateRootHashResult, GetTransactionResult,
             GetValidatorChangesResult, ListRpcsResult, QueryBalanceDetailsResult,
             QueryBalanceResult, QueryGlobalStateResult,
         },
@@ -447,6 +447,40 @@ pub async fn get_entity(
         verbosity,
         maybe_block_id,
         entity_identifier,
+    )
+    .await
+    .map_err(CliError::from)
+}
+
+/// Retrieves an [`GetRewardResult`] at a given era.
+///
+/// `validator` is the public key as a formatted string associated with the validator.
+///
+/// `maybe_delegator` is the public key as a formatted string associated with the delegator.
+///
+/// For details of other parameters, see [the module docs](crate::cli#common-parameters).
+pub async fn get_reward(
+    maybe_rpc_id: &str,
+    node_address: &str,
+    verbosity_level: u64,
+    maybe_era_id: &str,
+    validator: &str,
+    maybe_delegator: &str,
+) -> Result<SuccessResponse<GetRewardResult>, CliError> {
+    let rpc_id = parse::rpc_id(maybe_rpc_id);
+    let verbosity = parse::verbosity(verbosity_level);
+    let era_identifier = parse::era_identifier(maybe_era_id)?;
+    let validator =
+        parse::public_key(validator)?.ok_or(CliError::FailedToParseValidatorPublicKey)?;
+    let delegator = parse::public_key(maybe_delegator)?;
+
+    crate::get_reward(
+        rpc_id,
+        node_address,
+        verbosity,
+        era_identifier,
+        validator,
+        delegator,
     )
     .await
     .map_err(CliError::from)

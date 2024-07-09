@@ -15,6 +15,7 @@ pub use super::v2_0_0::get_node_status::{
     AvailableBlockRange, GetNodeStatusResult, MinimalBlockInfo, NextUpgrade,
 };
 pub use super::v2_0_0::get_peers::{GetPeersResult, PeerEntry};
+pub use super::v2_0_0::get_reward::GetRewardResult;
 pub use super::v2_0_0::get_state_root_hash::GetStateRootHashResult;
 pub use super::v2_0_0::get_transaction::GetTransactionResult;
 pub use super::v2_0_0::get_validator_changes::{

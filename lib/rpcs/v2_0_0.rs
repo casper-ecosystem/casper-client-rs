@@ -5,6 +5,7 @@ pub(crate) mod get_deploy;
 pub(crate) mod get_dictionary_item;
 pub(crate) mod get_entity;
 pub(crate) mod get_node_status;
+pub(crate) mod get_reward;
 pub(crate) mod get_transaction;
 pub(crate) mod put_transaction;
 pub(crate) mod query_balance;

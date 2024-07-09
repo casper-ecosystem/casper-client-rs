@@ -2,7 +2,7 @@
 
 pub mod help;
 
-use std::{fmt::Debug, mem, str::FromStr};
+use std::{fmt::Debug, str::FromStr};
 
 use num_traits::Num;
 
@@ -87,7 +87,7 @@ fn parse_int<T: CLTyped + ToBytes + Debug + Num>(
     value: &str,
 ) -> Result<CLValue, CliError> {
     let parse = || {
-        let bit_width = mem::size_of::<T>() * 8;
+        let bit_width = size_of::<T>() * 8;
         if value.is_empty() {
             return Err(CliError::InvalidCLValue(format!(
                 "can't parse '' as u{}",

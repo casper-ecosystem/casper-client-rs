@@ -187,6 +187,10 @@ pub enum CliError {
     /// Failed to parse transaction category.
     #[error("Failed to parse a transaction category")]
     FailedToParseTransactionCategory,
+
+    /// Failed to parse a validator public key.
+    #[error("Failed to parse a validator public key")]
+    FailedToParseValidatorPublicKey,
 }
 
 impl From<CLValueError> for CliError {

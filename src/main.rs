@@ -14,6 +14,7 @@ mod get_era_info;
 mod get_era_summary;
 mod get_node_status;
 mod get_peers;
+mod get_reward;
 mod get_state_root_hash;
 mod get_validator_changes;
 mod keygen;
@@ -28,9 +29,11 @@ use std::process;
 use clap::{crate_version, Command};
 use get_balance::GetBalance;
 use get_entity::GetEntity;
+use get_reward::GetReward;
 use once_cell::sync::Lazy;
 
 use casper_client::{cli, rpcs::results::GetChainspecResult, SuccessResponse};
+use query_balance_details::QueryBalanceDetails;
 
 use crate::transaction::GetTransaction;
 use account_address::AccountAddress;
@@ -95,9 +98,11 @@ enum DisplayOrder {
     GetEraInfo,
     QueryGlobalState,
     QueryBalance,
+    QueryBalanceDetails,
     GetDictionaryItem,
     GetAccount,
     GetEntity,
+    GetReward,
     GetAuctionInfo,
     GetValidatorChanges,
     GetPeers,
@@ -146,11 +151,15 @@ fn cli() -> Command {
             DisplayOrder::QueryGlobalState as usize,
         ))
         .subcommand(QueryBalance::build(DisplayOrder::QueryBalance as usize))
+        .subcommand(QueryBalanceDetails::build(
+            DisplayOrder::QueryBalanceDetails as usize,
+        ))
         .subcommand(GetDictionaryItem::build(
             DisplayOrder::GetDictionaryItem as usize,
         ))
         .subcommand(GetAccount::build(DisplayOrder::GetAccount as usize))
         .subcommand(GetEntity::build(DisplayOrder::GetEntity as usize))
+        .subcommand(GetReward::build(DisplayOrder::GetReward as usize))
         .subcommand(GetAuctionInfo::build(DisplayOrder::GetAuctionInfo as usize))
         .subcommand(GetValidatorChanges::build(
             DisplayOrder::GetValidatorChanges as usize,
@@ -197,9 +206,11 @@ async fn main() {
         GetEraInfo::NAME => GetEraInfo::run(matches).await,
         QueryGlobalState::NAME => QueryGlobalState::run(matches).await,
         QueryBalance::NAME => QueryBalance::run(matches).await,
+        QueryBalanceDetails::NAME => QueryBalanceDetails::run(matches).await,
         GetDictionaryItem::NAME => GetDictionaryItem::run(matches).await,
         GetAccount::NAME => GetAccount::run(matches).await,
         GetEntity::NAME => GetEntity::run(matches).await,
+        GetReward::NAME => GetReward::run(matches).await,
         GetAuctionInfo::NAME => GetAuctionInfo::run(matches).await,
         GetValidatorChanges::NAME => GetValidatorChanges::run(matches).await,
         GetPeers::NAME => GetPeers::run(matches).await,
