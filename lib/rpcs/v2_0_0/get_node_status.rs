@@ -17,6 +17,8 @@ pub use crate::rpcs::v1_6_0::get_node_status::{
 pub struct GetNodeStatusResult {
     /// The RPC API version.
     pub api_version: ProtocolVersion,
+    /// The Casper protocol version.
+    pub protocol_version: ProtocolVersion,
     /// The node ID and network address of each connected peer.
     pub peers: Peers,
     /// The compiled node version.
