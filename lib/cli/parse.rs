@@ -1032,11 +1032,7 @@ mod tests {
         .unwrap_err();
 
         assert!(
-            match actual_error {
-                CliError::ConflictingArguments { ref context, .. } if *context == test_context =>
-                    true,
-                _ => false,
-            },
+            matches!(actual_error, CliError::ConflictingArguments { ref context, .. } if *context == test_context),
             "{:?}",
             actual_error
         );

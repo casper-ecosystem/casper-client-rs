@@ -404,9 +404,9 @@ mod tests {
 
     #[test]
     fn should_insert_valid_i32_arg() {
-        check_insert_valid_arg("x:i32='2147483647'", i32::max_value());
+        check_insert_valid_arg("x:i32='2147483647'", i32::MAX);
         check_insert_valid_arg("x:I32='0'", 0_i32);
-        check_insert_valid_arg("x:i32='-2147483648'", i32::min_value());
+        check_insert_valid_arg("x:i32='-2147483648'", i32::MIN);
         check_insert_valid_arg("x:opt_i32='-1'", Some(-1_i32));
         check_insert_valid_arg::<Option<i32>>("x:OPT_I32=Null", None);
     }
@@ -419,9 +419,9 @@ mod tests {
 
     #[test]
     fn should_insert_valid_i64_arg() {
-        check_insert_valid_arg("x:i64='9223372036854775807'", i64::max_value());
+        check_insert_valid_arg("x:i64='9223372036854775807'", i64::MAX);
         check_insert_valid_arg("x:I64='0'", 0_i64);
-        check_insert_valid_arg("x:i64='-9223372036854775808'", i64::min_value());
+        check_insert_valid_arg("x:i64='-9223372036854775808'", i64::MIN);
         check_insert_valid_arg("x:opt_i64='-1'", Some(-1_i64));
         check_insert_valid_arg::<Option<i64>>("x:OPT_I64=NULL", None);
     }
@@ -435,7 +435,7 @@ mod tests {
     #[test]
     fn should_insert_valid_u8_arg() {
         check_insert_valid_arg("x:u8='0'", 0_u8);
-        check_insert_valid_arg("x:U8='255'", u8::max_value());
+        check_insert_valid_arg("x:U8='255'", u8::MAX);
         check_insert_valid_arg("x:opt_u8='1'", Some(1_u8));
         check_insert_valid_arg::<Option<u8>>("x:OPT_U8=null", None);
     }
@@ -449,7 +449,7 @@ mod tests {
     #[test]
     fn should_insert_valid_u32_arg() {
         check_insert_valid_arg("x:u32='0'", 0_u32);
-        check_insert_valid_arg("x:U32='4294967295'", u32::max_value());
+        check_insert_valid_arg("x:U32='4294967295'", u32::MAX);
         check_insert_valid_arg("x:opt_u32='1'", Some(1_u32));
         check_insert_valid_arg::<Option<u32>>("x:OPT_U32=null", None);
     }
@@ -463,7 +463,7 @@ mod tests {
     #[test]
     fn should_insert_valid_u64_arg() {
         check_insert_valid_arg("x:u64='0'", 0_u64);
-        check_insert_valid_arg("x:U64='18446744073709551615'", u64::max_value());
+        check_insert_valid_arg("x:U64='18446744073709551615'", u64::MAX);
         check_insert_valid_arg("x:opt_u64='1'", Some(1_u64));
         check_insert_valid_arg::<Option<u64>>("x:OPT_U64=null", None);
     }
