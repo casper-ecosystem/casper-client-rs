@@ -41,18 +41,18 @@ pub enum EntityOrAccount {
 
 impl EntityOrAccount {
     /// Returns the addressable entity if present.
-    pub fn addressable_entity(&self) -> Option<AddressableEntity> {
+    pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
         if let EntityOrAccount::AddressableEntity(addressable_entity) = &self {
-            Some(addressable_entity.clone())
+            Some(addressable_entity)
         } else {
             None
         }
     }
 
     /// Returns the legacy account if present.
-    pub fn legacy_account(&self) -> Option<Account> {
+    pub fn legacy_account(&self) -> Option<&Account> {
         if let EntityOrAccount::LegacyAccount(account) = &self {
-            Some(account.clone())
+            Some(account)
         } else {
             None
         }

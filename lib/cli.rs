@@ -391,7 +391,7 @@ pub async fn get_balance(
 /// - `account_identifier`: The account identifier as a string slice.
 ///
 /// # Returns
-/// - `Result<SuccessResponse<GetAccountResult>, CliError>`: The result containing either a successful response with the account details or a `CliError`.
+/// The result containing either a successful response with the account details or a `CliError`.
 
 pub async fn get_account(
     maybe_rpc_id: &str,
@@ -428,7 +428,7 @@ pub async fn get_account(
 /// - `entity_identifier`: The entity identifier as a string slice.
 ///
 /// # Returns
-/// - `Result<SuccessResponse<GetAddressableEntityResult>, CliError>`: The result containing either a successful response with the entity details or a `CliError`.
+/// The result containing either a successful response with the entity details or a `CliError`.
 pub async fn get_entity(
     maybe_rpc_id: &str,
     node_address: &str,

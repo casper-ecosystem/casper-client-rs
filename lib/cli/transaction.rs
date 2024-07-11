@@ -111,7 +111,7 @@ pub fn make_transaction(
     #[cfg(feature = "std-fs-io")]
     {
         let output = parse::output_kind(transaction_params.output_path, force);
-        let _ = crate::output_transaction(output, &transaction).map_err(CliError::from);
+        crate::output_transaction(output, &transaction).map_err(CliError::from)?;
     }
     Ok(transaction)
 }

@@ -73,7 +73,7 @@ pub fn make_deploy(
     #[cfg(feature = "std-fs-io")]
     {
         let output = parse::output_kind(maybe_output_path, force);
-        let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+        crate::output_deploy(output, &deploy).map_err(CliError::from)?;
     }
     Ok(deploy)
 }
@@ -244,7 +244,7 @@ pub fn make_transfer(
     #[cfg(feature = "std-fs-io")]
     {
         let output = parse::output_kind(maybe_output_path, force);
-        let _ = crate::output_deploy(output, &deploy).map_err(CliError::from);
+        crate::output_deploy(output, &deploy).map_err(CliError::from)?;
     }
     Ok(deploy)
 }
