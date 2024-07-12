@@ -2,7 +2,7 @@
 
 pub mod help;
 
-use std::{fmt::Debug, str::FromStr};
+use std::{fmt::Debug, mem::size_of, str::FromStr};
 
 use num_traits::Num;
 
