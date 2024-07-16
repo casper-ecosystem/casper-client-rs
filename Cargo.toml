@@ -30,7 +30,7 @@ async-trait = { version = "0.1.74", optional = true }
 base16 = "0.2.1"
 casper-hashing = "3.0.0"
 casper-types = { version = "4.0.1", features = ["std"] }
-clap = { version = "~4.4", optional = true, features = ["cargo", "deprecated", "wrap_help"] }
+clap = { version = "~4.4", optional = true, features = ["cargo", "deprecated", "wrap_help", "env"] }
 clap_complete = { version = "<4.5.0", optional = true }
 hex-buffer-serde = "0.4.0"
 humantime = "2.1.0"
