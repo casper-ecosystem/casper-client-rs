@@ -172,6 +172,14 @@ pub enum Error {
     /// Failed to validate response.
     #[error("invalid response: {0}")]
     ResponseFailedValidation(#[from] ValidateResponseError),
+
+    /// Failed to verify contract.
+    #[error("contract verification failed")]
+    ContractVerificationFailed,
+
+    /// Failed to construct HTTP client.
+    #[error("failed to construct HTTP client")]
+    FailedToConstructHttpClient,
 }
 
 impl From<ToBytesError> for Error {

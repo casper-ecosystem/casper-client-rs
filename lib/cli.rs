@@ -53,6 +53,7 @@ use crate::{
         DictionaryItemIdentifier,
     },
     types::Deploy,
+    verification_types::VerificationDetails,
     SuccessResponse,
 };
 #[cfg(doc)]
@@ -707,4 +708,23 @@ pub async fn get_era_info(
     crate::get_era_info(rpc_id, node_address, verbosity, maybe_block_id)
         .await
         .map_err(CliError::from)
+}
+
+/// Verifies the smart contract code againt the one deployed at address.
+pub async fn verify_contract(
+    hash_str: &str,
+    verification_url_base_path: &str,
+    verification_project_path: Option<&str>,
+    verbosity_level: u64,
+) -> Result<VerificationDetails, CliError> {
+    let key = parse::key_for_query(hash_str)?;
+    let verbosity = parse::verbosity(verbosity_level);
+    crate::verify_contract(
+        key,
+        verification_url_base_path,
+        verification_project_path,
+        verbosity,
+    )
+    .await
+    .map_err(CliError::from)
 }

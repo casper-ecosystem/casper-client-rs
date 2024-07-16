@@ -374,3 +374,27 @@ pub(super) mod purse_uref {
         matches.get_one::<String>(ARG_NAME).map(String::as_str)
     }
 }
+
+/// Handles providing the arg for and retrieval of the deploy hash.
+pub mod deploy_hash {
+    use super::*;
+
+    const ARG_NAME: &str = "deploy-hash";
+    const ARG_VALUE_NAME: &str = "HEX STRING";
+    const ARG_HELP: &str = "Hex-encoded deploy hash";
+
+    pub fn arg(display_order: usize) -> Arg {
+        Arg::new(ARG_NAME)
+            .required(true)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(display_order)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
+    }
+}

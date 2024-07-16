@@ -19,6 +19,7 @@ mod keygen;
 mod list_rpcs;
 mod query_balance;
 mod query_global_state;
+mod verify_contract;
 
 use std::process;
 
@@ -49,12 +50,13 @@ use keygen::Keygen;
 use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
+use verify_contract::VerifyContract;
 
 const APP_NAME: &str = "Casper client";
 
 static VERSION: Lazy<String> =
     Lazy::new(
-        || match option_env!("GIT_SHA_SHORT").map(|sha| sha.to_lowercase()) {
+        || match option_env!("GIT_SHA_SHORT").map(str::to_lowercase) {
             None => crate_version!().to_string(),
             Some(git_sha_short) => {
                 if git_sha_short.to_lowercase() == "unknown" {
@@ -95,6 +97,7 @@ enum DisplayOrder {
     Keygen,
     AccountAddress,
     GenerateCompletion,
+    VerifyContract,
 }
 
 fn cli() -> Command {
@@ -140,6 +143,7 @@ fn cli() -> Command {
         .subcommand(GenerateCompletion::build(
             DisplayOrder::GenerateCompletion as usize,
         ))
+        .subcommand(VerifyContract::build(DisplayOrder::VerifyContract as usize))
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -179,6 +183,7 @@ async fn main() {
         Keygen::NAME => Keygen::run(matches).await,
         AccountAddress::NAME => AccountAddress::run(matches).await,
         GenerateCompletion::NAME => GenerateCompletion::run(matches).await,
+        VerifyContract::NAME => VerifyContract::run(matches).await,
         _ => {
             let _ = cli().print_long_help();
             println!();
@@ -188,7 +193,7 @@ async fn main() {
 
     let mut verbosity_level = common::verbose::get(matches);
     if verbosity_level == 0 {
-        verbosity_level += 1
+        verbosity_level += 1;
     }
 
     match result {

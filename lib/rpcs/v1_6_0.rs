@@ -70,9 +70,7 @@ pub(crate) mod get_block_transfers {
 }
 
 pub(crate) mod get_dictionary_item {
-    pub use crate::rpcs::v1_5_0::get_dictionary_item::{
-        DictionaryItemIdentifier, GetDictionaryItemResult,
-    };
+    pub use crate::rpcs::v1_5_0::get_dictionary_item::GetDictionaryItemResult;
     pub(crate) use crate::rpcs::v1_5_0::get_dictionary_item::{
         GetDictionaryItemParams, GET_DICTIONARY_ITEM_METHOD,
     };

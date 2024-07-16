@@ -18,30 +18,6 @@ enum DisplayOrder {
     FinalizedApprovals,
 }
 
-/// Handles providing the arg for and retrieval of the deploy hash.
-mod deploy_hash {
-    use super::*;
-
-    const ARG_NAME: &str = "deploy-hash";
-    const ARG_VALUE_NAME: &str = "HEX STRING";
-    const ARG_HELP: &str = "Hex-encoded deploy hash";
-
-    pub(super) fn arg() -> Arg {
-        Arg::new(ARG_NAME)
-            .required(true)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
-            .display_order(DisplayOrder::DeployHash as usize)
-    }
-
-    pub(super) fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
-    }
-}
-
 /// Handles providing the arg for the retrieval of the finalized approvals.
 mod finalized_approvals {
     use super::*;
@@ -85,7 +61,7 @@ impl ClientCommand for GetDeploy {
                 DisplayOrder::NodeAddress as usize,
             ))
             .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
-            .arg(deploy_hash::arg())
+            .arg(common::deploy_hash::arg(DisplayOrder::DeployHash as usize))
             .arg(finalized_approvals::arg())
     }
 
@@ -93,7 +69,7 @@ impl ClientCommand for GetDeploy {
         let maybe_rpc_id = common::rpc_id::get(matches);
         let node_address = common::node_address::get(matches);
         let verbosity_level = common::verbose::get(matches);
-        let deploy_hash = deploy_hash::get(matches);
+        let deploy_hash = common::deploy_hash::get(matches);
         let finalized_approvals = finalized_approvals::get(matches);
 
         casper_client::cli::get_deploy(

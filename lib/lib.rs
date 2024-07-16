@@ -48,12 +48,14 @@ mod transfer_target;
 pub mod types;
 mod validation;
 mod verbosity;
+mod verification;
+mod verification_types;
 
+use std::{env::current_dir, path::Path};
 #[cfg(feature = "std-fs-io")]
 use std::{
     fs,
     io::{Cursor, Read, Write},
-    path::Path,
 };
 
 #[cfg(feature = "std-fs-io")]
@@ -111,6 +113,10 @@ use types::{Account, Block, StoredValue};
 use types::{Deploy, DeployHash};
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
+pub use verification::{build_archive, send_verification_request};
+use verification_types::VerificationDetails;
+
+use base64::{engine::general_purpose::STANDARD, Engine};
 
 /// Puts a [`Deploy`] to the network for execution.
 ///
@@ -553,4 +559,49 @@ pub async fn get_era_info(
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(GET_ERA_INFO_METHOD, params)
         .await
+}
+
+/// Verifies the smart contract code againt the one deployed at deploy hash.
+pub async fn verify_contract(
+    key: Key,
+    verification_url_base_path: &str,
+    project_path: Option<&str>,
+    verbosity: Verbosity,
+) -> Result<VerificationDetails, Error> {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+        println!("Key: {key}");
+        println!("Verification service base path: {verification_url_base_path}",);
+    }
+
+    let project_path = match project_path {
+        Some(path) => Path::new(path).to_path_buf(),
+        None => match current_dir() {
+            Ok(path) => path,
+            Err(error) => {
+                eprintln!("Cannot get current directory: {error}");
+                return Err(Error::ContractVerificationFailed);
+            }
+        },
+    };
+
+    let archive = match build_archive(&project_path) {
+        Ok(archive) => {
+            if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+                println!("Created project archive (size: {})", archive.len());
+            }
+            archive
+        }
+        Err(error) => {
+            eprintln!("Cannot create project archive: {error}");
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
+
+    send_verification_request(
+        key,
+        verification_url_base_path,
+        STANDARD.encode(&archive),
+        verbosity,
+    )
+    .await
 }
