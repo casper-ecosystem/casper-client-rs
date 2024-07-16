@@ -166,24 +166,19 @@ pub async fn send_transaction_file(
 ///
 /// `rpc_id_str` is the RPC ID to use for this request. node_address is the address of the node to send the request to.
 /// verbosity_level is the level of verbosity to use when outputting the response.
-/// `maybe_speculative_exec_height_identifier` is the block identifier to use for this request.
 ///  the input path is the path to the file containing the transaction to send.
 pub async fn speculative_send_transaction_file(
     rpc_id_str: &str,
     node_address: &str,
     verbosity_level: u64,
     input_path: &str,
-    maybe_speculative_exec_height_identifier: &str,
 ) -> Result<SuccessResponse<SpeculativeExecTxnResult>, CliError> {
     let rpc_id = parse::rpc_id(rpc_id_str);
     let verbosity_level = parse::verbosity(verbosity_level);
     let transaction = read_transaction_file(input_path).unwrap();
-    let maybe_speculative_exec_height_identifier =
-        parse::block_identifier(maybe_speculative_exec_height_identifier)?;
     speculative_exec_txn(
         rpc_id,
         node_address,
-        maybe_speculative_exec_height_identifier,
         verbosity_level,
         Transaction::V1(transaction),
     )

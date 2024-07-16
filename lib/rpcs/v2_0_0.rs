@@ -10,6 +10,7 @@ pub(crate) mod get_transaction;
 pub(crate) mod put_transaction;
 pub(crate) mod query_balance;
 pub(crate) mod query_balance_details;
+pub(crate) mod speculative_exec;
 pub(crate) mod speculative_exec_transaction;
 
 // The following RPCs are all unchanged from v1.6.0, so we just re-export them.
@@ -94,12 +95,5 @@ pub(crate) mod query_global_state {
     };
     pub(crate) use crate::rpcs::v1_6_0::query_global_state::{
         QueryGlobalStateParams, QUERY_GLOBAL_STATE_METHOD,
-    };
-}
-
-pub(crate) mod speculative_exec {
-    pub use crate::rpcs::v1_6_0::speculative_exec::SpeculativeExecResult;
-    pub(crate) use crate::rpcs::v1_6_0::speculative_exec::{
-        SpeculativeExecParams, SPECULATIVE_EXEC_METHOD,
     };
 }

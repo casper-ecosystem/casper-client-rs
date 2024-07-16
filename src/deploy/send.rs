@@ -29,15 +29,14 @@ impl ClientCommand for SendDeploy {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        let maybe_speculative_exec = creation_common::speculative_exec::get(matches);
+        let is_speculative_exec = creation_common::speculative_exec::get(matches);
         let maybe_rpc_id = common::rpc_id::get(matches);
         let node_address = common::node_address::get(matches);
         let verbosity_level = common::verbose::get(matches);
         let input_path = creation_common::input::get(matches);
 
-        if let Some(speculative_exec) = maybe_speculative_exec {
+        if is_speculative_exec {
             casper_client::cli::speculative_send_deploy_file(
-                speculative_exec,
                 maybe_rpc_id,
                 node_address,
                 verbosity_level,

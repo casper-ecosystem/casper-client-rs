@@ -35,7 +35,7 @@ impl ClientCommand for PutDeploy {
         let verbosity_level = common::verbose::get(matches);
 
         let secret_key = common::secret_key::get(matches).unwrap_or_default();
-        let maybe_speculative_exec = creation_common::speculative_exec::get(matches);
+        let is_speculative_exec = creation_common::speculative_exec::get(matches);
         let timestamp = creation_common::timestamp::get(matches);
         let ttl = creation_common::ttl::get(matches);
         let chain_name = creation_common::chain_name::get(matches);
@@ -44,9 +44,8 @@ impl ClientCommand for PutDeploy {
         let session_str_params = creation_common::session_str_params(matches);
         let payment_str_params = creation_common::payment_str_params(matches);
 
-        if let Some(speculative_exec) = maybe_speculative_exec {
+        if is_speculative_exec {
             casper_client::cli::speculative_put_deploy(
-                speculative_exec,
                 maybe_rpc_id,
                 node_address,
                 verbosity_level,

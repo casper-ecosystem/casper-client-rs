@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(doc)]
 use casper_types::Block;
-use casper_types::{BlockHash, Digest};
+use casper_types::{
+    contract_messages::Messages, execution::Effects, BlockHash, Digest, Gas, Transfer,
+};
 
 /// Enum of possible ways to identify a [`Block`].
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
@@ -28,4 +30,23 @@ pub enum GlobalStateIdentifier {
     BlockHeight(u64),
     /// Query using the state root hash.
     StateRootHash(Digest),
+}
+
+/// The result of a speculative execution.
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct SpeculativeExecutionResult {
+    /// Block hash against which the execution was performed.
+    block_hash: BlockHash,
+    /// List of transfers that happened during execution.
+    transfers: Vec<Transfer>,
+    /// Gas limit.
+    limit: Gas,
+    /// Gas consumed.
+    consumed: Gas,
+    /// Execution effects.
+    effects: Effects,
+    /// Messages emitted during execution.
+    messages: Messages,
+    /// Did the wasm execute successfully?
+    error: Option<String>,
 }
