@@ -228,7 +228,7 @@ pub(super) mod speculative_exec {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
-            .num_args(0..=1)
+            .num_args(0)
             .help(ARG_HELP)
             .display_order(DisplayOrder::SpeculativeExec as usize)
     }
