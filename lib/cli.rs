@@ -39,10 +39,9 @@ mod transaction_str_params;
 #[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
-use casper_hashing::Digest;
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
-use casper_types::{Digest, PublicKey, URef};
+use casper_types::{Digest, URef};
 
 use crate::{
     rpcs::{
@@ -56,7 +55,6 @@ use crate::{
         },
         DictionaryItemIdentifier,
     },
-    types::Deploy,
     verification_types::VerificationDetails,
     SuccessResponse,
 };
