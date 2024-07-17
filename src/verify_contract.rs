@@ -11,7 +11,7 @@ pub struct VerifyContract;
 /// This struct defines the order in which the args are shown for this subcommand's help message.
 enum DisplayOrder {
     Verbose,
-    DeployHash,
+    TransactionHash,
     VerificationUrlBasePath,
     VerificationProjectPath,
 }
@@ -74,7 +74,9 @@ impl ClientCommand for VerifyContract {
             .about(Self::ABOUT)
             .display_order(display_order)
             .arg(common::verbose::arg(DisplayOrder::Verbose as usize))
-            .arg(common::deploy_hash::arg(DisplayOrder::DeployHash as usize))
+            .arg(common::transaction_hash::arg(
+                DisplayOrder::TransactionHash as usize,
+            ))
             .arg(verification_url_base_path::arg(
                 DisplayOrder::VerificationUrlBasePath as usize,
             ))
@@ -84,13 +86,13 @@ impl ClientCommand for VerifyContract {
     }
 
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
-        let deploy_hash = common::deploy_hash::get(matches);
+        let transaction_hash = common::transaction_hash::get(matches);
         let verification_url_base_path = verification_url_base_path::get(matches);
         let verification_project_path = verification_project_path::get(matches);
         let verbosity_level = common::verbose::get(matches);
 
         casper_client::cli::verify_contract(
-            deploy_hash,
+            transaction_hash,
             verification_url_base_path,
             verification_project_path,
             verbosity_level,

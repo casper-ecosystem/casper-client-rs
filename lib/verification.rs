@@ -61,10 +61,10 @@ pub fn build_archive(path: &Path) -> Result<Bytes, io::Error> {
     Ok(buffer.into_inner().freeze())
 }
 
-/// Verifies the smart contract code against the one deployed at deploy hash.
+/// Verifies the smart contract code against the one deployed at transaction hash.
 ///
-/// Sends a verification request to the specified verification URL base path, including the deploy hash,
-/// public key, and code archive.
+/// Sends a verification request to the specified verification URL base path, including the
+/// transaction hash, public key, and code archive.
 ///
 /// # Arguments
 ///
@@ -83,7 +83,7 @@ pub async fn send_verification_request(
     verbosity: Verbosity,
 ) -> Result<VerificationDetails, Error> {
     let verification_request = VerificationRequest {
-        deploy_hash: key,
+        transaction_hash: key,
         code_archive,
     };
 

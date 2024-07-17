@@ -33,8 +33,8 @@ pub(crate) struct VerificationError {
 
 #[derive(Serialize)]
 pub(crate) struct VerificationRequest {
-    // Deploy hash of the contract deployment transaction.
-    pub(crate) deploy_hash: Key,
+    // Transaction hash of the contract deployment transaction.
+    pub(crate) transaction_hash: Key,
     // Base64 encoded tar archive containing contract source code.
     pub(crate) code_archive: String,
 }
