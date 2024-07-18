@@ -493,11 +493,8 @@ pub(super) mod pricing_mode {
         }
     }
 
-    pub fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_default()
+    pub fn get(matches: &ArgMatches) -> Option<&PricingMode> {
+        matches.get_one(ARG_NAME)
     }
 }
 
