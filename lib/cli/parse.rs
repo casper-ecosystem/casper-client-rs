@@ -199,9 +199,6 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
 ///
 /// Returns an `Err` variant with a `CliError::ConflictingArguments` if conflicting arguments are
 /// provided.
-///
-/// # Original Author
-/// This function was modified from one of the same name written by Gregory Roussac for the 1.6 SDK
 fn check_no_conflicting_arg_types(
     context: &str,
     simple: &[&str],

@@ -335,17 +335,19 @@ pub fn make_transaction_builder(
 
 /// Retrieves a `SecretKey` based on the provided secret key string and configuration options.
 ///
-/// # Arguments
-///
-/// * `secret_key` - A string representing the secret key. If empty, a `None` option is returned.
+/// * `secret_key` - A string representing the secret key. This can result in three outcomes:
+///     - If a valid secret key is provided and the `std-fs-io` feature is enabled, the `Result` contains `Some(SecretKey)`.
+///     - If `secret_key` is empty and `allow_unsigned_deploy` is `true`, the `Result` contains `None`.
+///     - If `secret_key` is empty and `allow_unsigned_deploy` is `false`, the `Result` contains an `Err` variant with `CliError::InvalidArgument`.
 /// * `allow_unsigned_deploy` - A boolean indicating whether unsigned deploys are allowed.
 ///
 /// # Returns
 ///
-/// Returns a `Result` containing an `Option<SecretKey>`. If a valid secret key is provided and the `sdk` feature is enabled,
-/// the `Result` contains `Some(SecretKey)`. If the `sdk` feature is disabled, the `Result` contains `Some(SecretKey)` parsed from the provided file.
-/// If `secret_key` is empty and `allow_unsigned_deploy` is `true`, the `Result` contains `None`. If `secret_key` is empty and `allow_unsigned_deploy` is `false`,
-/// an `Err` variant with a `CliError::InvalidArgument` is returned.
+/// Returns a `Result` containing an `Option<SecretKey>`.
+/// * If a valid secret key is provided and the `std-fs-io` feature is enabled, the `Result` contains `Some(SecretKey)`.
+/// * If the `std-fs-io` feature is disabled, the `Result` contains `Some(SecretKey)` parsed from the provided file.
+/// * If `secret_key` is empty and `allow_unsigned_deploy` is `true`, the `Result` contains `None`.
+/// * If `secret_key` is empty and `allow_unsigned_deploy` is `false`, an `Err` variant with `CliError::InvalidArgument` is returned.
 ///
 /// # Errors
 ///
