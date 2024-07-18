@@ -596,7 +596,7 @@ pub async fn get_era_info(
         .map_err(CliError::from)
 }
 
-/// Verifies the smart contract code againt the one deployed at address.
+/// Verifies the smart contract code against the one deployed at address.
 pub async fn verify_contract(
     hash_str: &str,
     verification_url_base_path: &str,
