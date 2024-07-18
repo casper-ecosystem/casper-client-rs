@@ -34,7 +34,6 @@ pub async fn put_deploy(
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters) or the docs
 /// of the individual parameter types.
 pub async fn speculative_put_deploy(
-    maybe_block_id: &str,
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
@@ -45,8 +44,7 @@ pub async fn speculative_put_deploy(
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let deploy = with_payment_and_session(deploy_params, payment_params, session_params, false)?;
-    let speculative_exec = parse::block_identifier(maybe_block_id)?;
-    crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
+    crate::speculative_exec(rpc_id, node_address, verbosity, deploy)
         .await
         .map_err(CliError::from)
 }
@@ -110,17 +108,15 @@ pub async fn send_deploy_file(
 /// speculative execution.
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).
 pub async fn speculative_send_deploy_file(
-    maybe_block_id: &str,
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
     input_path: &str,
 ) -> Result<SuccessResponse<SpeculativeExecResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
-    let speculative_exec = parse::block_identifier(maybe_block_id)?;
     let verbosity = parse::verbosity(verbosity_level);
     let deploy = crate::read_deploy_file(input_path)?;
-    crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
+    crate::speculative_exec(rpc_id, node_address, verbosity, deploy)
         .await
         .map_err(CliError::from)
 }
@@ -175,7 +171,6 @@ pub async fn transfer(
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
 #[allow(clippy::too_many_arguments)]
 pub async fn speculative_transfer(
-    maybe_block_id: &str,
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
@@ -196,8 +191,7 @@ pub async fn speculative_transfer(
         payment_params,
         false,
     )?;
-    let speculative_exec = parse::block_identifier(maybe_block_id)?;
-    crate::speculative_exec(rpc_id, node_address, speculative_exec, verbosity, deploy)
+    crate::speculative_exec(rpc_id, node_address, verbosity, deploy)
         .await
         .map_err(CliError::from)
 }
