@@ -53,12 +53,11 @@ jobs:
           command: clippy
           args: --all-targets
 
-      # // Awaits https://github.com/casper-ecosystem/casper-client-rs/pull/153
-      # - name: Clippy with no features
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: clippy
-      #     args: --all-targets --no-default-features
+      - name: Clippy with no features
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets
 
       - name: Doc
         uses: actions-rs/cargo@v1
@@ -71,16 +70,12 @@ jobs:
         with:
           command: test
 
-      # // Awaits https://github.com/casper-ecosystem/casper-client-rs/pull/153
-      # - name: Test with no features
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
-      #     args: --no-default-features
+      - name: Test with no features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
-      # // Awaits https://github.com/casper-network/casper-node/pull/4714
-      # - name: Build lib for Wasm with no features
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: build
-      #     args: --lib --target wasm32-unknown-unknown --no-default-features
+      - name: Build lib for Wasm with no features
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
