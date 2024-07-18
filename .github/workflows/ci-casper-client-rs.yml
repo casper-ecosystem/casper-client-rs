@@ -3,12 +3,12 @@ name: ci-casper-client-rs
 
 on:
   push:
-    branches: [main, dev, release-2.0.0]
+    branches: [main, dev, release-2.0.0, feat-track-node-2.0]
     paths-ignore:
       - '**.md'
 
   pull_request:
-    branches: [main, dev, release-2.0.0]
+    branches: [main, dev, release-2.0.0, feat-track-node-2.0]
     paths-ignore:
       - '**.md'
 
@@ -22,12 +22,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          components: rustfmt, clippy
-          target: wasm32-unknown-unknown
+
+      - name: Get stable from rust-toolchain.toml
+        id: stable-toolchain
+        run: |
+          VER=$(sed -nr 's/channel\s+=\s+\"(.*)\"/\1/p' rust-toolchain.toml)
+          echo "RUST_CHANNEL=$VER" >> $GITHUB_ENV
+
+      - name: Install Toolchain - Stable
+        run: |
+          rustup update --no-self-update ${{ env.RUST_CHANNEL }}
+          rustup component add --toolchain ${{ env.RUST_CHANNEL }} rustfmt rust-src clippy
+          rustup default ${{ env.RUST_CHANNEL }}
+          rustup target add wasm32-unknown-unknown
 
       - name: Fmt
         uses: actions-rs/cargo@v1
