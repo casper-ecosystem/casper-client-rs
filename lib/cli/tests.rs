@@ -399,8 +399,7 @@ fn should_fail_to_create_transfer_with_no_secret_key_while_not_allowing_unsigned
     );
 
     assert!(transfer_deploy.is_err());
-    let error_string =
-        "allow_unsigned_deploy was false, but no secret key was provided".to_string();
+    let error_string = "No secret key provided and unsigned deploys are not allowed".to_string();
     assert!(matches!(
         transfer_deploy.unwrap_err(),
         CliError::InvalidArgument {
@@ -423,8 +422,7 @@ fn should_fail_to_create_deploy_with_payment_and_session_with_no_secret_key_whil
         deploy::with_payment_and_session(deploy_params, payment_params, session_params, false);
 
     assert!(transfer_deploy.is_err());
-    let error_string =
-        "allow_unsigned_deploy was false, but no secret key was provided".to_string();
+    let error_string = "No secret key provided and unsigned deploys are not allowed".to_string();
     assert!(matches!(
         transfer_deploy.unwrap_err(),
         CliError::InvalidArgument {
