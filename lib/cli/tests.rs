@@ -589,8 +589,8 @@ mod transaction {
         let validator_public_key = PublicKey::from(&validator_secret_key);
         let amount = U512::from(2000);
 
-        let delegator_public_key_cl = &CLValue::from_t(&delegator_public_key).unwrap();
-        let validator_public_key_cl = &CLValue::from_t(&validator_public_key).unwrap();
+        let delegator_public_key_cl = &CLValue::from_t(delegator_public_key).unwrap();
+        let validator_public_key_cl = &CLValue::from_t(validator_public_key).unwrap();
         let amount_cl = &CLValue::from_t(amount).unwrap();
 
         let transaction_string_params = TransactionStrParams {
@@ -703,8 +703,8 @@ mod transaction {
         let validator_public_key = PublicKey::from(&validator_secret_key);
 
         let amount_cl = &CLValue::from_t(amount).unwrap();
-        let delegator_public_key_cl = &CLValue::from_t(&delegator_public_key).unwrap();
-        let validator_public_key_cl = &CLValue::from_t(&validator_public_key).unwrap();
+        let delegator_public_key_cl = &CLValue::from_t(delegator_public_key).unwrap();
+        let validator_public_key_cl = &CLValue::from_t(validator_public_key).unwrap();
 
         let transaction_string_params = TransactionStrParams {
             secret_key: "",
@@ -768,9 +768,9 @@ mod transaction {
         let new_validator_public_key = PublicKey::from(&new_validator_secret_key);
         let amount = U512::from(5000);
 
-        let delegator_public_key_cl = &CLValue::from_t(&delegator_public_key).unwrap();
-        let validator_public_key_cl = &CLValue::from_t(&validator_public_key).unwrap();
-        let new_validator_public_key_cl = &CLValue::from_t(&new_validator_public_key).unwrap();
+        let delegator_public_key_cl = &CLValue::from_t(delegator_public_key).unwrap();
+        let validator_public_key_cl = &CLValue::from_t(validator_public_key).unwrap();
+        let new_validator_public_key_cl = &CLValue::from_t(new_validator_public_key).unwrap();
         let amount_cl = &CLValue::from_t(amount).unwrap();
 
         let transaction_string_params = TransactionStrParams {
