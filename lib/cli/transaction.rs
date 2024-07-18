@@ -357,26 +357,24 @@ pub fn get_maybe_secret_key(
     allow_unsigned_deploy: bool,
     context: &'static str,
 ) -> Result<Option<SecretKey>, CliError> {
-    if !secret_key.is_empty() {
-        #[cfg(feature = "std-fs-io")]
-        {
-            Ok(Some(parse::secret_key_from_file(secret_key)?))
+    match (secret_key.is_empty(), allow_unsigned_deploy) {
+        (false, _) => {
+            #[cfg(feature = "std-fs-io")]
+            {
+                Ok(Some(parse::secret_key_from_file(secret_key)?))
+            }
+            #[cfg(not(feature = "std-fs-io"))]
+            {
+                let secret_key = SecretKey::from_pem(secret_key).map_err(|error| {
+                    CliError::Core(crate::Error::CryptoError { context, error })
+                })?;
+                Ok(Some(secret_key))
+            }
         }
-        #[cfg(not(feature = "std-fs-io"))]
-        {
-            let secret_key = SecretKey::from_pem(secret_key)
-                .map_err(|error| CliError::Core(crate::Error::CryptoError { context, error }))?;
-            Ok(Some(secret_key))
-        }
-    } else if !allow_unsigned_deploy {
-        Err(CliError::InvalidArgument {
+        (true, true) => Ok(None),
+        (true, false) => Err(CliError::InvalidArgument {
             context,
-            error: format!(
-                "allow_unsigned_deploy was {}, but no secret key was provided",
-                allow_unsigned_deploy
-            ),
-        })
-    } else {
-        Ok(None)
+            error: "No secret key provided and unsigned deploys are not allowed".to_string(),
+        }),
     }
 }
