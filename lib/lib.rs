@@ -524,7 +524,7 @@ pub async fn get_account(
         .await
 }
 
-/// Retrieves an [`EntityOrAccount`] at a given [`Block`].
+/// Retrieves an [`crate::rpcs::v2_0_0::get_entity::EntityOrAccount`] at a given [`Block`].
 ///
 /// Sends a JSON-RPC `state_get_entity` request to the specified node.
 ///

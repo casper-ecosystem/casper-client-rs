@@ -84,7 +84,7 @@ pub use transaction::{
 pub use transaction_builder_params::TransactionBuilderParams;
 pub use transaction_str_params::TransactionStrParams;
 
-/// Retrieves a [`Deploy`] from the network.
+/// Retrieves a [`casper_types::Deploy`] from the network.
 ///
 /// `deploy_hash` must be a hex-encoded, 32-byte hash digest.  For details of the other parameters,
 /// see [the module docs](crate::cli#common-parameters).
@@ -109,7 +109,7 @@ pub async fn get_deploy(
     .map_err(CliError::from)
 }
 
-/// Retrieves a [`Transaction`] from the network.
+/// Retrieves a [`casper_types::Transaction`] from the network.
 ///
 /// `transaction_hash` must be a hex-encoded, 32-byte hash digest.  For details of the other parameters,
 /// see [the module docs](crate::cli#common-parameters).
@@ -416,7 +416,7 @@ pub async fn get_account(
     .map_err(CliError::from)
 }
 
-/// Retrieves an [`EntityOrAccount`] at a given [`Block`].
+/// Retrieves an [`crate::rpcs::v2_0_0::get_entity::EntityOrAccount`] at a given [`Block`].
 ///
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
 ///

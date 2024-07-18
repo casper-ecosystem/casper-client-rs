@@ -29,9 +29,9 @@ pub enum DictionaryItemStrParams<'a> {
         /// The key within the dictionary under which the item is held.
         dictionary_item_key: &'a str,
     },
-    /// A dictionary item identified via a [`AddressableEntity`]'s named keys.
+    /// A dictionary item identified via a [`casper_types::AddressableEntity`]'s named keys.
     EntityNamedKey {
-        /// The [`EntityAddr`] as a formatted string, identifying the entity whose named keys
+        /// The [`casper_types::EntityAddr`] as a formatted string, identifying the entity whose named keys
         /// contains `dictionary_name`.
         entity_addr: &'a str,
         /// The named key under which the dictionary seed `URef` is stored.

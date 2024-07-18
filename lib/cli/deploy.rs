@@ -59,7 +59,7 @@ pub async fn speculative_put_deploy(
 /// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
 /// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
 /// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
-/// [`Error::FileAlreadyExists`] is returned and the file will not be written.
+/// [`crate::Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_deploy(
     #[allow(unused_variables)] maybe_output_path: &str,
     deploy_params: DeployStrParams<'_>,
@@ -81,7 +81,7 @@ pub fn make_deploy(
 ///
 /// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
+/// is false and a file exists at `maybe_output_path`, [`crate::Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 #[cfg(feature = "std-fs-io")]
 pub fn sign_deploy_file(
@@ -216,7 +216,7 @@ pub async fn speculative_transfer(
 /// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
 /// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
 /// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
-/// [`Error::FileAlreadyExists`] is returned and the file will not be written.
+/// [`crate::Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_transfer(
     #[allow(unused_variables)] maybe_output_path: &str,
     amount: &str,

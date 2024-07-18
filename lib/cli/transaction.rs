@@ -101,7 +101,7 @@ pub fn create_transaction(
 /// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
 /// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
 /// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
-/// [`Error::FileAlreadyExists`] is returned and the file will not be written.
+/// [`crate::Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_transaction(
     builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams<'_>,
@@ -197,7 +197,7 @@ pub async fn speculative_send_transaction_file(
 ///
 /// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
+/// is false and a file exists at `maybe_output_path`, [`crate::Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
 #[cfg(feature = "std-fs-io")]
 pub fn sign_transaction_file(
