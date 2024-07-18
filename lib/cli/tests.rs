@@ -1,10 +1,11 @@
-use casper_types::{
-    AsymmetricType, CLValue, DeployExcessiveSizeError, EntityAddr, ExecutableDeployItem, PublicKey,
-    SecretKey, U512,
-};
+use casper_types::{AsymmetricType, CLValue, EntityAddr, PublicKey, SecretKey, U512};
+#[cfg(feature = "std-fs-io")]
+use casper_types::{DeployExcessiveSizeError, ExecutableDeployItem};
 
 use crate::cli::transaction::create_transaction;
-use crate::{Error, OutputKind, MAX_SERIALIZED_SIZE_OF_DEPLOY};
+#[cfg(feature = "std-fs-io")]
+use crate::MAX_SERIALIZED_SIZE_OF_DEPLOY;
+use crate::{Error, OutputKind};
 
 use super::*;
 
@@ -116,6 +117,7 @@ fn args_simple() -> Vec<&'static str> {
     vec!["name_01:bool='false'", "name_02:i32='42'"]
 }
 
+#[cfg(feature = "std-fs-io")]
 #[test]
 fn should_create_deploy() {
     let deploy_params = deploy_params();
@@ -149,6 +151,7 @@ fn should_create_deploy() {
     assert_eq!(expected.session(), actual.session());
 }
 
+#[cfg(feature = "std-fs-io")]
 #[test]
 fn should_fail_to_create_large_deploy() {
     let deploy_params = deploy_params();
@@ -210,6 +213,7 @@ fn should_sign_deploy() {
     );
 }
 
+#[cfg(feature = "std-fs-io")]
 #[test]
 fn should_create_transfer() {
     use casper_types::{AsymmetricType, PublicKey};
@@ -1129,6 +1133,8 @@ mod transaction {
             ))
         ));
     }
+
+    #[cfg(feature = "std-fs-io")]
     #[test]
     fn should_create_transaction_with_secret_key_but_no_initiator_addr() {
         let minimum_delegation_amount = 100u64;
