@@ -454,7 +454,7 @@ pub(super) mod pricing_mode {
     }
 
     #[derive(Debug, Clone, Copy)]
-    pub(super) enum PricingMode {
+    pub enum PricingMode {
         Classic,
         Reserved,
         Fixed,
@@ -464,6 +464,14 @@ pub(super) mod pricing_mode {
         const CLASSIC: &'static str = "classic";
         const RESERVED: &'static str = "reserved";
         const FIXED: &'static str = "fixed";
+
+        pub(crate) fn as_str(&self) -> &str {
+            match self {
+                Self::Classic => Self::CLASSIC,
+                Self::Reserved => Self::RESERVED,
+                Self::Fixed => Self::FIXED,
+            }
+        }
     }
 
     impl ValueEnum for PricingMode {
@@ -1913,7 +1921,7 @@ pub(super) fn build_transaction_str_params(
             initiator_addr,
             session_args_simple,
             session_args_json,
-            pricing_mode: maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode.map(|pm| pm.as_str()).unwrap_or_default(),
             output_path: maybe_output_path,
             payment_amount,
             gas_price_tolerance,
@@ -1927,7 +1935,7 @@ pub(super) fn build_transaction_str_params(
             ttl,
             chain_name,
             initiator_addr,
-            pricing_mode: maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode.map(|pm| pm.as_str()).unwrap_or_default(),
             output_path: maybe_output_path,
             payment_amount,
             gas_price_tolerance,
