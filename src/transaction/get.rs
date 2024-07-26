@@ -5,7 +5,11 @@ use clap::{Arg, ArgAction, ArgMatches, Command};
 
 use casper_client::cli::CliError;
 
-use crate::{command::ClientCommand, common, Success};
+use crate::{
+    command::ClientCommand,
+    common::{self, transaction_hash},
+    Success,
+};
 
 pub struct GetTransaction;
 
@@ -19,29 +23,6 @@ enum DisplayOrder {
 }
 
 const ALIAS: &str = "get-txn";
-/// Handles providing the arg for and retrieval of the transaction hash.
-mod transaction_hash {
-    use super::*;
-
-    const ARG_NAME: &str = "transaction-hash";
-    const ARG_VALUE_NAME: &str = "HEX STRING";
-    const ARG_HELP: &str = "Hex-encoded transaction hash";
-
-    pub(super) fn arg() -> Arg {
-        Arg::new(ARG_NAME)
-            .required(true)
-            .value_name(ARG_VALUE_NAME)
-            .help(ARG_HELP)
-            .display_order(DisplayOrder::TransactionHash as usize)
-    }
-
-    pub(super) fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_else(|| panic!("should have {} arg", ARG_NAME))
-    }
-}
 
 /// Handles providing the arg for the retrieval of the finalized approvals.
 mod finalized_approvals {
@@ -87,7 +68,9 @@ impl ClientCommand for GetTransaction {
                 DisplayOrder::NodeAddress as usize,
             ))
             .arg(common::rpc_id::arg(DisplayOrder::RpcId as usize))
-            .arg(transaction_hash::arg())
+            .arg(transaction_hash::arg(
+                DisplayOrder::TransactionHash as usize,
+            ))
             .arg(finalized_approvals::arg())
     }
 
