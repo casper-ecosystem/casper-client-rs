@@ -1,7 +1,6 @@
 use std::{cmp::min, io, path::Path};
 
 use bytes::{BufMut, Bytes, BytesMut};
-use casper_types::Key;
 use flate2::{write::GzEncoder, Compression};
 use reqwest::{
     header::{HeaderMap, HeaderValue, CONTENT_TYPE},
@@ -68,7 +67,7 @@ pub fn build_archive(path: &Path) -> Result<Bytes, io::Error> {
 ///
 /// # Arguments
 ///
-/// * `key` - The key of the deployed contract.
+/// * `hash_str` - The hash of the deploy or transaction that installed the contract.
 /// * `base_url` - The base path of the verification URL.
 /// * `code_archive` - Base64-encoded tar-gzipped archive of the source code.
 /// * `verbosity` - The verbosity level of the verification process.
@@ -77,13 +76,13 @@ pub fn build_archive(path: &Path) -> Result<Bytes, io::Error> {
 ///
 /// The verification details of the contract.
 pub async fn send_verification_request(
-    key: Key,
+    hash_str: &str,
     base_url: &str,
     code_archive: String,
     verbosity: Verbosity,
 ) -> Result<VerificationDetails, Error> {
     let verification_request = VerificationRequest {
-        transaction_hash: key,
+        hash: hash_str.to_string(),
         code_archive,
     };
 
@@ -136,14 +135,14 @@ pub async fn send_verification_request(
         }
     }
 
-    wait_for_verification_finished(base_url, &http_client, key, verbosity).await;
+    wait_for_verification_finished(base_url, &http_client, hash_str, verbosity).await;
 
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
         println!("Getting verification details...");
     }
 
-    let url = base_url.to_string() + "/verification/" + &key.to_formatted_string() + "/details";
-    match http_client.get(url).send().await {
+    let details_url = format!("{}/verification/{}/details", base_url, hash_str);
+    match http_client.get(details_url).send().await {
         Ok(response) => response.json().await.map_err(|err| {
             eprintln!("Failed to parse JSON {err}");
             Error::ContractVerificationFailed
@@ -159,7 +158,7 @@ pub async fn send_verification_request(
 async fn wait_for_verification_finished(
     base_url: &str,
     http_client: &Client,
-    key: Key,
+    hash_str: &str,
     verbosity: Verbosity,
 ) {
     let mut retries = MAX_RETRIES;
@@ -168,7 +167,7 @@ async fn wait_for_verification_finished(
     while retries != 0 {
         sleep(delay).await;
 
-        match get_verification_status(base_url, http_client, key).await {
+        match get_verification_status(base_url, http_client, hash_str).await {
             Ok(status) => {
                 if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
                     println!("Verification status: {status:?}");
@@ -192,10 +191,10 @@ async fn wait_for_verification_finished(
 async fn get_verification_status(
     base_url: &str,
     http_client: &Client,
-    key: Key,
+    hash_str: &str,
 ) -> Result<VerificationStatus, Error> {
-    let url = base_url.to_string() + "/verification/" + &key.to_formatted_string() + "/status";
-    let response = match http_client.get(url).send().await {
+    let status_url = format!("{}/verification/{}/status", base_url, hash_str);
+    let response = match http_client.get(status_url).send().await {
         Ok(response) => response,
         Err(error) => {
             eprintln!("Failed to fetch verification status: {error:?}");

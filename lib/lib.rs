@@ -745,15 +745,15 @@ pub async fn get_era_info(
         .await
 }
 
-/// Verifies the smart contract code againt the one deployed at deploy hash.
+/// Verifies the smart contract code against the one deployed at given deploy or transaction hash.
 pub async fn verify_contract(
-    key: Key,
+    hash_str: &str,
     verification_url_base_path: &str,
     project_path: Option<&str>,
     verbosity: Verbosity,
 ) -> Result<VerificationDetails, Error> {
     if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
-        println!("Key: {key}");
+        println!("Hash: {hash_str}");
         println!("Verification service base path: {verification_url_base_path}",);
     }
 
@@ -782,7 +782,7 @@ pub async fn verify_contract(
     };
 
     send_verification_request(
-        key,
+        hash_str,
         verification_url_base_path,
         STANDARD.encode(&archive),
         verbosity,

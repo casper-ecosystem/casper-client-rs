@@ -1,4 +1,3 @@
-use casper_types::Key;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -34,7 +33,7 @@ pub(crate) struct VerificationError {
 #[derive(Serialize)]
 pub(crate) struct VerificationRequest {
     // Transaction hash of the contract deployment transaction.
-    pub(crate) transaction_hash: Key,
+    pub(crate) hash: String,
     // Base64 encoded tar archive containing contract source code.
     pub(crate) code_archive: String,
 }
