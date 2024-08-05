@@ -1,4 +1,4 @@
-use casper_types::{EraId, ProtocolVersion, PublicKey, U512};
+use casper_types::{BlockHash, EraId, ProtocolVersion, PublicKey, U512};
 use serde::{Deserialize, Serialize};
 
 use crate::rpcs::common::BlockIdentifier;
@@ -53,4 +53,6 @@ pub struct GetRewardResult {
     pub era_id: EraId,
     /// The delegation rate of the validator.
     pub delegation_rate: u8,
+    /// The switch block hash at which the reward was distributed.
+    pub switch_block_hash: BlockHash,
 }
