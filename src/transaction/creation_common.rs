@@ -433,25 +433,76 @@ pub(super) mod transfer_amount {
 
 pub(super) mod pricing_mode {
     use super::*;
+    use clap::{builder::PossibleValue, value_parser, ValueEnum};
+    use std::str::FromStr;
+
     pub(in crate::transaction) const ARG_NAME: &str = "pricing-mode";
 
-    const ARG_VALUE_NAME: &str = common::ARG_STRING;
+    const ARG_VALUE_NAME: &str = "classic|reserved|fixed";
     const ARG_HELP: &str = "Used to identify the payment mode chosen to execute the transaction";
+    const ARG_DEFAULT: &str = PricingMode::FIXED;
 
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
             .value_name(ARG_VALUE_NAME)
+            .default_value(ARG_DEFAULT)
             .help(ARG_HELP)
             .display_order(DisplayOrder::PricingMode as usize)
+            .value_parser(value_parser!(PricingMode))
     }
 
-    pub fn get(matches: &ArgMatches) -> &str {
-        matches
-            .get_one::<String>(ARG_NAME)
-            .map(String::as_str)
-            .unwrap_or_default()
+    #[derive(Debug, Clone, Copy)]
+    pub enum PricingMode {
+        Classic,
+        Reserved,
+        Fixed,
+    }
+
+    impl PricingMode {
+        const CLASSIC: &'static str = "classic";
+        const RESERVED: &'static str = "reserved";
+        const FIXED: &'static str = "fixed";
+
+        pub(crate) fn as_str(&self) -> &str {
+            match self {
+                Self::Classic => Self::CLASSIC,
+                Self::Reserved => Self::RESERVED,
+                Self::Fixed => Self::FIXED,
+            }
+        }
+    }
+
+    impl ValueEnum for PricingMode {
+        fn value_variants<'a>() -> &'a [Self] {
+            &[Self::Classic, Self::Reserved, Self::Fixed]
+        }
+
+        fn to_possible_value(&self) -> Option<PossibleValue> {
+            Some(match self {
+                Self::Classic => PossibleValue::new(PricingMode::CLASSIC),
+                Self::Reserved => PossibleValue::new(PricingMode::RESERVED),
+                Self::Fixed => PossibleValue::new(PricingMode::FIXED),
+            })
+        }
+    }
+
+    impl FromStr for PricingMode {
+        type Err = String;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            match s.to_lowercase().as_str() {
+                PricingMode::CLASSIC => Ok(Self::Classic),
+                PricingMode::RESERVED => Ok(Self::Reserved),
+                PricingMode::FIXED => Ok(Self::Fixed),
+                _ => Err(format!("'{}' is not a valid pricing option", s)),
+            }
+        }
+    }
+
+    pub fn get(matches: &ArgMatches) -> Option<&PricingMode> {
+        matches.get_one(ARG_NAME)
     }
 }
 
@@ -1792,33 +1843,26 @@ pub(super) mod speculative_exec {
     use super::*;
 
     const ARG_NAME: &str = "speculative-exec";
-    const ARG_VALUE_NAME: &str = "HEX STRING OR INTEGER";
     const ARG_HELP: &str =
         "If the receiving node supports this, execution of the deploy will only be attempted on \
         that single node. Full validation of the deploy is not performed, and successful execution \
         at the given global state is no guarantee that the deploy will be able to be successfully \
-        executed if put to the network, nor should execution costs be expected to be identical. \
-        Optionally provide the hex-encoded block hash or height of the block to specify the global \
-        state on which to execute";
-    const DEFAULT_MISSING_VALUE: &str = "";
+        executed if put to the network, nor should execution costs be expected to be identical.";
 
     pub(in crate::transaction) fn arg() -> Arg {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .required(false)
-            .value_name(ARG_VALUE_NAME)
-            .num_args(0..=1)
-            .default_missing_value(DEFAULT_MISSING_VALUE)
+            .num_args(0)
             .help(ARG_HELP)
             .display_order(DisplayOrder::SpeculativeExec as usize)
     }
 
-    // get: The command line posibilities are encoded by a combination of option and &str
-    // None represents no --speculative-exec argument at all
-    // Some("") represents a --speculative-exec with no/empty argument
-    // Some(block_identifier) represents "--speculative-exec block_identifier"
-    pub(in crate::transaction) fn get(matches: &ArgMatches) -> Option<&str> {
-        matches.get_one::<String>(ARG_NAME).map(String::as_str)
+    // get: The command line posibilities are encoded by a boolean
+    // false represents no --speculative-exec argument at all
+    // true represents a --speculative-exec with argument
+    pub(in crate::transaction) fn get(matches: &ArgMatches) -> bool {
+        matches.get_flag(ARG_NAME)
     }
 }
 
@@ -1877,7 +1921,7 @@ pub(super) fn build_transaction_str_params(
             initiator_addr,
             session_args_simple,
             session_args_json,
-            pricing_mode: maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode.map(|pm| pm.as_str()).unwrap_or_default(),
             output_path: maybe_output_path,
             payment_amount,
             gas_price_tolerance,
@@ -1891,7 +1935,7 @@ pub(super) fn build_transaction_str_params(
             ttl,
             chain_name,
             initiator_addr,
-            pricing_mode: maybe_pricing_mode,
+            pricing_mode: maybe_pricing_mode.map(|pm| pm.as_str()).unwrap_or_default(),
             output_path: maybe_output_path,
             payment_amount,
             gas_price_tolerance,

@@ -37,10 +37,7 @@ pub(crate) mod get_node_status {
 }
 
 pub(crate) mod speculative_exec {
-    pub use crate::rpcs::v1_5_0::speculative_exec::SpeculativeExecResult;
-    pub(crate) use crate::rpcs::v1_5_0::speculative_exec::{
-        SpeculativeExecParams, SPECULATIVE_EXEC_METHOD,
-    };
+    pub(crate) use crate::rpcs::v1_5_0::speculative_exec::SPECULATIVE_EXEC_METHOD;
 }
 
 pub(crate) mod get_auction_info {

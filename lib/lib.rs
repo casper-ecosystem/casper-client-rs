@@ -165,14 +165,13 @@ pub async fn put_transaction(
 pub async fn speculative_exec(
     rpc_id: JsonRpcId,
     node_address: &str,
-    block_identifier: Option<BlockIdentifier>,
     verbosity: Verbosity,
     deploy: Deploy,
 ) -> Result<SuccessResponse<SpeculativeExecResult>, Error> {
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(
             SPECULATIVE_EXEC_METHOD,
-            Some(SpeculativeExecParams::new(block_identifier, deploy)),
+            Some(SpeculativeExecParams::new(deploy)),
         )
         .await
 }
@@ -185,14 +184,13 @@ pub async fn speculative_exec(
 pub async fn speculative_exec_txn(
     rpc_id: JsonRpcId,
     node_address: &str,
-    block_identifier: Option<BlockIdentifier>,
     verbosity: Verbosity,
     transaction: Transaction,
 ) -> Result<SuccessResponse<SpeculativeExecTxnResult>, Error> {
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(
             SPECULATIVE_EXEC_TXN_METHOD,
-            Some(SpeculativeExecTxnParams::new(block_identifier, transaction)),
+            Some(SpeculativeExecTxnParams::new(transaction)),
         )
         .await
 }
