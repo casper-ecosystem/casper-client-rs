@@ -1,3 +1,6 @@
 /target
 Cargo.lock
 *casper_keygen_test*
+.idea/
+.envrc
+.direnv/
