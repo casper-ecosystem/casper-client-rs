@@ -603,18 +603,16 @@ fn contract_hash(value: &str) -> Result<Option<HashAddr>, CliError> {
     if value.is_empty() {
         return Ok(None);
     }
+
     match Digest::from_hex(value) {
         Ok(digest) => Ok(Some(digest.value())),
-        Err(error) => {
-            if let Ok(Key::Hash(hash)) = Key::from_formatted_str(value) {
-                Ok(Some(hash))
-            } else {
-                Err(CliError::FailedToParseDigest {
-                    context: "contract hash",
-                    error,
-                })
-            }
-        }
+        Err(error) => match Key::from_formatted_str(value) {
+            Ok(Key::Hash(hash)) | Ok(Key::Package(hash)) => Ok(Some(hash)),
+            _ => Err(CliError::FailedToParseDigest {
+                context: "contract hash",
+                error,
+            }),
+        },
     }
 }
 
