@@ -63,7 +63,7 @@ const APP_NAME: &str = "Casper client";
 
 static VERSION: Lazy<String> =
     Lazy::new(
-        || match option_env!("VERGEN_GIT_SHA_SHORT").map(|sha| sha.to_lowercase()) {
+        || match option_env!("GIT_SHA_SHORT").map(|sha| sha.to_lowercase()) {
             None => crate_version!().to_string(),
             Some(git_sha_short) => {
                 if git_sha_short.to_lowercase() == "unknown" {
@@ -175,7 +175,7 @@ fn cli() -> Command {
         ))
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let arg_matches = cli().get_matches();
     let (subcommand_name, matches) = arg_matches.subcommand().unwrap_or_else(|| {
