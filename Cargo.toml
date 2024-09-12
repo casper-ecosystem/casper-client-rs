@@ -2,9 +2,9 @@
 name = "casper-client"
 version = "2.0.0" # when updating, also update 'html_root_url' in lib.rs
 authors = [
-  "Marc Brinkmann <marc@casperlabs.io>",
-  "Fraser Hutchison <fraser@casperlabs.io>",
-  "Zachary Showalter <zach@casperlabs.io>",
+    "Marc Brinkmann <marc@casperlabs.io>",
+    "Fraser Hutchison <fraser@casperlabs.io>",
+    "Zachary Showalter <zach@casperlabs.io>",
 ]
 edition = "2021"
 description = "A client library and binary for interacting with the Casper network"
@@ -67,16 +67,13 @@ uint = "0.9.5"
 [dev-dependencies]
 tempfile = "3.7.1"
 
-[build-dependencies]
-vergen = { version = "8", default-features = false, features = ["git", "git2"] }
-
 [patch.crates-io]
 casper-types = { git = "https://github.com/casper-network/casper-node.git", branch = "feat-2.0" }
 
 [package.metadata.deb]
 features = ["vendored-openssl"]
 revision = "0"
-assets = [["./target/release/casper-client", "/usr/bin/casper-client", "755"], ]
+assets = [["./target/release/casper-client", "/usr/bin/casper-client", "755"]]
 extended-description = """
 Package for Casper Client to connect to Casper Node.
 
