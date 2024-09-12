@@ -657,6 +657,7 @@ pub async fn list_rpcs(
 /// When `verbosity` is `Low`, nothing is printed.  For `Medium`, the value is printed with long
 /// string fields shortened to a string indicating the character count of the field.  `High`
 /// verbosity is the same as `Medium` except without abbreviation of long fields.
+#[cfg(feature = "std-fs-io")]
 pub(crate) fn json_pretty_print<T: ?Sized + Serialize>(
     value: &T,
     verbosity: Verbosity,

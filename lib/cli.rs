@@ -566,6 +566,7 @@ pub async fn list_rpcs(
 /// When `verbosity_level` is `0`, nothing is printed.  For `1`, the value is printed with long
 /// string fields shortened to a string indicating the character count of the field.  Greater than
 /// `1` is the same as for `1` except without abbreviation of long fields.
+#[cfg(feature = "std-fs-io")]
 pub fn json_pretty_print<T: ?Sized + Serialize>(
     value: &T,
     verbosity_level: u64,
