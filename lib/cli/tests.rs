@@ -438,6 +438,7 @@ mod transaction {
         TransactionRuntime, TransactionTarget, TransactionV1BuilderError, TransferTarget,
     };
     const SAMPLE_TRANSACTION: &str = r#"{
+  "serialization_version": 1,
   "hash": "f868596bbfd729547ffa25c3421df29d6650cec73e9fe3d0aff633fe2d6ac952",
   "header": {
     "chain_name": "test",

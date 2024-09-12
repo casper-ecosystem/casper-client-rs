@@ -158,6 +158,14 @@ pub enum Error {
         /// Underlying error.
         error: std::str::Utf8Error,
     },
+
+    /// Failed to verify contract.
+    #[error("contract verification failed")]
+    ContractVerificationFailed,
+
+    /// Failed to construct HTTP client.
+    #[error("failed to construct HTTP client")]
+    FailedToConstructHttpClient,
 }
 
 impl From<ToBytesError> for Error {

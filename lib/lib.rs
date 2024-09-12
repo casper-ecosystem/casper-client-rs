@@ -44,13 +44,17 @@ pub mod rpcs;
 pub mod types;
 mod validation;
 mod verbosity;
+mod verification;
+mod verification_types;
 
+use std::{env::current_dir, path::Path};
+#[cfg(feature = "std-fs-io")]
 use std::{
     fs,
     io::{Cursor, Read, Write},
-    path::Path,
 };
 
+#[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
 #[cfg(doc)]
@@ -63,6 +67,7 @@ use casper_types::{
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
+#[cfg(feature = "std-fs-io")]
 pub use output_kind::OutputKind;
 use rpcs::{
     common::{BlockIdentifier, GlobalStateIdentifier},
@@ -106,6 +111,10 @@ use rpcs::{
 };
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
+pub use verification::{build_archive, send_verification_request};
+use verification_types::VerificationDetails;
+
+use base64::{engine::general_purpose::STANDARD, Engine};
 
 /// The maximum permissible size in bytes of a Deploy when serialized via `ToBytes`.
 ///
@@ -648,6 +657,7 @@ pub async fn list_rpcs(
 /// When `verbosity` is `Low`, nothing is printed.  For `Medium`, the value is printed with long
 /// string fields shortened to a string indicating the character count of the field.  `High`
 /// verbosity is the same as `Medium` except without abbreviation of long fields.
+#[cfg(feature = "std-fs-io")]
 pub(crate) fn json_pretty_print<T: ?Sized + Serialize>(
     value: &T,
     verbosity: Verbosity,
@@ -732,4 +742,49 @@ pub async fn get_era_info(
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(GET_ERA_INFO_METHOD, params)
         .await
+}
+
+/// Verifies the smart contract code against the one deployed at given deploy or transaction hash.
+pub async fn verify_contract(
+    hash_str: &str,
+    verification_url_base_path: &str,
+    project_path: Option<&str>,
+    verbosity: Verbosity,
+) -> Result<VerificationDetails, Error> {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+        println!("Hash: {hash_str}");
+        println!("Verification service base path: {verification_url_base_path}",);
+    }
+
+    let project_path = match project_path {
+        Some(path) => Path::new(path).to_path_buf(),
+        None => match current_dir() {
+            Ok(path) => path,
+            Err(error) => {
+                eprintln!("Cannot get current directory: {error}");
+                return Err(Error::ContractVerificationFailed);
+            }
+        },
+    };
+
+    let archive = match build_archive(&project_path) {
+        Ok(archive) => {
+            if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+                println!("Created project archive (size: {})", archive.len());
+            }
+            archive
+        }
+        Err(error) => {
+            eprintln!("Cannot create project archive: {error}");
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
+
+    send_verification_request(
+        hash_str,
+        verification_url_base_path,
+        STANDARD.encode(&archive),
+        verbosity,
+    )
+    .await
 }

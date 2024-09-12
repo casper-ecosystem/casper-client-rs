@@ -38,9 +38,9 @@ impl GetTransactionParams {
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutionInfo {
-    pub(crate) block_hash: BlockHash,
-    pub(crate) block_height: u64,
-    pub(crate) execution_result: Option<ExecutionResult>,
+    pub block_hash: BlockHash,
+    pub block_height: u64,
+    pub execution_result: Option<ExecutionResult>,
 }
 
 /// Result for "info_get_transaction" RPC response.

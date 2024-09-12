@@ -36,6 +36,7 @@ mod transaction;
 mod transaction_builder_params;
 mod transaction_str_params;
 
+#[cfg(feature = "std-fs-io")]
 use serde::Serialize;
 
 #[cfg(doc)]
@@ -54,6 +55,7 @@ use crate::{
         },
         DictionaryItemIdentifier,
     },
+    verification_types::VerificationDetails,
     SuccessResponse,
 };
 #[cfg(doc)]
@@ -564,6 +566,7 @@ pub async fn list_rpcs(
 /// When `verbosity_level` is `0`, nothing is printed.  For `1`, the value is printed with long
 /// string fields shortened to a string indicating the character count of the field.  Greater than
 /// `1` is the same as for `1` except without abbreviation of long fields.
+#[cfg(feature = "std-fs-io")]
 pub fn json_pretty_print<T: ?Sized + Serialize>(
     value: &T,
     verbosity_level: u64,
@@ -592,4 +595,23 @@ pub async fn get_era_info(
     crate::get_era_info(rpc_id, node_address, verbosity, maybe_block_id)
         .await
         .map_err(CliError::from)
+}
+
+/// Verifies the smart contract code against the one installed
+/// by deploy or transaction with given hash.
+pub async fn verify_contract(
+    hash_str: &str,
+    verification_url_base_path: &str,
+    verification_project_path: Option<&str>,
+    verbosity_level: u64,
+) -> Result<VerificationDetails, CliError> {
+    let verbosity = parse::verbosity(verbosity_level);
+    crate::verify_contract(
+        hash_str,
+        verification_url_base_path,
+        verification_project_path,
+        verbosity,
+    )
+    .await
+    .map_err(CliError::from)
 }
