@@ -890,6 +890,8 @@ pub(super) fn pricing_mode(
                     })?;
             Ok(PricingMode::Fixed {
                 gas_price_tolerance,
+                // TODO FIX additional_computation_factor
+                additional_computation_factor: 0,
             })
         }
         "reserved" => {

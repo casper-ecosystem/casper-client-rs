@@ -295,12 +295,9 @@ pub fn make_transaction_builder(
             );
             Ok(transaction_builder)
         }
-        TransactionBuilderParams::Session {
-            transaction_bytes,
-            transaction_category,
-        } => {
-            let transaction_builder =
-                TransactionV1Builder::new_session(transaction_category, transaction_bytes);
+        TransactionBuilderParams::Session { transaction_bytes } => {
+            // TODO FIX is_install_upgrade
+            let transaction_builder = TransactionV1Builder::new_session(true, transaction_bytes);
             Ok(transaction_builder)
         }
         TransactionBuilderParams::Transfer {
