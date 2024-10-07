@@ -30,7 +30,6 @@ pub(super) enum DisplayOrder {
     TransferId,
     Timestamp,
     Ttl,
-    TransactionCategory,
     ChainName,
     MaximumDelegationRate,
     MinimumDelegationRate,
@@ -48,6 +47,7 @@ pub(super) enum DisplayOrder {
     StandardPayment,
     Receipt,
     GasPriceTolerance,
+    IsInstallUpgrade,
     TransactionAmount,
     Validator,
     NewValidator,
@@ -690,82 +690,25 @@ pub(super) mod transaction_path {
     }
 }
 
-// TODO Fix lane
-// pub(super) mod transaction_category {
-//     use std::str::FromStr;
+pub(super) mod is_install_upgrade {
+    use super::*;
 
-//     use clap::{value_parser, ValueEnum};
+    const ARG_NAME: &str = "install-upgrade";
+    const ARG_HELP: &str = "Flag to indicate if the Wasm is an install/upgrade";
 
-//     use super::*;
+    pub fn arg(order: usize) -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .action(ArgAction::SetTrue)
+            .help(ARG_HELP)
+            .display_order(order)
+    }
 
-//     const ARG_NAME: &str = "category";
-//     const ARG_SHORT: char = 'c';
-//     const ARG_VALUE_NAME: &str = "install-upgrade|large|medium|small";
-//     const ARG_HELP: &str = "Transaction category";
-
-//     #[derive(Debug, Clone, Copy)]
-//     pub(super) enum Category {
-//         InstallUpgrade,
-//         Large,
-//         Medium,
-//         Small,
-//     }
-
-//     impl Category {
-//         pub(super) fn into_transaction_v1_category(self) -> TransactionCategory {
-//             match self {
-//                 Self::InstallUpgrade => TransactionCategory::InstallUpgrade,
-//                 Self::Large => TransactionCategory::Large,
-//                 Self::Medium => TransactionCategory::Medium,
-//                 Self::Small => TransactionCategory::Small,
-//             }
-//         }
-//     }
-
-//     impl ValueEnum for Category {
-//         fn value_variants<'a>() -> &'a [Self] {
-//             &[Self::InstallUpgrade, Self::Large, Self::Medium, Self::Small]
-//         }
-
-//         fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
-//             Some(match self {
-//                 Self::InstallUpgrade => clap::builder::PossibleValue::new("install-upgrade"),
-//                 Self::Large => clap::builder::PossibleValue::new("large"),
-//                 Self::Medium => clap::builder::PossibleValue::new("medium"),
-//                 Self::Small => clap::builder::PossibleValue::new("small"),
-//             })
-//         }
-//     }
-
-//     impl FromStr for Category {
-//         type Err = String;
-
-//         fn from_str(s: &str) -> Result<Self, Self::Err> {
-//             match s.to_lowercase().as_str() {
-//                 "install-upgrade" => Ok(Category::InstallUpgrade),
-//                 "large" => Ok(Category::Large),
-//                 "medium" => Ok(Category::Medium),
-//                 "small" => Ok(Category::Small),
-//                 _ => Err(format!("'{}' is not a valid size option", s)),
-//             }
-//         }
-//     }
-
-//     pub fn arg() -> Arg {
-//         Arg::new(ARG_NAME)
-//             .required(true)
-//             .long(ARG_NAME)
-//             .short(ARG_SHORT)
-//             .value_name(ARG_VALUE_NAME)
-//             .help(ARG_HELP)
-//             .display_order(DisplayOrder::TransactionCategory as usize)
-//             .value_parser(value_parser!(Category))
-//     }
-
-//     pub(super) fn get(matches: &ArgMatches) -> Option<&Category> {
-//         matches.get_one(ARG_NAME)
-//     }
-// }
+    pub fn get(matches: &ArgMatches) -> bool {
+        matches.args_present()
+    }
+}
 
 pub(super) mod public_key {
     use super::*;
@@ -1710,12 +1653,12 @@ pub(super) mod session {
         let transaction_bytes =
             parse::transaction_module_bytes(transaction_path_str.unwrap_or_default())?;
 
-        // TODO Fix lane
-        // let transaction_category = *transaction_category::get(matches)
-        //     .ok_or(CliError::FailedToParseTransactionCategory)?;
+        let is_install_upgrade: bool = is_install_upgrade::get(matches);
 
-        // TODO fix session lane
-        let params = TransactionBuilderParams::Session { transaction_bytes };
+        let params = TransactionBuilderParams::Session {
+            is_install_upgrade,
+            transaction_bytes,
+        };
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
     }
@@ -1724,8 +1667,9 @@ pub(super) mod session {
         add_bid_subcommand
             .arg(transaction_path::arg())
             .arg(session_entry_point::arg())
-        // TODO fix session lane
-        // .arg(transaction_category::arg())
+            .arg(is_install_upgrade::arg(
+                DisplayOrder::IsInstallUpgrade as usize,
+            ))
     }
 }
 
@@ -1925,6 +1869,7 @@ pub(super) fn build_transaction_str_params(
             output_path: maybe_output_path,
             payment_amount,
             gas_price_tolerance,
+            additional_computation_factor: None,
             receipt,
             standard_payment,
         }

@@ -81,6 +81,8 @@ pub enum TransactionBuilderParams<'a> {
     },
     /// Parameters for the session variant of the transaction builder
     Session {
+        /// Flag determining if the Wasm is an install/upgrade.
+        is_install_upgrade: bool,
         /// The Bytes to be run by the execution engine for the session transaction
         transaction_bytes: Bytes,
     },

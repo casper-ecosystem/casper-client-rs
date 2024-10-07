@@ -539,6 +539,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -601,6 +602,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: Some("1"),
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -662,6 +664,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: Some("0"),
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -714,6 +717,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: Some("0"),
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -781,6 +785,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -852,6 +857,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: Some("0"),
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -894,6 +900,7 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
+            additional_computation_factor: None,
             standard_payment: "true",
         };
 
@@ -939,6 +946,7 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
+            additional_computation_factor: None,
             standard_payment: "true",
         };
 
@@ -981,6 +989,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -1003,7 +1012,9 @@ mod transaction {
     #[test]
     fn should_create_session_transaction() {
         let transaction_bytes = Bytes::from(vec![1u8; 32]);
+        let is_install_upgrade = true;
         let target = &TransactionTarget::Session {
+            is_install_upgrade,
             runtime: TransactionRuntime::VmCasperV1,
             module_bytes: transaction_bytes.clone(),
         };
@@ -1019,13 +1030,14 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
+            is_install_upgrade,
             transaction_bytes,
-            transaction_category: casper_types::TransactionCategory::Large,
         };
         let transaction =
             create_transaction(transaction_builder_params, transaction_string_params, true);
@@ -1067,6 +1079,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -1108,6 +1121,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -1144,6 +1158,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -1177,6 +1192,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "",
+            additional_computation_factor: None,
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };

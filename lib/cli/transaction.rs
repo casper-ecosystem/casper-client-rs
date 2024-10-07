@@ -58,6 +58,7 @@ pub fn create_transaction(
             transaction_params.pricing_mode,
             transaction_params.payment_amount,
             transaction_params.gas_price_tolerance,
+            transaction_params.additional_computation_factor,
             transaction_params.standard_payment,
             Some(digest),
         )?
@@ -66,6 +67,7 @@ pub fn create_transaction(
             transaction_params.pricing_mode,
             transaction_params.payment_amount,
             transaction_params.gas_price_tolerance,
+            transaction_params.additional_computation_factor,
             transaction_params.standard_payment,
             None,
         )?
@@ -295,9 +297,12 @@ pub fn make_transaction_builder(
             );
             Ok(transaction_builder)
         }
-        TransactionBuilderParams::Session { transaction_bytes } => {
-            // TODO FIX is_install_upgrade
-            let transaction_builder = TransactionV1Builder::new_session(true, transaction_bytes);
+        TransactionBuilderParams::Session {
+            is_install_upgrade,
+            transaction_bytes,
+        } => {
+            let transaction_builder =
+                TransactionV1Builder::new_session(is_install_upgrade, transaction_bytes);
             Ok(transaction_builder)
         }
         TransactionBuilderParams::Transfer {
