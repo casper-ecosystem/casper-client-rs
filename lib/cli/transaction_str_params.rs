@@ -57,7 +57,7 @@ pub struct TransactionStrParams<'a> {
     /// The pricing mode to use with the transaction
     pub pricing_mode: &'a str,
     /// User-specified additional computation factor fro "fixed" pricing_mode(minimum 0)
-    /// Otional, if None or "0" is provided, no additional logic is applied to the computation limit.
+    /// Otional, if None or Some("0") is provided, no additional logic is applied to the computation limit.
     pub additional_computation_factor: Option<&'a str>,
     /// The optional output path for the transaction, if writing it to a file.
     pub output_path: &'a str,
