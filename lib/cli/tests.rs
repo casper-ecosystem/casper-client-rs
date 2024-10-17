@@ -85,6 +85,13 @@ const SAMPLE_DEPLOY: &str = r#"{
   ]
 }"#;
 
+#[cfg(test)]
+pub(crate) const ARGS_MAP_KEY: u16 = 0;
+#[cfg(test)]
+pub(crate) const TARGET_MAP_KEY: u16 = 1;
+#[cfg(test)]
+pub(crate) const ENTRY_POINT_MAP_KEY: u16 = 2;
+
 pub fn deploy_params_without_account() -> DeployStrParams<'static> {
     DeployStrParams {
         secret_key: "",
@@ -434,56 +441,31 @@ mod transaction {
     use super::*;
     use crate::Error::TransactionBuild;
     use casper_types::{
-        bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget,
-        TransactionRuntime, TransactionTarget, TransactionV1BuilderError, TransferTarget,
+        bytesrepr::Bytes, PackageAddr, RuntimeArgs, TransactionEntryPoint,
+        TransactionInvocationTarget, TransactionRuntime, TransactionTarget,
+        TransactionV1BuilderError, TransferTarget,
     };
     const SAMPLE_TRANSACTION: &str = r#"{
-  "hash": "f868596bbfd729547ffa25c3421df29d6650cec73e9fe3d0aff633fe2d6ac952",
-  "header": {
-    "chain_name": "test",
-    "timestamp": "2024-01-26T19:08:53.498Z",
+  "hash": "57144349509f7cb9374e0f38b4e4910526b397a38f0dc21eaae1df916df66aae",
+  "payload": {
+    "initiator_addr": {
+      "PublicKey": "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d"
+    },
+    "timestamp": "2024-10-07T16:45:27.994Z",
     "ttl": "30m",
-    "body_hash": "fb94fd83178e3acf22546beebf5f44692499d681c4381f6d145d85ff9b5fc152",
+    "chain_name": "test",
     "pricing_mode": {
       "Fixed": {
+        "additional_computation_factor": 0,
         "gas_price_tolerance": 10
       }
     },
-    "initiator_addr": {
-      "PublicKey": "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d"
+    "fields": {
+      "0": "020000000600000074617267657421000000722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d010c06000000616d6f756e7402000000010a08",
+      "1": "010000000000000000000100000000",
+      "2": "010000000000000000000100000002",
+      "3": "010000000000000000000100000000"
     }
-  },
-  "body": {
-    "args": [
-      [
-        "source",
-        {
-          "cl_type": "URef",
-          "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
-          "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
-        }
-      ],
-      [
-        "target",
-        {
-          "cl_type": "URef",
-          "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
-          "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
-        }
-      ],
-      [
-        "amount",
-        {
-          "cl_type": "U512",
-          "bytes": "010a",
-          "parsed": "10"
-        }
-      ]
-    ],
-    "target": "Native",
-    "entry_point": "Transfer",
-    "transaction_category": 0,
-    "scheduling": "Standard"
   },
   "approvals": []
 }
@@ -539,6 +521,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -560,7 +543,8 @@ mod transaction {
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("public_key")
                 .unwrap(),
             public_key_cl
@@ -568,11 +552,18 @@ mod transaction {
         assert!(transaction
             .as_ref()
             .unwrap()
-            .args()
+            .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+            .unwrap()
             .get("delegation_rate")
             .is_some());
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
     }
@@ -601,6 +592,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -617,14 +609,21 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "delegate");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("delegator")
                 .unwrap(),
             delegator_public_key_cl
@@ -633,7 +632,8 @@ mod transaction {
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("validator")
                 .unwrap(),
             validator_public_key_cl
@@ -662,6 +662,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "0",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -675,14 +676,21 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "withdraw-bid");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("public_key")
                 .unwrap(),
             public_key_cl
@@ -714,6 +722,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "0",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -730,14 +739,21 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "undelegate");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("delegator")
                 .unwrap(),
             delegator_public_key_cl
@@ -746,7 +762,8 @@ mod transaction {
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("validator")
                 .unwrap(),
             validator_public_key_cl
@@ -781,6 +798,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -796,14 +814,21 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "redelegate");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("delegator")
                 .unwrap(),
             delegator_public_key_cl
@@ -812,7 +837,8 @@ mod transaction {
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("validator")
                 .unwrap(),
             validator_public_key_cl
@@ -821,7 +847,8 @@ mod transaction {
             transaction
                 .as_ref()
                 .unwrap()
-                .args()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
                 .get("new_validator")
                 .unwrap(),
             new_validator_public_key_cl
@@ -852,6 +879,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "0",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -869,10 +897,21 @@ mod transaction {
             "invocable-entity"
         );
         assert_eq!(
-            transaction.as_ref().unwrap().body().entry_point(),
-            entry_point_ref
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionEntryPoint>(ENTRY_POINT_MAP_KEY)
+                .unwrap(),
+            *entry_point_ref
         );
-        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionTarget>(TARGET_MAP_KEY)
+                .unwrap(),
+            *target
+        );
     }
     #[test]
     fn should_create_invocable_entity_alias_transaction() {
@@ -894,6 +933,7 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
+            additional_computation_factor: "",
             standard_payment: "true",
         };
 
@@ -909,10 +949,21 @@ mod transaction {
             "invocable-entity-alias"
         );
         assert_eq!(
-            transaction.as_ref().unwrap().body().entry_point(),
-            &TransactionEntryPoint::Custom("entry-point-alias".to_string())
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionEntryPoint>(ENTRY_POINT_MAP_KEY)
+                .unwrap(),
+            TransactionEntryPoint::Custom("entry-point-alias".to_string())
         );
-        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionTarget>(TARGET_MAP_KEY)
+                .unwrap(),
+            *target
+        );
     }
     #[test]
     fn should_create_package_transaction() {
@@ -939,6 +990,7 @@ mod transaction {
             payment_amount: "100",
             gas_price_tolerance: "10",
             receipt: SAMPLE_DIGEST,
+            additional_computation_factor: "",
             standard_payment: "true",
         };
 
@@ -952,10 +1004,21 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "package");
         assert_eq!(
-            transaction.as_ref().unwrap().body().entry_point(),
-            &TransactionEntryPoint::Custom("test-entry-point-package".to_string())
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionEntryPoint>(ENTRY_POINT_MAP_KEY)
+                .unwrap(),
+            TransactionEntryPoint::Custom("test-entry-point-package".to_string())
         );
-        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionTarget>(TARGET_MAP_KEY)
+                .unwrap(),
+            *target
+        );
     }
     #[test]
     fn should_create_package_alias_transaction() {
@@ -981,6 +1044,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -995,15 +1059,28 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "package");
         assert_eq!(
-            transaction.as_ref().unwrap().body().entry_point(),
-            &TransactionEntryPoint::Custom("test-entry-point-package".to_string())
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionEntryPoint>(ENTRY_POINT_MAP_KEY)
+                .unwrap(),
+            TransactionEntryPoint::Custom("test-entry-point-package".to_string())
         );
-        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionTarget>(TARGET_MAP_KEY)
+                .unwrap(),
+            *target
+        );
     }
     #[test]
     fn should_create_session_transaction() {
         let transaction_bytes = Bytes::from(vec![1u8; 32]);
+        let is_install_upgrade = true;
         let target = &TransactionTarget::Session {
+            is_install_upgrade,
             runtime: TransactionRuntime::VmCasperV1,
             module_bytes: transaction_bytes.clone(),
         };
@@ -1019,23 +1096,35 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "0",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
+            is_install_upgrade,
             transaction_bytes,
-            transaction_category: casper_types::TransactionCategory::Large,
         };
         let transaction =
             create_transaction(transaction_builder_params, transaction_string_params, true);
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "session");
         assert_eq!(
-            transaction.as_ref().unwrap().body().entry_point(),
-            &TransactionEntryPoint::Call
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionEntryPoint>(ENTRY_POINT_MAP_KEY)
+                .unwrap(),
+            TransactionEntryPoint::Call
         );
-        assert_eq!(transaction.as_ref().unwrap().body().target(), target);
+        assert_eq!(
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionTarget>(TARGET_MAP_KEY)
+                .unwrap(),
+            *target
+        );
     }
     #[test]
     fn should_create_transfer_transaction() {
@@ -1067,6 +1156,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "1",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -1082,15 +1172,31 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "transfer");
         assert_eq!(
-            transaction.as_ref().unwrap().body().entry_point(),
-            &TransactionEntryPoint::Transfer
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<TransactionEntryPoint>(ENTRY_POINT_MAP_KEY)
+                .unwrap(),
+            TransactionEntryPoint::Transfer
         );
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("source").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
+                .get("source")
+                .unwrap(),
             source_uref_cl
         );
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("target").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .deserialize_field::<RuntimeArgs>(ARGS_MAP_KEY)
+                .unwrap()
+                .get("target")
+                .unwrap(),
             target_uref_cl
         );
     }
@@ -1108,6 +1214,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -1144,6 +1251,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "10",
+            additional_computation_factor: "",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
@@ -1177,6 +1285,7 @@ mod transaction {
             output_path: "",
             payment_amount: "100",
             gas_price_tolerance: "",
+            additional_computation_factor: "",
             receipt: SAMPLE_DIGEST,
             standard_payment: "true",
         };
