@@ -19,7 +19,7 @@ impl GetBlockParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `chain_get_block` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetBlockResult {
     /// The JSON-RPC server version.

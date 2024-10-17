@@ -36,17 +36,17 @@ pub enum GlobalStateIdentifier {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct SpeculativeExecutionResult {
     /// Block hash against which the execution was performed.
-    block_hash: BlockHash,
+    pub block_hash: BlockHash,
     /// List of transfers that happened during execution.
-    transfers: Vec<Transfer>,
+    pub transfers: Vec<Transfer>,
     /// Gas limit.
-    limit: Gas,
+    pub limit: Gas,
     /// Gas consumed.
-    consumed: Gas,
+    pub consumed: Gas,
     /// Execution effects.
-    effects: Effects,
+    pub effects: Effects,
     /// Messages emitted during execution.
-    messages: Messages,
+    pub messages: Messages,
     /// Did the wasm execute successfully?
-    error: Option<String>,
+    pub error: Option<String>,
 }

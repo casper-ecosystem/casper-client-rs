@@ -1,7 +1,8 @@
 /// Container for `Deploy` construction options.
 #[derive(Default, Debug)]
 pub struct DeployStrParams<'a> {
-    /// Path to secret key file.
+    /// Path to secret key file if the `std-fs-io` feature is enabled (enabled by default), or a
+    /// PEM-encoded secret key if not.
     ///
     /// If `secret_key` is empty, the new deploy will not be signed and will need to be signed (e.g.
     /// via [`sign_deploy_file`](super::sign_deploy_file)) at least once in order to be made valid.

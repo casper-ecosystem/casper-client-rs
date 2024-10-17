@@ -20,7 +20,7 @@
 ///
 /// There are further details in
 /// [the docs for the equivalent `payment_args_json`](struct.PaymentStrParams.html#payment_args_json).
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct TransactionStrParams<'a> {
     /// Path to secret key file.
     ///

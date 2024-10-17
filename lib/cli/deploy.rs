@@ -3,6 +3,7 @@ use casper_types::{
     UIntParseError, URef, U512,
 };
 
+use super::transaction::get_maybe_secret_key;
 use super::{parse, CliError, DeployStrParams, PaymentStrParams, SessionStrParams};
 use crate::rpcs::results::{PutDeployResult, SpeculativeExecResult};
 use crate::{SuccessResponse, MAX_SERIALIZED_SIZE_OF_DEPLOY};
@@ -48,25 +49,31 @@ pub async fn speculative_put_deploy(
         .await
         .map_err(CliError::from)
 }
-/// Creates a [`Deploy`] and outputs it to a file or stdout.
+
+/// Returns a [`Deploy`] and outputs it to a file or stdout if the `std-fs-io` feature is enabled.
 ///
 /// As a file, the `Deploy` can subsequently be signed by other parties using [`sign_deploy_file`]
 /// and then sent to the network for execution using [`send_deploy_file`].
 ///
-/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
-/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
-/// and the file will not be written.
+/// If the `std-fs-io` feature is NOT enabled, `maybe_output_path` and `force` are ignored.
+/// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
+/// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
+/// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
+/// [`crate::Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_deploy(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     deploy_params: DeployStrParams<'_>,
     session_params: SessionStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
-) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    #[allow(unused_variables)] force: bool,
+) -> Result<Deploy, CliError> {
     let deploy = with_payment_and_session(deploy_params, payment_params, session_params, true)?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    #[cfg(feature = "std-fs-io")]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        crate::output_deploy(output, &deploy).map_err(CliError::from)?;
+    }
+    Ok(deploy)
 }
 
 /// Reads a previously-saved [`Deploy`] from a file, cryptographically signs it, and outputs it to a
@@ -74,8 +81,9 @@ pub fn make_deploy(
 ///
 /// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
+/// is false and a file exists at `maybe_output_path`, [`crate::Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+#[cfg(feature = "std-fs-io")]
 pub fn sign_deploy_file(
     input_path: &str,
     secret_key_path: &str,
@@ -90,6 +98,7 @@ pub fn sign_deploy_file(
 /// Reads a previously-saved [`Deploy`] from a file and sends it to the network for execution.
 ///
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).
+#[cfg(feature = "std-fs-io")]
 pub async fn send_deploy_file(
     maybe_rpc_id: &str,
     node_address: &str,
@@ -107,6 +116,7 @@ pub async fn send_deploy_file(
 /// Reads a previously-saved [`Deploy`] from a file and sends it to the specified node for
 /// speculative execution.
 /// For details of the parameters, see [the module docs](crate::cli#common-parameters).
+#[cfg(feature = "std-fs-io")]
 pub async fn speculative_send_deploy_file(
     maybe_rpc_id: &str,
     node_address: &str,
@@ -196,25 +206,26 @@ pub async fn speculative_transfer(
         .map_err(CliError::from)
 }
 
-/// Creates a transfer [`Deploy`] and outputs it to a file or stdout.
+/// Returns a transfer [`Deploy`] and outputs it to a file or stdout if the `std-fs-io` feature is
+/// enabled.
 ///
 /// As a file, the `Deploy` can subsequently be signed by other parties using [`sign_deploy_file`]
 /// and then sent to the network for execution using [`send_deploy_file`].
 ///
-/// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
-/// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
-/// and the file will not be written.
+/// If the `std-fs-io` feature is NOT enabled, `maybe_output_path` and `force` are ignored.
+/// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
+/// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
+/// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
+/// [`crate::Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_transfer(
-    maybe_output_path: &str,
+    #[allow(unused_variables)] maybe_output_path: &str,
     amount: &str,
     target_account: &str,
     transfer_id: &str,
     deploy_params: DeployStrParams<'_>,
     payment_params: PaymentStrParams<'_>,
-    force: bool,
-) -> Result<(), CliError> {
-    let output = parse::output_kind(maybe_output_path, force);
+    #[allow(unused_variables)] force: bool,
+) -> Result<Deploy, CliError> {
     let deploy = new_transfer(
         amount,
         None,
@@ -224,7 +235,12 @@ pub fn make_transfer(
         payment_params,
         true,
     )?;
-    crate::output_deploy(output, &deploy).map_err(CliError::from)
+    #[cfg(feature = "std-fs-io")]
+    {
+        let output = parse::output_kind(maybe_output_path, force);
+        crate::output_deploy(output, &deploy).map_err(CliError::from)?;
+    }
+    Ok(deploy)
 }
 
 /// Creates new Deploy with specified payment and session data.
@@ -240,19 +256,6 @@ pub fn with_payment_and_session(
         .unwrap_or(DEFAULT_GAS_PRICE);
     let chain_name = deploy_params.chain_name.to_string();
     let session = parse::session_executable_deploy_item(session_params)?;
-    let maybe_secret_key = if allow_unsigned_deploy && deploy_params.secret_key.is_empty() {
-        None
-    } else if deploy_params.secret_key.is_empty() && !allow_unsigned_deploy {
-        return Err(CliError::InvalidArgument {
-            context: "with_payment_and_session (secret_key, allow_unsigned_deploy)",
-            error: format!(
-                "allow_unsigned_deploy was {}, but no secret key was provided",
-                allow_unsigned_deploy
-            ),
-        });
-    } else {
-        Some(parse::secret_key_from_file(deploy_params.secret_key)?)
-    };
     let payment = parse::payment_executable_deploy_item(payment_params)?;
     let timestamp = parse::timestamp(deploy_params.timestamp)?;
     let ttl = parse::ttl(deploy_params.ttl)?;
@@ -263,7 +266,11 @@ pub fn with_payment_and_session(
         .with_timestamp(timestamp)
         .with_gas_price(gas_price)
         .with_ttl(ttl);
-
+    let maybe_secret_key = get_maybe_secret_key(
+        deploy_params.secret_key,
+        allow_unsigned_deploy,
+        "with_payment_and_session",
+    )?;
     if let Some(secret_key) = &maybe_secret_key {
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }
@@ -289,21 +296,7 @@ pub fn new_transfer(
     allow_unsigned_deploy: bool,
 ) -> Result<Deploy, CliError> {
     let chain_name = deploy_params.chain_name.to_string();
-    let maybe_secret_key = if allow_unsigned_deploy && deploy_params.secret_key.is_empty() {
-        None
-    } else if deploy_params.secret_key.is_empty() && !allow_unsigned_deploy {
-        return Err(CliError::InvalidArgument {
-            context: "new_transfer (secret_key, allow_unsigned_deploy)",
-            error: format!(
-                "allow_unsigned_deploy was {}, but no secret key was provided",
-                allow_unsigned_deploy
-            ),
-        });
-    } else {
-        Some(parse::secret_key_from_file(deploy_params.secret_key)?)
-    };
     let payment = parse::payment_executable_deploy_item(payment_params)?;
-
     let amount = U512::from_dec_str(amount).map_err(|err| CliError::FailedToParseUint {
         context: "new_transfer amount",
         error: UIntParseError::FromDecStr(err),
@@ -342,6 +335,12 @@ pub fn new_transfer(
             .with_timestamp(timestamp)
             .with_gas_price(gas_price)
             .with_ttl(ttl);
+
+    let maybe_secret_key = get_maybe_secret_key(
+        deploy_params.secret_key,
+        allow_unsigned_deploy,
+        "new_transfer",
+    )?;
     if let Some(secret_key) = &maybe_secret_key {
         deploy_builder = deploy_builder.with_secret_key(secret_key);
     }

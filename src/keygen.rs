@@ -101,7 +101,19 @@ impl ClientCommand for Keygen {
             .arg(algorithm::arg())
     }
 
+    /// Asynchronously runs the keygen command based on the provided command-line arguments.
+    ///
+    /// # Arguments
+    ///
+    /// * `matches` - A reference to the `ArgMatches` containing the parsed command-line arguments.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` indicating the success or failure of the command execution.
+    /// If successful, returns `Success::Output` with a message indicating the outcome.
+    /// If unsuccessful, returns a `CliError` with details about the error.
     async fn run(matches: &ArgMatches) -> Result<Success, CliError> {
+        // Retrieve the output directory, key algorithm, and force flag from command-line arguments
         let output_dir = output_dir::get(matches);
         let algorithm = algorithm::get(matches);
         let force = common::force::get(matches);

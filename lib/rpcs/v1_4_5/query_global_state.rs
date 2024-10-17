@@ -32,7 +32,7 @@ impl QueryGlobalStateParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `query_global_state` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct QueryGlobalStateResult {
     /// The JSON-RPC server version.

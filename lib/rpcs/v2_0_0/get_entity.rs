@@ -1,7 +1,8 @@
 use casper_types::{
     account::{Account, AccountHash},
     addressable_entity::NamedKeys,
-    AddressableEntity, EntityAddr, EntryPointValue, ProtocolVersion, PublicKey,
+    AddressableEntity as CasperTypesAddressableEntity, EntityAddr, EntryPointValue,
+    ProtocolVersion, PublicKey,
 };
 use serde::{Deserialize, Serialize};
 
@@ -21,20 +22,41 @@ pub enum EntityIdentifier {
     EntityAddr(EntityAddr),
 }
 
+/// An addressable entity with named keys and entry points.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
+pub struct AddressableEntity {
+    pub entity: CasperTypesAddressableEntity,
+    pub named_keys: NamedKeys,
+    pub entry_points: Vec<EntryPointValue>,
+}
+
 /// An addressable entity or a legacy account.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub enum EntityOrAccount {
     /// An addressable entity with named keys and entry points.
-    AddressableEntity {
-        /// The addressable entity.
-        entity: AddressableEntity,
-        /// The named keys of the addressable entity.
-        named_keys: NamedKeys,
-        /// The entry points of the addressable entity.
-        entry_points: Vec<EntryPointValue>,
-    },
+    AddressableEntity(AddressableEntity),
     /// A legacy account.
     LegacyAccount(Account),
+}
+
+impl EntityOrAccount {
+    /// Returns the addressable entity if present.
+    pub fn addressable_entity(&self) -> Option<&AddressableEntity> {
+        if let EntityOrAccount::AddressableEntity(addressable_entity) = &self {
+            Some(addressable_entity)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the legacy account if present.
+    pub fn legacy_account(&self) -> Option<&Account> {
+        if let EntityOrAccount::LegacyAccount(account) = &self {
+            Some(account)
+        } else {
+            None
+        }
+    }
 }
 
 /// Params for "state_get_entity" RPC request
@@ -61,13 +83,14 @@ impl GetAddressableEntityParams {
 }
 
 /// Result for "state_get_entity" RPC response.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetAddressableEntityResult {
     /// The RPC API version.
     pub api_version: ProtocolVersion,
     /// The addressable entity or a legacy account.
-    pub entity: EntityOrAccount,
+    #[serde(alias = "entity")]
+    pub entity_result: EntityOrAccount,
     /// The Merkle proof.
     pub merkle_proof: String,
 }

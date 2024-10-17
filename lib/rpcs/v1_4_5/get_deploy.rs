@@ -23,7 +23,7 @@ impl GetDeployParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to an `info_get_deploy` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetDeployResult {
     /// The JSON-RPC server version.

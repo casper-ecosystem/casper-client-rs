@@ -19,7 +19,7 @@ impl GetEraSummaryParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `chain_get_era_summary` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetEraSummaryResult {
     /// The JSON-RPC server version.

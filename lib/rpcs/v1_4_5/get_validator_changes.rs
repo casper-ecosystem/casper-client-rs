@@ -40,7 +40,7 @@ pub struct ValidatorChanges {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `info_get_validator_changes` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetValidatorChangesResult {
     /// The JSON-RPC server version.

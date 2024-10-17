@@ -28,7 +28,7 @@ impl GetAccountParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `state_get_account_info` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetAccountResult {
     /// The JSON-RPC server version.

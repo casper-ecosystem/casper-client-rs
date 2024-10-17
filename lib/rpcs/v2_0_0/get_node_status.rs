@@ -12,7 +12,7 @@ pub use crate::rpcs::v1_6_0::get_node_status::{
 };
 
 /// Result for "info_get_status" RPC response.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetNodeStatusResult {
     /// The RPC API version.

@@ -15,7 +15,7 @@ pub struct PeerEntry {
 }
 
 /// The `result` field of a successful JSON-RPC response to a `info_get_peers` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetPeersResult {
     /// The JSON-RPC server version.

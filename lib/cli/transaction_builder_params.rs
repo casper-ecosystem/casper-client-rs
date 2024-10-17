@@ -4,6 +4,7 @@ use casper_types::{AddressableEntityHash, PackageHash, PublicKey, TransferTarget
 /// An enum representing the parameters needed to construct a transaction builder
 /// for the commands concerning the creation of a transaction
 
+#[derive(Debug)]
 pub enum TransactionBuilderParams<'a> {
     /// Parameters for the add bid variant of the transaction builder
     AddBid {

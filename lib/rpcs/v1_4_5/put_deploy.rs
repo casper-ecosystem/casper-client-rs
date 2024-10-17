@@ -17,7 +17,7 @@ impl PutDeployParams {
 }
 
 /// The `result` field of a successful JSON-RPC response to an `account_put_deploy` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct PutDeployResult {
     /// The JSON-RPC server version.
