@@ -56,6 +56,9 @@ pub struct TransactionStrParams<'a> {
     pub session_args_json: &'a str,
     /// The pricing mode to use with the transaction
     pub pricing_mode: &'a str,
+    /// User-specified additional computation factor for "fixed" pricing_mode (minimum 0)
+    /// if "0" is provided, no additional logic is applied to the computation limit.
+    pub additional_computation_factor: &'a str,
     /// The optional output path for the transaction, if writing it to a file.
     pub output_path: &'a str,
     /// The payment amount for executing the transaction

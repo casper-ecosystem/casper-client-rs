@@ -882,50 +882,51 @@ pub(super) fn public_key(public_key: &str) -> Result<Option<PublicKey>, CliError
 
 pub(super) fn pricing_mode(
     pricing_mode_identifier_str: &str,
-    maybe_payment_amount_str: &str,
-    maybe_gas_price_tolerance_str: &str,
-    maybe_standard_payment_str: &str,
+    payment_amount_str: &str,
+    gas_price_tolerance_str: &str,
+    additional_computation_factor_str: &str,
+    standard_payment_str: &str,
     maybe_receipt: Option<Digest>,
 ) -> Result<PricingMode, CliError> {
     match pricing_mode_identifier_str.to_lowercase().as_str() {
         "classic" => {
-            if maybe_gas_price_tolerance_str.is_empty() {
+            if gas_price_tolerance_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "gas_price_tolerance",
                     error: "Gas price tolerance is required".to_string(),
                 });
             }
-            if maybe_payment_amount_str.is_empty() {
+            if payment_amount_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "payment_amount",
                     error: "Payment amount is required".to_string(),
                 });
             }
-            if maybe_standard_payment_str.is_empty() {
+            if standard_payment_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "standard_payment",
                     error: "Standard payment flag is required".to_string(),
                 });
             }
-            let gas_price_tolerance =
-                maybe_gas_price_tolerance_str
-                    .parse::<u8>()
-                    .map_err(|error| CliError::FailedToParseInt {
-                        context: "gas_price_tolerance",
-                        error,
-                    })?;
-            let payment_amount = maybe_payment_amount_str.parse::<u64>().map_err(|error| {
+            let gas_price_tolerance = gas_price_tolerance_str.parse::<u8>().map_err(|error| {
                 CliError::FailedToParseInt {
-                    context: "payment_amount",
+                    context: "gas_price_tolerance",
                     error,
                 }
             })?;
-            let standard_payment = maybe_standard_payment_str
-                .parse::<bool>()
-                .map_err(|error| CliError::FailedToParseBool {
+            let payment_amount =
+                payment_amount_str
+                    .parse::<u64>()
+                    .map_err(|error| CliError::FailedToParseInt {
+                        context: "payment_amount",
+                        error,
+                    })?;
+            let standard_payment = standard_payment_str.parse::<bool>().map_err(|error| {
+                CliError::FailedToParseBool {
                     context: "standard_payment",
                     error,
-                })?;
+                }
+            })?;
             Ok(PricingMode::Classic {
                 payment_amount,
                 gas_price_tolerance,
@@ -933,21 +934,33 @@ pub(super) fn pricing_mode(
             })
         }
         "fixed" => {
-            if maybe_gas_price_tolerance_str.is_empty() {
+            if gas_price_tolerance_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "gas_price_tolerance",
                     error: "Gas price tolerance is required".to_string(),
                 });
             }
-            let gas_price_tolerance =
-                maybe_gas_price_tolerance_str
+            let gas_price_tolerance = gas_price_tolerance_str.parse::<u8>().map_err(|error| {
+                CliError::FailedToParseInt {
+                    context: "gas_price_tolerance",
+                    error,
+                }
+            })?;
+
+            // Additional Computation Factor defaults to 0 if the string is empty
+            let additional_computation_factor = if additional_computation_factor_str.is_empty() {
+                u8::default()
+            } else {
+                additional_computation_factor_str
                     .parse::<u8>()
                     .map_err(|error| CliError::FailedToParseInt {
-                        context: "gas_price_tolerance",
+                        context: "additional_computation_factor",
                         error,
-                    })?;
+                    })?
+            };
             Ok(PricingMode::Fixed {
                 gas_price_tolerance,
+                additional_computation_factor,
             })
         }
         "reserved" => {
@@ -1795,11 +1808,13 @@ mod tests {
             let pricing_mode_str = "fixed";
             let payment_amount = "";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "1";
             let standard_payment = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             )
@@ -1807,20 +1822,49 @@ mod tests {
             assert_eq!(
                 parsed,
                 PricingMode::Fixed {
+                    additional_computation_factor: 1,
                     gas_price_tolerance: 10,
                 }
             );
         }
+
         #[test]
-        fn should_parse_reserved_pricing_mode() {
-            let pricing_mode_str = "reserved";
+        fn should_parse_fixed_pricing_mode_identifier_without_additional_computation_factor() {
+            let pricing_mode_str = "fixed";
             let payment_amount = "";
-            let gas_price_tolerance = "";
+            let gas_price_tolerance = "10";
+            let additional_computation_factor = "";
             let standard_payment = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
+                standard_payment,
+                None,
+            )
+            .unwrap();
+            assert_eq!(
+                parsed,
+                PricingMode::Fixed {
+                    additional_computation_factor: 0,
+                    gas_price_tolerance: 10,
+                }
+            );
+        }
+
+        #[test]
+        fn should_parse_reserved_pricing_mode() {
+            let pricing_mode_str = "reserved";
+            let payment_amount = "";
+            let gas_price_tolerance = "";
+            let additional_computation_factor = "0";
+            let standard_payment = "";
+            let parsed = pricing_mode(
+                pricing_mode_str,
+                payment_amount,
+                gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 Some(Digest::from_hex(VALID_HASH).unwrap()),
             )
@@ -1838,10 +1882,12 @@ mod tests {
             let payment_amount = "10";
             let standard_payment = "true";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "0";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             )
@@ -1862,10 +1908,12 @@ mod tests {
             let payment_amount = "10";
             let standard_payment = "true";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "0";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             );
@@ -1874,15 +1922,36 @@ mod tests {
         }
 
         #[test]
+        fn should_fail_to_parse_invalid_additional_computation_factor() {
+            let pricing_mode_str = "fixed";
+            let payment_amount = "10";
+            let standard_payment = "true";
+            let gas_price_tolerance = "10";
+            let additional_computation_factor = "invalid";
+            let parsed = pricing_mode(
+                pricing_mode_str,
+                payment_amount,
+                gas_price_tolerance,
+                additional_computation_factor,
+                standard_payment,
+                None,
+            );
+            assert!(parsed.is_err());
+            assert!(matches!(parsed, Err(CliError::FailedToParseInt { .. })));
+        }
+
+        #[test]
         fn should_fail_to_parse_classic_without_amount() {
             let pricing_mode_str = "classic";
             let payment_amount = "";
             let standard_payment = "true";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "0";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             );

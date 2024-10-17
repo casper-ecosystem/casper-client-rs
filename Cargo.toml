@@ -30,7 +30,7 @@ default = ["async-trait", "clap", "clap_complete", "std-fs-io"]
 std-fs-io = ["casper-types/std-fs-io"]
 
 [dependencies]
-async-trait = { version = "0.1.74", optional = true }
+async-trait = { version = "0.1.74", default-features = false, optional = true }
 base16 = "0.2.1"
 casper-types = { version = "5.0.0", features = ["std", "json-schema"] }
 clap = { version = "~4.4", features = ["cargo", "deprecated"], optional = true }
