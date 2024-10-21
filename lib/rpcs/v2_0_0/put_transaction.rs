@@ -19,7 +19,7 @@ impl PutTransactionParams {
 }
 
 /// Result for "account_put_transaction" RPC response.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct PutTransactionResult {
     /// The RPC API version.

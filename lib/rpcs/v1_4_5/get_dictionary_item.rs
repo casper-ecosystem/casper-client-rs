@@ -2,12 +2,12 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(doc)]
 use casper_types::{account::Account, Contract};
-use casper_types::{Digest, ProtocolVersion, StoredValue, URef};
+use casper_types::{ProtocolVersion, StoredValue, URef};
 
 pub(crate) const GET_DICTIONARY_ITEM_METHOD: &str = "state_get_dictionary_item";
 
 /// The identifier for a dictionary item.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub enum DictionaryItemIdentifier {
     /// A dictionary item identified via an [`Account`]'s named keys.
@@ -43,15 +43,8 @@ pub enum DictionaryItemIdentifier {
     Dictionary(String),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct GetDictionaryItemParams {
-    state_root_hash: Digest,
-    dictionary_identifier: DictionaryItemIdentifier,
-}
-
 /// The `result` field of a successful JSON-RPC response to a `state_get_dictionary_item` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetDictionaryItemResult {
     /// The JSON-RPC server version.

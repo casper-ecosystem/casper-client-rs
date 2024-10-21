@@ -7,10 +7,10 @@ pub(crate) use crate::rpcs::v1_6_0::get_dictionary_item::GET_DICTIONARY_ITEM_MET
 use crate::Error;
 
 /// The identifier for a dictionary item.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub enum DictionaryItemIdentifier {
-    /// A dictionary item identified via an [`Account`]'s named keys.
+    /// A dictionary item identified via an [`Key::Account`]'s named keys.
     AccountNamedKey {
         /// The [`Key::Account`] as a formatted string, identifying the account whose named keys
         /// contains `dictionary_name`.
@@ -20,7 +20,7 @@ pub enum DictionaryItemIdentifier {
         /// The key within the dictionary under which the item is held.
         dictionary_item_key: String,
     },
-    /// A dictionary item identified via a [`Contract`]'s named keys.
+    /// A dictionary item identified via a [`Key::Hash`]'s named keys.
     ContractNamedKey {
         /// The [`Key::Hash`] as a formatted string, identifying the contract whose named keys
         /// contains `dictionary_name`.
@@ -30,7 +30,7 @@ pub enum DictionaryItemIdentifier {
         /// The key within the dictionary under which the item is held.
         dictionary_item_key: String,
     },
-    /// A dictionary item identified via a [`AddressableEntity`]'s named keys.
+    /// A dictionary item identified via a [`Key::AddressableEntity`]'s named keys.
     EntityNamedKey {
         /// The [`Key::AddressableEntity`] as a formatted string, identifying the entity whose
         /// named keys contain `dictionary_name`.
@@ -40,7 +40,7 @@ pub enum DictionaryItemIdentifier {
         /// The key within the dictionary under which the item is held.
         dictionary_item_key: String,
     },
-    /// A dictionary item identified via its seed [`URef`].
+    /// A dictionary item identified via its seed [`Key::URef`].
     URef {
         /// The dictionary's seed `URef`.
         seed_uref: URef,

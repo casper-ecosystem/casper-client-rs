@@ -1,11 +1,18 @@
+#[cfg(feature = "std-fs-io")]
+use crate::read_transaction_file;
+#[cfg(feature = "std-fs-io")]
 use crate::rpcs::v2_0_0::speculative_exec_transaction::SpeculativeExecTxnResult;
+#[cfg(feature = "std-fs-io")]
+use crate::speculative_exec_txn;
 use crate::{
     cli::{parse, CliError, TransactionBuilderParams, TransactionStrParams},
-    put_transaction as put_transaction_rpc_handler, read_transaction_file,
+    put_transaction as put_transaction_rpc_handler,
     rpcs::results::PutTransactionResult,
-    speculative_exec_txn, SuccessResponse,
+    SuccessResponse,
 };
-use casper_types::{Digest, InitiatorAddr, Transaction, TransactionV1, TransactionV1Builder};
+use casper_types::{
+    Digest, InitiatorAddr, SecretKey, Transaction, TransactionV1, TransactionV1Builder,
+};
 
 pub fn create_transaction(
     builder_params: TransactionBuilderParams,
@@ -14,20 +21,11 @@ pub fn create_transaction(
 ) -> Result<TransactionV1, CliError> {
     let chain_name = transaction_params.chain_name.to_string();
 
-    let maybe_secret_key = if allow_unsigned_transaction && transaction_params.secret_key.is_empty()
-    {
-        None
-    } else if transaction_params.secret_key.is_empty() && !allow_unsigned_transaction {
-        return Err(CliError::InvalidArgument {
-            context: "create_transaction (secret_key, allow_unsigned_deploy)",
-            error: format!(
-                "allow_unsigned_deploy was {}, but no secret key was provided",
-                allow_unsigned_transaction
-            ),
-        });
-    } else {
-        Some(parse::secret_key_from_file(transaction_params.secret_key)?)
-    };
+    let maybe_secret_key = get_maybe_secret_key(
+        transaction_params.secret_key,
+        allow_unsigned_transaction,
+        "create_transaction",
+    )?;
 
     let timestamp = parse::timestamp(transaction_params.timestamp)?;
     let ttl = parse::ttl(transaction_params.ttl)?;
@@ -96,22 +94,28 @@ pub fn create_transaction(
     Ok(txn)
 }
 
-/// Creates a [`Transaction`] and outputs it to a file or stdout.
+/// Creates a [`Transaction`] and outputs it to a file or stdout if the `std-fs-io` feature is enabled.
 ///
 /// As a file, the `Transaction` can subsequently be signed by other parties using [`sign_transaction_file`]
 /// and then sent to the network for execution using [`send_transaction_file`].
 ///
-/// If `force` is true, and a file exists at `transaction_params.output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `transaction_params.output_path`, [`Error::FileAlreadyExists`] is returned
-/// and the file will not be written.
+/// If the `std-fs-io` feature is NOT enabled, `maybe_output_path` and `force` are ignored.
+/// Otherwise, `maybe_output_path` specifies the output file path, or if empty, will print it to
+/// `stdout`.  If `force` is true, and a file exists at `maybe_output_path`, it will be
+/// overwritten.  If `force` is false and a file exists at `maybe_output_path`,
+/// [`crate::Error::FileAlreadyExists`] is returned and the file will not be written.
 pub fn make_transaction(
     builder_params: TransactionBuilderParams,
     transaction_params: TransactionStrParams<'_>,
-    force: bool,
-) -> Result<(), CliError> {
-    let output = parse::output_kind(transaction_params.output_path, force);
-    let transaction = create_transaction(builder_params, transaction_params, true)?;
-    crate::output_transaction(output, &transaction).map_err(CliError::from)
+    #[allow(unused_variables)] force: bool,
+) -> Result<TransactionV1, CliError> {
+    let transaction = create_transaction(builder_params, transaction_params.clone(), true)?;
+    #[cfg(feature = "std-fs-io")]
+    {
+        let output = parse::output_kind(transaction_params.output_path, force);
+        crate::output_transaction(output, &transaction).map_err(CliError::from)?;
+    }
+    Ok(transaction)
 }
 
 /// Creates a [`Transaction`] and sends it to the network for execution.
@@ -144,6 +148,7 @@ pub async fn put_transaction(
 /// `rpc_id_str` is the RPC ID to use for this request. node_address is the address of the node to send the request to.
 /// verbosity_level is the level of verbosity to use when outputting the response.
 /// the input path is the path to the file containing the transaction to send.
+#[cfg(feature = "std-fs-io")]
 pub async fn send_transaction_file(
     rpc_id_str: &str,
     node_address: &str,
@@ -169,6 +174,7 @@ pub async fn send_transaction_file(
 /// `rpc_id_str` is the RPC ID to use for this request. node_address is the address of the node to send the request to.
 /// verbosity_level is the level of verbosity to use when outputting the response.
 ///  the input path is the path to the file containing the transaction to send.
+#[cfg(feature = "std-fs-io")]
 pub async fn speculative_send_transaction_file(
     rpc_id_str: &str,
     node_address: &str,
@@ -193,8 +199,9 @@ pub async fn speculative_send_transaction_file(
 ///
 /// `maybe_output_path` specifies the output file path, or if empty, will print it to `stdout`.  If
 /// `force` is true, and a file exists at `maybe_output_path`, it will be overwritten.  If `force`
-/// is false and a file exists at `maybe_output_path`, [`Error::FileAlreadyExists`] is returned
+/// is false and a file exists at `maybe_output_path`, [`crate::Error::FileAlreadyExists`] is returned
 /// and the file will not be written.
+#[cfg(feature = "std-fs-io")]
 pub fn sign_transaction_file(
     input_path: &str,
     secret_key_path: &str,
@@ -320,5 +327,51 @@ pub fn make_transaction_builder(
             let transaction_builder = TransactionV1Builder::new_withdraw_bid(public_key, amount)?;
             Ok(transaction_builder)
         }
+    }
+}
+
+/// Retrieves a `SecretKey` based on the provided secret key string and configuration options.
+///
+/// * `secret_key` - A string representing the secret key. This can result in three outcomes:
+///     - If a valid secret key is provided and the `std-fs-io` feature is enabled, the `Result` contains `Some(SecretKey)`.
+///     - If `secret_key` is empty and `allow_unsigned_deploy` is `true`, the `Result` contains `None`.
+///     - If `secret_key` is empty and `allow_unsigned_deploy` is `false`, the `Result` contains an `Err` variant with `CliError::InvalidArgument`.
+/// * `allow_unsigned_deploy` - A boolean indicating whether unsigned deploys are allowed.
+///
+/// # Returns
+///
+/// Returns a `Result` containing an `Option<SecretKey>`.
+/// * If a valid secret key is provided and the `std-fs-io` feature is enabled, the `Result` contains `Some(SecretKey)`.
+/// * If the `std-fs-io` feature is disabled, the `Result` contains `Some(SecretKey)` parsed from the provided file.
+/// * If `secret_key` is empty and `allow_unsigned_deploy` is `true`, the `Result` contains `None`.
+/// * If `secret_key` is empty and `allow_unsigned_deploy` is `false`, an `Err` variant with `CliError::InvalidArgument` is returned.
+///
+/// # Errors
+///
+/// Returns an `Err` variant with a `CliError::Core` or `CliError::InvalidArgument` if there are issues with parsing the secret key.
+pub fn get_maybe_secret_key(
+    secret_key: &str,
+    allow_unsigned_deploy: bool,
+    context: &'static str,
+) -> Result<Option<SecretKey>, CliError> {
+    match (secret_key.is_empty(), allow_unsigned_deploy) {
+        (false, _) => {
+            #[cfg(feature = "std-fs-io")]
+            {
+                Ok(Some(parse::secret_key_from_file(secret_key)?))
+            }
+            #[cfg(not(feature = "std-fs-io"))]
+            {
+                let secret_key = SecretKey::from_pem(secret_key).map_err(|error| {
+                    CliError::Core(crate::Error::CryptoError { context, error })
+                })?;
+                Ok(Some(secret_key))
+            }
+        }
+        (true, true) => Ok(None),
+        (true, false) => Err(CliError::InvalidArgument {
+            context,
+            error: "No secret key provided and unsigned deploys are not allowed".to_string(),
+        }),
     }
 }

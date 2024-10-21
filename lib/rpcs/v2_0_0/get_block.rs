@@ -7,7 +7,7 @@ pub(crate) use crate::rpcs::v1_6_0::get_block::{GetBlockParams, GET_BLOCK_METHOD
 use crate::types::JsonBlockWithSignatures;
 
 /// The `result` field of a successful JSON-RPC response to a `chain_get_block` request.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetBlockResult {
     /// The JSON-RPC server version.
