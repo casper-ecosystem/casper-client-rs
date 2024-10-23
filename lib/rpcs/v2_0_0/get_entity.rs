@@ -22,11 +22,26 @@ pub enum EntityIdentifier {
     EntityAddr(EntityAddr),
 }
 
-/// An addressable entity with named keys and entry points.
+/// Represents an entity that is addressable within the Casper system.
+/// This struct holds the entity, its associated named keys, and its
+/// entry points for interaction.
+///
+/// # Fields
+///
+/// * `entity` - The addressable entity which could be a contract, account, or other entity types in Casper.
+/// * `named_keys` - A collection of named keys that are associated with the entity. Named keys
+///   are a mapping from string identifiers to keys (e.g., contracts, URefs, etc.).
+/// * `entry_points` - A list of entry points representing methods or functions that the entity exposes.
+///   Entry points define the public interface of a contract or other executable object.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct AddressableEntity {
+    /// The core addressable entity in Casper (account, contract, etc.).
     pub entity: CasperTypesAddressableEntity,
+
+    /// The named keys associated with the entity, mapping identifiers to actual keys.
     pub named_keys: NamedKeys,
+
+    /// A collection of entry points for the entity, defining its public interface.
     pub entry_points: Vec<EntryPointValue>,
 }
 
