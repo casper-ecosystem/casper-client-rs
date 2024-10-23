@@ -28,7 +28,7 @@ impl QueryBalanceDetailsParams {
     }
 }
 /// Result for "query_balance_details" RPC response.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 pub struct QueryBalanceDetailsResult {
     /// The RPC API version.
     pub api_version: ProtocolVersion,
@@ -43,7 +43,7 @@ pub struct QueryBalanceDetailsResult {
 }
 
 /// A hold on an account's balance.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 pub struct BalanceHoldWithProof {
     /// The block time at which the hold was created.
     pub time: BlockTime,

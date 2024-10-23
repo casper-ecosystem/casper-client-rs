@@ -20,7 +20,7 @@
 //! * `maybe_block_id` - Must be a hex-encoded, 32-byte hash digest or a `u64` representing the
 //!   [`Block`] height or empty.  If empty, the latest `Block` known on the server will be used.
 
-/// Deploy module.
+/// Functions for creating Deploys.
 pub mod deploy;
 mod deploy_str_params;
 mod dictionary_item_str_params;
@@ -41,6 +41,7 @@ use serde::Serialize;
 
 #[cfg(doc)]
 use casper_types::{account::AccountHash, Key};
+
 use casper_types::{Digest, URef};
 
 use crate::{
@@ -59,31 +60,32 @@ use crate::{
     SuccessResponse,
 };
 #[cfg(doc)]
-use crate::{Account, Block, Deploy, Error, StoredValue, Transfer};
+use crate::{Account, Block, Error, StoredValue, Transfer};
 #[cfg(doc)]
 use casper_types::PublicKey;
+#[cfg(feature = "std-fs-io")]
 pub use deploy::{
     make_deploy, make_transfer, put_deploy, send_deploy_file, sign_deploy_file,
     speculative_put_deploy, speculative_send_deploy_file, speculative_transfer, transfer,
 };
 pub use deploy_str_params::DeployStrParams;
 pub use dictionary_item_str_params::DictionaryItemStrParams;
-pub use error::CliError;
-use json_args::JsonArg;
+pub use error::{CliError, FromDecStrErr};
 pub use json_args::{
-    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails,
+    help as json_args_help, Error as JsonArgsError, ErrorDetails as JsonArgsErrorDetails, JsonArg,
 };
 pub use payment_str_params::PaymentStrParams;
 pub use session_str_params::SessionStrParams;
-pub use simple_args::help as simple_args_help;
+pub use simple_args::{help as simple_args_help, insert_arg};
+pub use transaction::{make_transaction, put_transaction};
+#[cfg(feature = "std-fs-io")]
 pub use transaction::{
-    make_transaction, put_transaction, send_transaction_file, sign_transaction_file,
-    speculative_send_transaction_file,
+    send_transaction_file, sign_transaction_file, speculative_send_transaction_file,
 };
 pub use transaction_builder_params::TransactionBuilderParams;
 pub use transaction_str_params::TransactionStrParams;
 
-/// Retrieves a [`Deploy`] from the network.
+/// Retrieves a [`casper_types::Deploy`] from the network.
 ///
 /// `deploy_hash` must be a hex-encoded, 32-byte hash digest.  For details of the other parameters,
 /// see [the module docs](crate::cli#common-parameters).
@@ -108,7 +110,7 @@ pub async fn get_deploy(
     .map_err(CliError::from)
 }
 
-/// Retrieves a [`Transaction`] from the network.
+/// Retrieves a [`casper_types::Transaction`] from the network.
 ///
 /// `transaction_hash` must be a hex-encoded, 32-byte hash digest.  For details of the other parameters,
 /// see [the module docs](crate::cli#common-parameters).
@@ -121,12 +123,12 @@ pub async fn get_transaction(
 ) -> Result<SuccessResponse<GetTransactionResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
-    let deploy_hash = parse::transaction_hash(transaction_hash)?;
+    let transaction_hash = parse::transaction_hash(transaction_hash)?;
     crate::get_transaction(
         rpc_id,
         node_address,
         verbosity,
-        deploy_hash,
+        transaction_hash,
         finalized_approvals,
     )
     .await
@@ -380,9 +382,18 @@ pub async fn get_balance(
 
 /// Retrieves an [`Account`] at a given [`Block`].
 ///
-/// `public_key` is the public key as a formatted string associated with the `Account`.
-///
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
+///
+/// # Parameters
+/// - `maybe_rpc_id`: The optional RPC ID as a string slice.
+/// - `node_address`: The address of the node as a string slice.
+/// - `verbosity_level`: The verbosity level as a 64-bit unsigned integer.
+/// - `maybe_block_id`: The optional block ID as a string slice.
+/// - `account_identifier`: The account identifier as a string slice.
+///
+/// # Returns
+/// The result containing either a successful response with the account details or a `CliError`.
+
 pub async fn get_account(
     maybe_rpc_id: &str,
     node_address: &str,
@@ -406,22 +417,30 @@ pub async fn get_account(
     .map_err(CliError::from)
 }
 
-/// Retrieves an [`EntityOrAccount`] at a given [`Block`].
-///
-/// `public_key` is the public key as a formatted string associated with the `Account`.
+/// Retrieves an [`crate::rpcs::v2_0_0::get_entity::EntityOrAccount`] at a given [`Block`].
 ///
 /// For details of other parameters, see [the module docs](crate::cli#common-parameters).
+///
+/// # Parameters
+/// - `maybe_rpc_id`: The optional RPC ID as a string slice.
+/// - `node_address`: The address of the node as a string slice.
+/// - `verbosity_level`: The verbosity level as a 64-bit unsigned integer.
+/// - `maybe_block_id`: The optional block ID as a string slice.
+/// - `entity_identifier`: The entity identifier as a string slice.
+///
+/// # Returns
+/// The result containing either a successful response with the entity details or a `CliError`.
 pub async fn get_entity(
     maybe_rpc_id: &str,
     node_address: &str,
     verbosity_level: u64,
     maybe_block_id: &str,
-    account_identifier: &str,
+    entity_identifier: &str,
 ) -> Result<SuccessResponse<GetAddressableEntityResult>, CliError> {
     let rpc_id = parse::rpc_id(maybe_rpc_id);
     let verbosity = parse::verbosity(verbosity_level);
     let maybe_block_id = parse::block_identifier(maybe_block_id)?;
-    let entity_identifier = parse::entity_identifier(account_identifier)?;
+    let entity_identifier = parse::entity_identifier(entity_identifier)?;
 
     crate::get_entity(
         rpc_id,

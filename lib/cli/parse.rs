@@ -1,21 +1,28 @@
 //! This module contains structs and helpers which are used by multiple subcommands related to
 //! creating deploys.
 
-use std::{fs, path::Path, str::FromStr};
+use std::fs;
+#[cfg(feature = "std-fs-io")]
+use std::path::Path;
+use std::str::FromStr;
 
 use rand::Rng;
 
+#[cfg(feature = "std-fs-io")]
+use casper_types::SecretKey;
 use casper_types::{
     account::AccountHash, bytesrepr::Bytes, crypto, AsymmetricType, BlockHash, DeployHash, Digest,
     EntityAddr, ExecutableDeployItem, HashAddr, Key, NamedArg, PricingMode, PublicKey, RuntimeArgs,
-    SecretKey, TimeDiff, Timestamp, TransactionHash, TransactionV1Hash, TransferTarget,
-    UIntParseError, URef, U512,
+    TimeDiff, Timestamp, TransactionHash, TransactionV1Hash, TransferTarget, UIntParseError, URef,
+    U512,
 };
 
 use super::{simple_args, CliError, PaymentStrParams, SessionStrParams};
+#[cfg(feature = "std-fs-io")]
+use crate::OutputKind;
 use crate::{
     rpcs::EraIdentifier, AccountIdentifier, BlockIdentifier, EntityIdentifier,
-    GlobalStateIdentifier, JsonRpcId, OutputKind, PurseIdentifier, Verbosity,
+    GlobalStateIdentifier, JsonRpcId, PurseIdentifier, Verbosity,
 };
 
 pub(super) fn rpc_id(maybe_rpc_id: &str) -> JsonRpcId {
@@ -36,6 +43,7 @@ pub(super) fn verbosity(verbosity_level: u64) -> Verbosity {
     }
 }
 
+#[cfg(feature = "std-fs-io")]
 pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     if maybe_output_path.is_empty() {
         OutputKind::Stdout
@@ -44,6 +52,7 @@ pub(super) fn output_kind(maybe_output_path: &str, force: bool) -> OutputKind {
     }
 }
 
+#[cfg(feature = "std-fs-io")]
 pub(super) fn secret_key_from_file<P: AsRef<Path>>(
     secret_key_path: P,
 ) -> Result<SecretKey, CliError> {
@@ -56,8 +65,12 @@ pub(super) fn secret_key_from_file<P: AsRef<Path>>(
 }
 
 pub(super) fn timestamp(value: &str) -> Result<Timestamp, CliError> {
+    #[cfg(any(feature = "std-fs-io", test))]
+    let timestamp = Timestamp::now();
+    #[cfg(not(any(feature = "std-fs-io", test)))]
+    let timestamp = Timestamp::zero();
     if value.is_empty() {
-        return Ok(Timestamp::now());
+        return Ok(timestamp);
     }
     Timestamp::from_str(value).map_err(|error| CliError::FailedToParseTimestamp {
         context: "timestamp",
@@ -175,7 +188,6 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
 /// * `context` - A string indicating the context in which the arguments are checked.
 /// * `simple` - A vector of strings representing simple arguments.
 /// * `json` - A string representing JSON-formatted arguments.
-/// * `complex` - A string representing complex arguments.
 ///
 /// # Returns
 ///
@@ -187,10 +199,11 @@ fn standard_payment(value: &str) -> Result<RuntimeArgs, CliError> {
 ///
 /// Returns an `Err` variant with a `CliError::ConflictingArguments` if conflicting arguments are
 /// provided.
-///
-/// # Original Author
-/// This function was modified from one of the same name written by Gregory Roussac for the 1.6 SDK
-fn check_no_conflicting_arg_types(simple: &[&str], json: &str) -> Result<(), CliError> {
+fn check_no_conflicting_arg_types(
+    context: &str,
+    simple: &[&str],
+    json: &str,
+) -> Result<(), CliError> {
     let count = [!simple.is_empty(), !json.is_empty()]
         .iter()
         .filter(|&&x| x)
@@ -198,14 +211,37 @@ fn check_no_conflicting_arg_types(simple: &[&str], json: &str) -> Result<(), Cli
 
     if count > 1 {
         return Err(CliError::ConflictingArguments {
-            context: "Conflicting args (simple, and json) were provided",
+            context: format!("{context} args conflict (simple json)",),
             args: vec![simple.join(", "), json.to_owned()],
         });
     }
     Ok(())
 }
 
-pub(crate) fn args_from_simple_or_json(
+/// Constructs a `RuntimeArgs` instance from either simple or JSON representation.
+///
+/// # Arguments
+///
+/// * `simple`: An optional `RuntimeArgs` representing simple arguments.
+/// * `json`: An optional `RuntimeArgs` representing arguments in JSON format.
+///
+/// # Returns
+///
+/// A `RuntimeArgs` instance representing the merged arguments from `simple` and `json`.
+///
+/// # Examples
+///
+/// ```
+/// use casper_client::cli::parse::args_from_simple_or_json;
+/// use casper_types::RuntimeArgs;
+///
+/// let simple_args = RuntimeArgs::new(); // Simple arguments
+/// let json_args = RuntimeArgs::new();   // JSON arguments
+///
+/// let _result_args = args_from_simple_or_json(Some(simple_args), None);
+/// let _result_args = args_from_simple_or_json(None, Some(json_args));
+/// ```
+pub fn args_from_simple_or_json(
     simple: Option<RuntimeArgs>,
     json: Option<RuntimeArgs>,
 ) -> RuntimeArgs {
@@ -213,7 +249,7 @@ pub(crate) fn args_from_simple_or_json(
     match (simple, json) {
         (Some(args), None) | (None, Some(args)) => args,
         (None, None) => RuntimeArgs::new(),
-        _ => unreachable!("should not have more than one of simple, json or complex args"),
+        _ => unreachable!("should not have more than one of simple, json args"),
     }
 }
 
@@ -227,7 +263,7 @@ pub(crate) fn args_from_simple_or_json(
 /// - More than one parameter is non-empty.
 /// - Any parameter that is non-empty has requires[] requirements that are empty.
 macro_rules! check_exactly_one_not_empty {
-    ( context: $site:expr, $( ($x:expr) requires[$($y:expr),*] requires_empty[$($z:expr),*] ),+ $(,)? ) => {{
+    ( context: $site:tt, $( ($x:expr) requires[$($y:expr),*] requires_empty[$($z:expr),*] ),+ $(,)? ) => {{
 
         let field_is_empty_map = &[$(
             (stringify!($x), $x.is_empty())
@@ -286,7 +322,7 @@ macro_rules! check_exactly_one_not_empty {
                 conflicting_fields.push(format!("{}={}", name, value));
                 conflicting_fields.sort();
                 return Err(CliError::ConflictingArguments{
-                    context: $site,
+                    context: $site.to_string(),
                     args: conflicting_fields,
                 });
             }
@@ -303,7 +339,7 @@ macro_rules! check_exactly_one_not_empty {
                 .collect::<Vec<String>>();
             non_empty_fields_with_values.sort();
             return Err(CliError::ConflictingArguments {
-                context: $site,
+                context: $site.to_string(),
                 args: non_empty_fields_with_values,
             });
         }
@@ -319,6 +355,7 @@ pub(super) fn session_executable_deploy_item(
         session_package_hash,
         session_package_name,
         session_path,
+        session_bytes,
         ref session_args_simple,
         session_args_json,
         session_version,
@@ -327,6 +364,8 @@ pub(super) fn session_executable_deploy_item(
     } = params;
     // This is to make sure that we're using &str consistently in the macro call below.
     let is_session_transfer = if session_transfer { "true" } else { "" };
+    // This is to make sure that we're using &str consistently in the macro call below.
+    let has_session_bytes = if session_bytes.is_empty() { "" } else { "true" };
 
     check_exactly_one_not_empty!(
         context: "parse_session_info",
@@ -339,17 +378,20 @@ pub(super) fn session_executable_deploy_item(
         (session_package_name)
             requires[session_entry_point] requires_empty[],
         (session_path)
-            requires[] requires_empty[session_entry_point, session_version],
+            requires[] requires_empty[session_entry_point, session_version, has_session_bytes],
+        (has_session_bytes)
+            requires[] requires_empty[session_entry_point, session_version, session_path],
         (is_session_transfer)
             requires[] requires_empty[session_entry_point, session_version]
     );
 
-    check_no_conflicting_arg_types(session_args_simple, session_args_json)?;
+    check_no_conflicting_arg_types("parse_session_info", session_args_simple, session_args_json)?;
 
     let session_args = args_from_simple_or_json(
         arg_simple::session::parse(session_args_simple)?,
         args_json::session::parse(session_args_json)?,
     );
+
     if session_transfer {
         if session_args.is_empty() {
             return Err(CliError::InvalidArgument {
@@ -398,15 +440,26 @@ pub(super) fn session_executable_deploy_item(
         });
     }
 
-    let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
-        context: format!("unable to read session file at '{}'", session_path),
-        error,
-    })?;
+    let module_bytes = if !session_bytes.is_empty() {
+        session_bytes
+    } else {
+        #[cfg(feature = "std-fs-io")]
+        {
+            transaction_module_bytes(session_path)?
+        }
+        #[cfg(not(feature = "std-fs-io"))]
+        return Err(CliError::InvalidArgument {
+            context: "session_executable_deploy_item",
+            error: "missing session bytes".to_string(),
+        });
+    };
+
     Ok(ExecutableDeployItem::ModuleBytes {
-        module_bytes: module_bytes.into(),
+        module_bytes,
         args: session_args,
     })
 }
+
 /// Parse a transaction file into Bytes to be used in crafting a new session transaction
 pub fn transaction_module_bytes(session_path: &str) -> Result<Bytes, CliError> {
     let module_bytes = fs::read(session_path).map_err(|error| crate::Error::IoError {
@@ -421,8 +474,11 @@ pub fn transfer_target(target_str: &str) -> Result<TransferTarget, CliError> {
     if let Ok(public_key) = PublicKey::from_hex(target_str) {
         return Ok(TransferTarget::PublicKey(public_key));
     }
-    if let Ok(public_key) = PublicKey::from_file(target_str) {
-        return Ok(TransferTarget::PublicKey(public_key));
+    #[cfg(feature = "std-fs-io")]
+    {
+        if let Ok(public_key) = PublicKey::from_file(target_str) {
+            return Ok(TransferTarget::PublicKey(public_key));
+        }
     }
     if let Ok(account_hash) = AccountHash::from_formatted_str(target_str) {
         return Ok(TransferTarget::AccountHash(account_hash));
@@ -454,11 +510,14 @@ pub(super) fn payment_executable_deploy_item(
         payment_package_hash,
         payment_package_name,
         payment_path,
+        payment_bytes,
         ref payment_args_simple,
         payment_args_json,
         payment_version,
         payment_entry_point,
     } = params;
+    // This is to make sure that we're using &str consistently in the macro call below.
+    let has_payment_bytes = if payment_bytes.is_empty() { "" } else { "true" };
     check_exactly_one_not_empty!(
         context: "parse_payment_info",
         (payment_amount)
@@ -471,7 +530,16 @@ pub(super) fn payment_executable_deploy_item(
             requires[payment_entry_point] requires_empty[],
         (payment_package_name)
             requires[payment_entry_point] requires_empty[],
-        (payment_path) requires[] requires_empty[payment_entry_point, payment_version],
+        (payment_path) requires[] requires_empty[payment_entry_point, payment_version, has_payment_bytes],
+        (has_payment_bytes)
+            requires[] requires_empty[payment_entry_point, payment_version, payment_path],
+    );
+
+    check_no_conflicting_arg_types("parse_payment_info", payment_args_simple, payment_args_json)?;
+
+    let payment_args = args_from_simple_or_json(
+        arg_simple::payment::parse(payment_args_simple)?,
+        args_json::payment::parse(payment_args_json)?,
     );
 
     if let Ok(payment_args) = standard_payment(payment_amount) {
@@ -485,14 +553,6 @@ pub(super) fn payment_executable_deploy_item(
         context: "payment_entry_point",
         error: payment_entry_point.to_string(),
     };
-
-    //Check that we only have one of simple or json args, this is relevant for the SDK, but not in the context of the client.
-    check_no_conflicting_arg_types(payment_args_simple, payment_args_json)?;
-
-    let payment_args = args_from_simple_or_json(
-        arg_simple::payment::parse(payment_args_simple)?,
-        args_json::payment::parse(payment_args_json)?,
-    );
 
     if let Some(payment_name) = name(payment_name) {
         return Ok(ExecutableDeployItem::StoredContractByName {
@@ -543,18 +603,16 @@ fn contract_hash(value: &str) -> Result<Option<HashAddr>, CliError> {
     if value.is_empty() {
         return Ok(None);
     }
+
     match Digest::from_hex(value) {
         Ok(digest) => Ok(Some(digest.value())),
-        Err(error) => {
-            if let Ok(Key::Hash(hash)) = Key::from_formatted_str(value) {
-                Ok(Some(hash))
-            } else {
-                Err(CliError::FailedToParseDigest {
-                    context: "contract hash",
-                    error,
-                })
-            }
-        }
+        Err(error) => match Key::from_formatted_str(value) {
+            Ok(Key::Hash(hash)) | Ok(Key::Package(hash)) => Ok(Some(hash)),
+            _ => Err(CliError::FailedToParseDigest {
+                context: "contract hash",
+                error,
+            }),
+        },
     }
 }
 
@@ -671,7 +729,7 @@ pub(super) fn global_state_identifier(
 }
 
 /// `purse_id` can be a formatted public key, account hash, or URef.  It may not be empty.
-pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
+pub fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
     const UREF_PREFIX: &str = "uref-";
     const ENTITY_PREFIX: &str = "entity-";
@@ -723,7 +781,7 @@ pub(super) fn purse_identifier(purse_id: &str) -> Result<PurseIdentifier, CliErr
 /// `account_identifier` can be a formatted public key, in the form of a hex-formatted string,
 /// a pem file, or a file containing a hex formatted string, or a formatted string representing
 /// an account hash.  It may not be empty.
-pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
+pub fn account_identifier(account_identifier: &str) -> Result<AccountIdentifier, CliError> {
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
     if account_identifier.is_empty() {
@@ -756,7 +814,7 @@ pub(super) fn account_identifier(account_identifier: &str) -> Result<AccountIden
 /// `entity_identifier` can be a formatted public key, in the form of a hex-formatted string,
 /// a pem file, or a file containing a hex formatted string, or a formatted string representing
 /// an account hash.  It may not be empty.
-pub(super) fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentifier, CliError> {
+pub fn entity_identifier(entity_identifier: &str) -> Result<EntityIdentifier, CliError> {
     const ENTITY_PREFIX: &str = "entity-";
     const ACCOUNT_HASH_PREFIX: &str = "account-hash-";
 
@@ -824,50 +882,51 @@ pub(super) fn public_key(public_key: &str) -> Result<Option<PublicKey>, CliError
 
 pub(super) fn pricing_mode(
     pricing_mode_identifier_str: &str,
-    maybe_payment_amount_str: &str,
-    maybe_gas_price_tolerance_str: &str,
-    maybe_standard_payment_str: &str,
+    payment_amount_str: &str,
+    gas_price_tolerance_str: &str,
+    additional_computation_factor_str: &str,
+    standard_payment_str: &str,
     maybe_receipt: Option<Digest>,
 ) -> Result<PricingMode, CliError> {
     match pricing_mode_identifier_str.to_lowercase().as_str() {
         "classic" => {
-            if maybe_gas_price_tolerance_str.is_empty() {
+            if gas_price_tolerance_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "gas_price_tolerance",
                     error: "Gas price tolerance is required".to_string(),
                 });
             }
-            if maybe_payment_amount_str.is_empty() {
+            if payment_amount_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "payment_amount",
                     error: "Payment amount is required".to_string(),
                 });
             }
-            if maybe_standard_payment_str.is_empty() {
+            if standard_payment_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "standard_payment",
                     error: "Standard payment flag is required".to_string(),
                 });
             }
-            let gas_price_tolerance =
-                maybe_gas_price_tolerance_str
-                    .parse::<u8>()
-                    .map_err(|error| CliError::FailedToParseInt {
-                        context: "gas_price_tolerance",
-                        error,
-                    })?;
-            let payment_amount = maybe_payment_amount_str.parse::<u64>().map_err(|error| {
+            let gas_price_tolerance = gas_price_tolerance_str.parse::<u8>().map_err(|error| {
                 CliError::FailedToParseInt {
-                    context: "payment_amount",
+                    context: "gas_price_tolerance",
                     error,
                 }
             })?;
-            let standard_payment = maybe_standard_payment_str
-                .parse::<bool>()
-                .map_err(|error| CliError::FailedToParseBool {
+            let payment_amount =
+                payment_amount_str
+                    .parse::<u64>()
+                    .map_err(|error| CliError::FailedToParseInt {
+                        context: "payment_amount",
+                        error,
+                    })?;
+            let standard_payment = standard_payment_str.parse::<bool>().map_err(|error| {
+                CliError::FailedToParseBool {
                     context: "standard_payment",
                     error,
-                })?;
+                }
+            })?;
             Ok(PricingMode::Classic {
                 payment_amount,
                 gas_price_tolerance,
@@ -875,21 +934,33 @@ pub(super) fn pricing_mode(
             })
         }
         "fixed" => {
-            if maybe_gas_price_tolerance_str.is_empty() {
+            if gas_price_tolerance_str.is_empty() {
                 return Err(CliError::InvalidArgument {
                     context: "gas_price_tolerance",
                     error: "Gas price tolerance is required".to_string(),
                 });
             }
-            let gas_price_tolerance =
-                maybe_gas_price_tolerance_str
+            let gas_price_tolerance = gas_price_tolerance_str.parse::<u8>().map_err(|error| {
+                CliError::FailedToParseInt {
+                    context: "gas_price_tolerance",
+                    error,
+                }
+            })?;
+
+            // Additional Computation Factor defaults to 0 if the string is empty
+            let additional_computation_factor = if additional_computation_factor_str.is_empty() {
+                u8::default()
+            } else {
+                additional_computation_factor_str
                     .parse::<u8>()
                     .map_err(|error| CliError::FailedToParseInt {
-                        context: "gas_price_tolerance",
+                        context: "additional_computation_factor",
                         error,
-                    })?;
+                    })?
+            };
             Ok(PricingMode::Fixed {
                 gas_price_tolerance,
+                additional_computation_factor,
             })
         }
         "reserved" => {
@@ -951,7 +1022,57 @@ mod tests {
     }
 
     #[test]
+    fn should_fail_to_parse_conflicting_arg_types() {
+        let test_context = "parse_session_info args conflict (simple json)".to_string();
+        let actual_error = session_executable_deploy_item(SessionStrParams {
+            session_hash: "",
+            session_name: "name",
+            session_package_hash: "",
+            session_package_name: "",
+            session_path: "",
+            session_bytes: Bytes::new(),
+            session_args_simple: vec!["something:u32='0'"],
+            session_args_json: "{\"name\":\"entry_point_name\",\"type\":\"Bool\",\"value\":false}",
+            session_version: "",
+            session_entry_point: "entrypoint",
+            is_session_transfer: false,
+        })
+        .unwrap_err();
+
+        assert!(
+            matches!(actual_error, CliError::ConflictingArguments { ref context, .. } if *context == test_context),
+            "{:?}",
+            actual_error
+        );
+
+        let test_context = "parse_payment_info args conflict (simple json)";
+        let actual_error = payment_executable_deploy_item(PaymentStrParams {
+            payment_amount: "",
+            payment_hash: "name",
+            payment_name: "",
+            payment_package_hash: "",
+            payment_package_name: "",
+            payment_path: "",
+            payment_bytes: Bytes::new(),
+            payment_args_simple: vec!["something:u32='0'"],
+            payment_args_json: "{\"name\":\"entry_point_name\",\"type\":\"Bool\",\"value\":false}",
+            payment_version: "",
+            payment_entry_point: "entrypoint",
+        })
+        .unwrap_err();
+        assert!(
+            matches!(
+                actual_error,
+                CliError::ConflictingArguments { ref context, .. } if context == test_context
+            ),
+            "{:?}",
+            actual_error
+        );
+    }
+
+    #[test]
     fn should_fail_to_parse_conflicting_session_parameters() {
+        let test_context = String::from("parse_session_info");
         assert!(matches!(
             session_executable_deploy_item(SessionStrParams {
                 session_hash: HASH,
@@ -959,21 +1080,20 @@ mod tests {
                 session_package_hash: PACKAGE_HASH,
                 session_package_name: PACKAGE_NAME,
                 session_path: PATH,
+                session_bytes: Bytes::new(),
                 session_args_simple: vec![],
                 session_args_json: "",
                 session_version: "",
                 session_entry_point: "",
                 is_session_transfer: false
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_session_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
     }
 
     #[test]
     fn should_fail_to_parse_conflicting_payment_parameters() {
+        let test_context = String::from("parse_payment_info");
         assert!(matches!(
             payment_executable_deploy_item(PaymentStrParams {
                 payment_amount: "12345",
@@ -982,15 +1102,13 @@ mod tests {
                 payment_package_hash: PACKAGE_HASH,
                 payment_package_name: PACKAGE_NAME,
                 payment_path: PATH,
+                payment_bytes: Bytes::new(),
                 payment_args_simple: vec![],
                 payment_args_json: "",
                 payment_version: "",
                 payment_entry_point: "",
             }),
-            Err(CliError::ConflictingArguments {
-                context: "parse_payment_info",
-                ..
-            })
+            Err(CliError::ConflictingArguments { context, .. }) if context == test_context
         ));
     }
 
@@ -1173,7 +1291,7 @@ mod tests {
         ///         assert!(matches!(
         ///             info,
         ///             Err(CliError::ConflictingArguments {
-        ///                 context: "parse_session_info",
+        ///                 context: "parse_session_info".to_string(),
         ///                 args: conflicting
         ///             }
         ///             ))
@@ -1222,10 +1340,11 @@ mod tests {
                                 format!("{}={}", stringify!($con), $con_value),
                             ];
                             conflicting.sort();
+                            let _context_string = $context.to_string();
                             assert!(matches!(
                                 info,
                                 Err(CliError::ConflictingArguments {
-                                    context: $context,
+                                    context: _context_string,
                                     ..
                                 }
                                 ))
@@ -1689,11 +1808,13 @@ mod tests {
             let pricing_mode_str = "fixed";
             let payment_amount = "";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "1";
             let standard_payment = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             )
@@ -1701,20 +1822,49 @@ mod tests {
             assert_eq!(
                 parsed,
                 PricingMode::Fixed {
+                    additional_computation_factor: 1,
                     gas_price_tolerance: 10,
                 }
             );
         }
+
         #[test]
-        fn should_parse_reserved_pricing_mode() {
-            let pricing_mode_str = "reserved";
+        fn should_parse_fixed_pricing_mode_identifier_without_additional_computation_factor() {
+            let pricing_mode_str = "fixed";
             let payment_amount = "";
-            let gas_price_tolerance = "";
+            let gas_price_tolerance = "10";
+            let additional_computation_factor = "";
             let standard_payment = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
+                standard_payment,
+                None,
+            )
+            .unwrap();
+            assert_eq!(
+                parsed,
+                PricingMode::Fixed {
+                    additional_computation_factor: 0,
+                    gas_price_tolerance: 10,
+                }
+            );
+        }
+
+        #[test]
+        fn should_parse_reserved_pricing_mode() {
+            let pricing_mode_str = "reserved";
+            let payment_amount = "";
+            let gas_price_tolerance = "";
+            let additional_computation_factor = "0";
+            let standard_payment = "";
+            let parsed = pricing_mode(
+                pricing_mode_str,
+                payment_amount,
+                gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 Some(Digest::from_hex(VALID_HASH).unwrap()),
             )
@@ -1732,10 +1882,12 @@ mod tests {
             let payment_amount = "10";
             let standard_payment = "true";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "0";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             )
@@ -1756,10 +1908,12 @@ mod tests {
             let payment_amount = "10";
             let standard_payment = "true";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "0";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             );
@@ -1768,15 +1922,36 @@ mod tests {
         }
 
         #[test]
+        fn should_fail_to_parse_invalid_additional_computation_factor() {
+            let pricing_mode_str = "fixed";
+            let payment_amount = "10";
+            let standard_payment = "true";
+            let gas_price_tolerance = "10";
+            let additional_computation_factor = "invalid";
+            let parsed = pricing_mode(
+                pricing_mode_str,
+                payment_amount,
+                gas_price_tolerance,
+                additional_computation_factor,
+                standard_payment,
+                None,
+            );
+            assert!(parsed.is_err());
+            assert!(matches!(parsed, Err(CliError::FailedToParseInt { .. })));
+        }
+
+        #[test]
         fn should_fail_to_parse_classic_without_amount() {
             let pricing_mode_str = "classic";
             let payment_amount = "";
             let standard_payment = "true";
             let gas_price_tolerance = "10";
+            let additional_computation_factor = "0";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                additional_computation_factor,
                 standard_payment,
                 None,
             );

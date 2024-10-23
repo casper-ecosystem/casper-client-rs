@@ -1,11 +1,10 @@
 use casper_types::bytesrepr::Bytes;
-use casper_types::{
-    AddressableEntityHash, PackageHash, PublicKey, TransactionCategory, TransferTarget, URef, U512,
-};
+use casper_types::{AddressableEntityHash, PackageHash, PublicKey, TransferTarget, URef, U512};
 
 /// An enum representing the parameters needed to construct a transaction builder
 /// for the commands concerning the creation of a transaction
 
+#[derive(Debug)]
 pub enum TransactionBuilderParams<'a> {
     /// Parameters for the add bid variant of the transaction builder
     AddBid {
@@ -83,10 +82,10 @@ pub enum TransactionBuilderParams<'a> {
     },
     /// Parameters for the session variant of the transaction builder
     Session {
+        /// Flag determining if the Wasm is an install/upgrade.
+        is_install_upgrade: bool,
         /// The Bytes to be run by the execution engine for the session transaction
         transaction_bytes: Bytes,
-        /// Transaction category
-        transaction_category: TransactionCategory,
     },
     /// Parameters for the transfer variant of the transaction builder
     Transfer {

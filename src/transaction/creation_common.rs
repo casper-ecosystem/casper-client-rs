@@ -30,7 +30,6 @@ pub(super) enum DisplayOrder {
     TransferId,
     Timestamp,
     Ttl,
-    TransactionCategory,
     ChainName,
     MaximumDelegationRate,
     MinimumDelegationRate,
@@ -48,6 +47,8 @@ pub(super) enum DisplayOrder {
     StandardPayment,
     Receipt,
     GasPriceTolerance,
+    AdditionalComputationFactor,
+    IsInstallUpgrade,
     TransactionAmount,
     Validator,
     NewValidator,
@@ -195,6 +196,7 @@ pub(super) mod chain_name {
         Arg::new(ARG_NAME)
             .long(ARG_NAME)
             .value_name(ARG_VALUE_NAME)
+            .required(true)
             .help(ARG_HELP)
             .display_order(DisplayOrder::ChainName as usize)
     }
@@ -506,6 +508,38 @@ pub(super) mod pricing_mode {
     }
 }
 
+pub(super) mod additional_computation_factor {
+    use super::*;
+    pub(in crate::transaction) const ARG_NAME: &str = "additional-computation-factor";
+
+    const ARG_VALUE_NAME: &str = common::ARG_INTEGER;
+
+    const ARG_ALIAS: &str = "additional-computation";
+    const ARG_SHORT: char = 'c';
+    const ARG_HELP: &str =
+        "User-specified additional computation factor for \"fixed\" pricing_mode";
+    const ARG_DEFAULT: &str = "0";
+
+    pub(in crate::transaction) fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .alias(ARG_ALIAS)
+            .short(ARG_SHORT)
+            .required(false)
+            .default_value(ARG_DEFAULT)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP)
+            .display_order(DisplayOrder::AdditionalComputationFactor as usize)
+    }
+
+    pub fn get(matches: &ArgMatches) -> &str {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .map(String::as_str)
+            .unwrap_or_default()
+    }
+}
+
 pub(super) mod initiator_address {
     use super::*;
     pub(in crate::transaction) const ARG_NAME: &str = "initiator-address";
@@ -605,6 +639,7 @@ pub(super) fn apply_common_creation_options(
         .arg(output::arg())
         .arg(payment_amount::arg())
         .arg(pricing_mode::arg())
+        .arg(additional_computation_factor::arg())
         .arg(gas_price_tolerance::arg())
         .arg(receipt::arg())
         .arg(standard_payment::arg())
@@ -671,7 +706,7 @@ pub(super) mod transaction_path {
     use super::*;
 
     const ARG_NAME: &str = "transaction-path";
-    const ARG_SHORT: char = 'i';
+    const ARG_SHORT: char = 't';
     const ARG_VALUE_NAME: &str = common::ARG_PATH;
     const ARG_HELP: &str = "Path to input transaction file";
 
@@ -690,80 +725,23 @@ pub(super) mod transaction_path {
     }
 }
 
-pub(super) mod transaction_category {
-    use std::str::FromStr;
-
-    use casper_types::TransactionCategory;
-    use clap::{value_parser, ValueEnum};
-
+pub(super) mod is_install_upgrade {
     use super::*;
 
-    const ARG_NAME: &str = "category";
-    const ARG_SHORT: char = 'c';
-    const ARG_VALUE_NAME: &str = "install-upgrade|large|medium|small";
-    const ARG_HELP: &str = "Transaction category";
+    const ARG_NAME: &str = "install-upgrade";
+    const ARG_HELP: &str = "Flag to indicate if the Wasm is an install/upgrade";
 
-    #[derive(Debug, Clone, Copy)]
-    pub(super) enum Category {
-        InstallUpgrade,
-        Large,
-        Medium,
-        Small,
-    }
-
-    impl Category {
-        pub(super) fn into_transaction_v1_category(self) -> TransactionCategory {
-            match self {
-                Self::InstallUpgrade => TransactionCategory::InstallUpgrade,
-                Self::Large => TransactionCategory::Large,
-                Self::Medium => TransactionCategory::Medium,
-                Self::Small => TransactionCategory::Small,
-            }
-        }
-    }
-
-    impl ValueEnum for Category {
-        fn value_variants<'a>() -> &'a [Self] {
-            &[Self::InstallUpgrade, Self::Large, Self::Medium, Self::Small]
-        }
-
-        fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
-            Some(match self {
-                Self::InstallUpgrade => clap::builder::PossibleValue::new("install-upgrade"),
-                Self::Large => clap::builder::PossibleValue::new("large"),
-                Self::Medium => clap::builder::PossibleValue::new("medium"),
-                Self::Small => clap::builder::PossibleValue::new("small"),
-            })
-        }
-    }
-
-    impl FromStr for Category {
-        type Err = String;
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            match s.to_lowercase().as_str() {
-                "install-upgrade" => Ok(Category::InstallUpgrade),
-                "large" => Ok(Category::Large),
-                "medium" => Ok(Category::Medium),
-                "small" => Ok(Category::Small),
-                _ => Err(format!("'{}' is not a valid size option", s)),
-            }
-        }
-    }
-
-    pub fn arg() -> Arg {
+    pub fn arg(order: usize) -> Arg {
         Arg::new(ARG_NAME)
-            .required(true)
             .long(ARG_NAME)
-            .short(ARG_SHORT)
-            .value_name(ARG_VALUE_NAME)
+            .required(false)
+            .action(ArgAction::SetTrue)
             .help(ARG_HELP)
-            .display_order(DisplayOrder::TransactionCategory as usize)
-            .value_parser(value_parser!(Category))
+            .display_order(order)
     }
 
-    pub(super) fn get(matches: &ArgMatches) -> Option<&Category> {
-        matches.get_one(ARG_NAME)
+    pub fn get(matches: &ArgMatches) -> bool {
+        matches.args_present()
     }
 }
 
@@ -1710,12 +1688,11 @@ pub(super) mod session {
         let transaction_bytes =
             parse::transaction_module_bytes(transaction_path_str.unwrap_or_default())?;
 
-        let transaction_category = *transaction_category::get(matches)
-            .ok_or(CliError::FailedToParseTransactionCategory)?;
+        let is_install_upgrade: bool = is_install_upgrade::get(matches);
 
         let params = TransactionBuilderParams::Session {
+            is_install_upgrade,
             transaction_bytes,
-            transaction_category: transaction_category.into_transaction_v1_category(),
         };
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
         Ok((params, transaction_str_params))
@@ -1725,7 +1702,9 @@ pub(super) mod session {
         add_bid_subcommand
             .arg(transaction_path::arg())
             .arg(session_entry_point::arg())
-            .arg(transaction_category::arg())
+            .arg(is_install_upgrade::arg(
+                DisplayOrder::IsInstallUpgrade as usize,
+            ))
     }
 }
 
@@ -1903,6 +1882,7 @@ pub(super) fn build_transaction_str_params(
     let chain_name = chain_name::get(matches);
     let maybe_pricing_mode = pricing_mode::get(matches);
     let gas_price_tolerance = gas_price_tolerance::get(matches);
+    let additional_computation_factor = additional_computation_factor::get(matches);
     let payment_amount = payment_amount::get(matches);
     let receipt = receipt::get(matches);
     let standard_payment = standard_payment::get(matches);
@@ -1925,6 +1905,7 @@ pub(super) fn build_transaction_str_params(
             output_path: maybe_output_path,
             payment_amount,
             gas_price_tolerance,
+            additional_computation_factor,
             receipt,
             standard_payment,
         }
@@ -1939,6 +1920,7 @@ pub(super) fn build_transaction_str_params(
             output_path: maybe_output_path,
             payment_amount,
             gas_price_tolerance,
+            additional_computation_factor,
             receipt,
             standard_payment,
             ..Default::default()

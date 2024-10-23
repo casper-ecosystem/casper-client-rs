@@ -8,7 +8,7 @@ use casper_types::{
     account::AccountHash, Key, NamedArg, PublicKey, RuntimeArgs, TimeDiff, Timestamp, URef,
 };
 use casper_types::{CLValueError, KeyFromStrError, UIntParseError, URefFromStrError};
-use uint::FromDecStrErr;
+pub use uint::FromDecStrErr;
 
 use crate::cli::JsonArgsError;
 #[cfg(doc)]
@@ -44,7 +44,7 @@ pub enum CliError {
         error: casper_types::addressable_entity::FromStrError,
     },
 
-    /// Failed to parse an [`AddressableEntityHash`] from a formatted string.
+    /// Failed to parse an [`casper_types::AddressableEntityHash`] from a formatted string.
     #[error("failed to parse {context} as an addressable entity hash: {error}")]
     FailedToParseAddressableEntityHash {
         /// Contextual description of where this error occurred.
@@ -142,7 +142,7 @@ pub enum CliError {
     ConflictingArguments {
         /// Contextual description of where this error occurred including relevant paths,
         /// filenames, etc.
-        context: &'static str,
+        context: String,
         /// Arguments passed, with their values.
         args: Vec<String>,
     },
@@ -183,10 +183,6 @@ pub enum CliError {
     /// Failed to parse a transfer target
     #[error("Failed to parse a transfer target")]
     FailedToParseTransferTarget,
-
-    /// Failed to parse transaction category.
-    #[error("Failed to parse a transaction category")]
-    FailedToParseTransactionCategory,
 
     /// Failed to parse a validator public key.
     #[error("Failed to parse a validator public key")]

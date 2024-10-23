@@ -44,7 +44,7 @@ pub struct ExecutionInfo {
 }
 
 /// Result for "info_get_transaction" RPC response.
-#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GetTransactionResult {
     /// The RPC API version.
