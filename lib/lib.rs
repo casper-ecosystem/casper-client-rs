@@ -51,9 +51,10 @@ mod verification_types;
 
 #[cfg(any(feature = "std-fs-io", test))]
 use std::{
+    env::current_dir,
     fs,
     io::{Cursor, Read, Write},
-    env::current_dir, path::Path
+    path::Path,
 };
 
 #[cfg(feature = "std-fs-io")]
