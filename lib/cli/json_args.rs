@@ -59,59 +59,59 @@ fn write_json_to_bytesrepr(
                 .as_i64()
                 .and_then(|value| i32::try_from(value).ok())
                 .ok_or(ErrorDetails::CannotParseToI32)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::I64, Value::Number(number)) => {
             let value = number.as_i64().ok_or(ErrorDetails::CannotParseToI64)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::U8, Value::Number(number)) => {
             let value = number
                 .as_u64()
                 .and_then(|value| u8::try_from(value).ok())
                 .ok_or(ErrorDetails::CannotParseToU8)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::U32, Value::Number(number)) => {
             let value = number
                 .as_u64()
                 .and_then(|value| u32::try_from(value).ok())
                 .ok_or(ErrorDetails::CannotParseToU32)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::U64, Value::Number(number)) => {
             let value = number.as_u64().ok_or(ErrorDetails::CannotParseToU64)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::U128, Value::String(string)) => {
             let value = U128::from_dec_str(string)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::U128, Value::Number(number)) => {
             let value = number.as_u64().ok_or(ErrorDetails::CannotParseToU64)?;
-            U128::from(value).write_bytes(output)?
+            U128::from(value).write_bytes(output)?;
         }
         (&CLType::U256, Value::String(string)) => {
             let value = U256::from_dec_str(string)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::U256, Value::Number(number)) => {
             let value = number.as_u64().ok_or(ErrorDetails::CannotParseToU64)?;
-            U256::from(value).write_bytes(output)?
+            U256::from(value).write_bytes(output)?;
         }
         (&CLType::U512, Value::String(string)) => {
             let value = U512::from_dec_str(string)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::U512, Value::Number(number)) => {
             let value = number.as_u64().ok_or(ErrorDetails::CannotParseToU64)?;
-            U512::from(value).write_bytes(output)?
+            U512::from(value).write_bytes(output)?;
         }
         (&CLType::Unit, Value::Null) => (),
         (&CLType::String, Value::String(string)) => string.write_bytes(output)?,
         (&CLType::Key, Value::String(string)) => {
             let value = Key::from_formatted_str(string)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::Key, Value::Object(map)) => {
             // This is an alternative JSON representation of a `Key`, e.g. if calling
@@ -141,22 +141,22 @@ fn write_json_to_bytesrepr(
                 Key::ChainspecRegistry if mapped_variant == "ChainspecRegistry" => {}
                 _ => return Err(ErrorDetails::KeyObjectHasInvalidVariant),
             }
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::URef, Value::String(string)) => {
             let value = URef::from_formatted_str(string)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (&CLType::PublicKey, Value::String(string)) => {
             let value = PublicKey::from_hex(string)?;
-            value.write_bytes(output)?
+            value.write_bytes(output)?;
         }
         (CLType::Option(ref _inner_cl_type), Value::Null) => {
             output.push(OPTION_NONE_TAG);
         }
         (CLType::Option(ref inner_cl_type), _) => {
             output.push(OPTION_SOME_TAG);
-            write_json_to_bytesrepr(inner_cl_type, json_value, output)?
+            write_json_to_bytesrepr(inner_cl_type, json_value, output)?;
         }
         (CLType::List(ref inner_cl_type), Value::Array(vec)) => {
             (vec.len() as u32).write_bytes(output)?;
@@ -209,11 +209,11 @@ fn write_json_to_bytesrepr(
             match map.iter().next() {
                 Some((key, value)) if key.to_ascii_lowercase() == "ok" => {
                     output.push(RESULT_OK_TAG);
-                    write_json_to_bytesrepr(ok, value, output)?
+                    write_json_to_bytesrepr(ok, value, output)?;
                 }
                 Some((key, value)) if key.to_ascii_lowercase() == "err" => {
                     output.push(RESULT_ERR_TAG);
-                    write_json_to_bytesrepr(err, value, output)?
+                    write_json_to_bytesrepr(err, value, output)?;
                 }
                 _ => return Err(ErrorDetails::ResultObjectHasInvalidVariant),
             }
@@ -243,7 +243,7 @@ fn write_json_to_bytesrepr(
                 _ => return Err(ErrorDetails::MapTypeNotValidAsObject(*key_type.clone())),
             };
             (map.len() as u32).write_bytes(output)?;
-            for (key_as_str, value) in map.iter() {
+            for (key_as_str, value) in map {
                 let key = match **key_type {
                     CLType::I32 => json!(i32::from_str(key_as_str)?),
                     CLType::I64 => json!(i64::from_str(key_as_str)?),
@@ -294,7 +294,7 @@ fn write_json_to_bytesrepr(
                     actual: vec.len(),
                 });
             }
-            write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?
+            write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?;
         }
         (CLType::Tuple2(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
@@ -304,7 +304,7 @@ fn write_json_to_bytesrepr(
                 });
             }
             write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?;
-            write_json_to_bytesrepr(&inner_cl_types[1], &vec[1], output)?
+            write_json_to_bytesrepr(&inner_cl_types[1], &vec[1], output)?;
         }
         (CLType::Tuple3(ref inner_cl_types), Value::Array(vec)) => {
             if vec.len() != inner_cl_types.len() {
@@ -315,7 +315,7 @@ fn write_json_to_bytesrepr(
             }
             write_json_to_bytesrepr(&inner_cl_types[0], &vec[0], output)?;
             write_json_to_bytesrepr(&inner_cl_types[1], &vec[1], output)?;
-            write_json_to_bytesrepr(&inner_cl_types[2], &vec[2], output)?
+            write_json_to_bytesrepr(&inner_cl_types[2], &vec[2], output)?;
         }
         _ => return Err(ErrorDetails::IncompatibleType),
     };

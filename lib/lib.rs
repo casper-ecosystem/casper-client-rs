@@ -46,9 +46,12 @@ pub mod rpcs;
 pub mod types;
 mod validation;
 mod verbosity;
+mod verification;
+mod verification_types;
 
 #[cfg(any(feature = "std-fs-io", test))]
 use std::{
+    env::current_dir,
     fs,
     io::{Cursor, Read, Write},
     path::Path,
@@ -65,6 +68,8 @@ use casper_types::{
 #[cfg(any(feature = "std-fs-io", test))]
 use casper_types::{SecretKey, TransactionV1};
 
+#[cfg(any(feature = "std-fs-io", test))]
+use base64::{engine::general_purpose::STANDARD, Engine};
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
@@ -112,6 +117,9 @@ use rpcs::{
 };
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
+pub use verification::{build_archive, send_verification_request};
+#[cfg(any(feature = "std-fs-io", test))]
+use verification_types::VerificationDetails;
 
 /// The maximum permissible size in bytes of a Deploy when serialized via `ToBytes`.
 ///
@@ -748,4 +756,50 @@ pub async fn get_era_info(
     JsonRpcCall::new(rpc_id, node_address, verbosity)
         .send_request(GET_ERA_INFO_METHOD, params)
         .await
+}
+
+/// Verifies the smart contract code against the one deployed at given deploy or transaction hash.
+#[cfg(any(feature = "std-fs-io", test))]
+pub async fn verify_contract(
+    hash_str: &str,
+    verification_url_base_path: &str,
+    project_path: Option<&str>,
+    verbosity: Verbosity,
+) -> Result<VerificationDetails, Error> {
+    if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+        println!("Hash: {hash_str}");
+        println!("Verification service base path: {verification_url_base_path}",);
+    }
+
+    let project_path = match project_path {
+        Some(path) => Path::new(path).to_path_buf(),
+        None => match current_dir() {
+            Ok(path) => path,
+            Err(error) => {
+                eprintln!("Cannot get current directory: {error}");
+                return Err(Error::ContractVerificationFailed);
+            }
+        },
+    };
+
+    let archive = match build_archive(&project_path) {
+        Ok(archive) => {
+            if verbosity == Verbosity::Medium || verbosity == Verbosity::High {
+                println!("Created project archive (size: {})", archive.len());
+            }
+            archive
+        }
+        Err(error) => {
+            eprintln!("Cannot create project archive: {error}");
+            return Err(Error::ContractVerificationFailed);
+        }
+    };
+
+    send_verification_request(
+        hash_str,
+        verification_url_base_path,
+        STANDARD.encode(&archive),
+        verbosity,
+    )
+    .await
 }

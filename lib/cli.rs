@@ -58,6 +58,9 @@ use crate::{
     },
     SuccessResponse,
 };
+
+#[cfg(feature = "std-fs-io")]
+use crate::verification_types::VerificationDetails;
 #[cfg(doc)]
 use crate::{Account, Block, Error, StoredValue, Transfer};
 #[cfg(doc)]
@@ -613,4 +616,24 @@ pub async fn get_era_info(
     crate::get_era_info(rpc_id, node_address, verbosity, maybe_block_id)
         .await
         .map_err(CliError::from)
+}
+
+/// Verifies the smart contract code against the one installed
+/// by deploy or transaction with given hash.
+#[cfg(feature = "std-fs-io")]
+pub async fn verify_contract(
+    hash_str: &str,
+    verification_url_base_path: &str,
+    verification_project_path: Option<&str>,
+    verbosity_level: u64,
+) -> Result<VerificationDetails, CliError> {
+    let verbosity = parse::verbosity(verbosity_level);
+    crate::verify_contract(
+        hash_str,
+        verification_url_base_path,
+        verification_project_path,
+        verbosity,
+    )
+    .await
+    .map_err(CliError::from)
 }

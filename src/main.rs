@@ -23,6 +23,7 @@ mod query_balance;
 mod query_balance_details;
 mod query_global_state;
 mod transaction;
+mod verify_contract;
 
 use std::process;
 
@@ -58,6 +59,7 @@ use list_rpcs::ListRpcs;
 use query_balance::QueryBalance;
 use query_global_state::QueryGlobalState;
 use transaction::{MakeTransaction, PutTransaction, SendTransaction, SignTransaction};
+use verify_contract::VerifyContract;
 
 const APP_NAME: &str = "Casper client";
 
@@ -112,6 +114,7 @@ enum DisplayOrder {
     Keygen,
     AccountAddress,
     GenerateCompletion,
+    VerifyContract,
 }
 
 fn cli() -> Command {
@@ -173,6 +176,7 @@ fn cli() -> Command {
         .subcommand(GenerateCompletion::build(
             DisplayOrder::GenerateCompletion as usize,
         ))
+        .subcommand(VerifyContract::build(DisplayOrder::VerifyContract as usize))
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -220,6 +224,7 @@ async fn main() {
         Keygen::NAME => Keygen::run(matches).await,
         AccountAddress::NAME => AccountAddress::run(matches).await,
         GenerateCompletion::NAME => GenerateCompletion::run(matches).await,
+        VerifyContract::NAME => VerifyContract::run(matches).await,
         _ => {
             let _ = cli().print_long_help();
             println!();
@@ -229,7 +234,7 @@ async fn main() {
 
     let mut verbosity_level = common::verbose::get(matches);
     if verbosity_level == 0 {
-        verbosity_level += 1
+        verbosity_level += 1;
     }
 
     match result {
