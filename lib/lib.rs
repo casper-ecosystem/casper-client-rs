@@ -68,6 +68,8 @@ use casper_types::{
 #[cfg(any(feature = "std-fs-io", test))]
 use casper_types::{SecretKey, TransactionV1};
 
+#[cfg(any(feature = "std-fs-io", test))]
+use base64::{engine::general_purpose::STANDARD, Engine};
 pub use error::Error;
 use json_rpc::JsonRpcCall;
 pub use json_rpc::{JsonRpcId, SuccessResponse};
@@ -116,9 +118,8 @@ use rpcs::{
 pub use validation::ValidateResponseError;
 pub use verbosity::Verbosity;
 pub use verification::{build_archive, send_verification_request};
+#[cfg(any(feature = "std-fs-io", test))]
 use verification_types::VerificationDetails;
-
-use base64::{engine::general_purpose::STANDARD, Engine};
 
 /// The maximum permissible size in bytes of a Deploy when serialized via `ToBytes`.
 ///
@@ -758,6 +759,7 @@ pub async fn get_era_info(
 }
 
 /// Verifies the smart contract code against the one deployed at given deploy or transaction hash.
+#[cfg(any(feature = "std-fs-io", test))]
 pub async fn verify_contract(
     hash_str: &str,
     verification_url_base_path: &str,

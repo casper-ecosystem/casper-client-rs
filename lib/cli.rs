@@ -56,9 +56,11 @@ use crate::{
         },
         DictionaryItemIdentifier,
     },
-    verification_types::VerificationDetails,
     SuccessResponse,
 };
+
+#[cfg(feature = "std-fs-io")]
+use crate::verification_types::VerificationDetails;
 #[cfg(doc)]
 use crate::{Account, Block, Error, StoredValue, Transfer};
 #[cfg(doc)]
@@ -618,6 +620,7 @@ pub async fn get_era_info(
 
 /// Verifies the smart contract code against the one installed
 /// by deploy or transaction with given hash.
+#[cfg(feature = "std-fs-io")]
 pub async fn verify_contract(
     hash_str: &str,
     verification_url_base_path: &str,
