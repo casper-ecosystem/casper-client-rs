@@ -115,11 +115,11 @@ impl<'a> TryFrom<DictionaryItemStrParams<'a>> for DictionaryItemIdentifier {
 
                 let entity_addr = if let Key::AddressableEntity(addr) = key {
                     addr
-                }  else {
+                } else {
                     return Err(CliError::InvalidArgument {
                         context: "dictionary item entity named key",
                         error: "not a entity-addr".to_string(),
-                    })
+                    });
                 };
                 Ok(DictionaryItemIdentifier::new_from_entity_info(
                     entity_addr,
