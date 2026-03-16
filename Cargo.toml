@@ -1,6 +1,6 @@
 [package]
 name = "casper-client"
-version = "5.0.0" # when updating, also update 'html_root_url' in lib.rs
+version = "5.0.1" # when updating, also update 'html_root_url' in lib.rs
 authors = [
     "Karan Dhareshwar <karan@casper.network>",
 ]
@@ -32,7 +32,7 @@ async-trait = { version = "0.1.74", default-features = false, optional = true }
 base16 = "0.2.1"
 base64 = { version = "0.22.1", default-features = false }
 bytes = { version = "1.6.0", default-features = false }
-casper-types = { version = "6.0.1", features = ["std", "json-schema"] }
+casper-types = { version = "7.0.0", features = ["std", "json-schema"] }
 clap = { version = "~4.5", features = ["cargo", "deprecated"], optional = true }
 clap_complete = { version = "~4.5", default-features = false, optional = true }
 flate2 = "1.0.30"
@@ -56,7 +56,7 @@ toml = "0.8.22"
 
 [dev-dependencies]
 tempfile = "3.8.1"
-casper-types = { version = "6.0.1", features = ["std", "json-schema", "testing"] }
+casper-types = { version = "7.0.0", features = ["std", "json-schema", "testing"] }
 
 [patch.crates-io]
 casper-types = { git = "https://github.com/casper-network/casper-node.git", branch = "dev" }
