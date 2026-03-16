@@ -23,7 +23,7 @@
 //!   latest `Block` known on the server will be used.
 
 #![doc(
-    html_root_url = "https://docs.rs/casper-client/5.0.0",
+    html_root_url = "https://docs.rs/casper-client/5.0.1",
     html_favicon_url = "https://raw.githubusercontent.com/casper-network/casper-node/master/images/CasperLabs_Logo_Favicon_RGB_50px.png",
     html_logo_url = "https://raw.githubusercontent.com/casper-network/casper-node/master/images/CasperLabs_Logo_Symbol_RGB.png",
     test(attr(forbid(warnings)))
