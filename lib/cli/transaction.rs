@@ -377,6 +377,17 @@ pub fn make_transaction_builder(
 
             Ok(transaction_builder)
         }
+        TransactionBuilderParams::EvmTransfer {
+            maybe_source,
+            target,
+            amount,
+            maybe_id,
+        } => {
+            let transaction_builder =
+                TransactionV1Builder::new_evm_transfer(amount, maybe_source, target, maybe_id)?;
+
+            Ok(transaction_builder)
+        }
         TransactionBuilderParams::WithdrawBid {
             public_key, amount, ..
         } => {

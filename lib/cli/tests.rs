@@ -166,7 +166,7 @@ fn should_fail_to_create_large_deploy() {
         PaymentStrParams::with_package_hash(PKG_HASH, VERSION, ENTRYPOINT, args_simple(), "");
     // Create a string arg of 1048576 letter 'a's to ensure the deploy is greater than 1048576
     // bytes.
-    let large_args_simple = format!("name_01:string='{:a<1048576}'", "");
+    let large_args_simple = format!("name_01:string='{}'", "a".repeat(1_048_576));
 
     let session_params = SessionStrParams::with_package_hash(
         PKG_HASH,
@@ -452,7 +452,7 @@ mod transaction {
     use casper_types::{
         bytesrepr::Bytes,
         system::auction::{DelegatorKind, Reservation},
-        PackageAddr, TransactionArgs, TransactionEntryPoint, TransactionInvocationTarget,
+        CLType, PackageAddr, TransactionArgs, TransactionEntryPoint, TransactionInvocationTarget,
         TransactionRuntimeParams, TransactionTarget, TransferTarget,
     };
     use once_cell::sync::Lazy;
@@ -1517,6 +1517,83 @@ mod transaction {
         );
     }
 
+    #[test]
+    fn should_create_evm_transfer_transaction() {
+        let source_uref = URef::from_formatted_str(
+            "uref-0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007",
+        )
+        .unwrap();
+        let target = [
+            0x52, 0x90, 0x84, 0x00, 0x09, 0x85, 0x27, 0x88, 0x6e, 0x0f, 0x70, 0x30, 0x06, 0x98,
+            0x57, 0xd2, 0xe4, 0x16, 0x9e, 0xe7,
+        ];
+        let amount = U512::from(123);
+        let maybe_id = Some(42);
+
+        let transaction_string_params = TransactionStrParams {
+            secret_key: "",
+            timestamp: "",
+            ttl: "30min",
+            chain_name: "evm-transfer",
+            initiator_addr: SAMPLE_ACCOUNT.to_string(),
+            session_args_simple: vec![],
+            session_args_json: "",
+            pricing_mode: "fixed",
+            output_path: "",
+            payment_amount: "100",
+            gas_price_tolerance: "10",
+            additional_computation_factor: "1",
+            receipt: SAMPLE_DIGEST,
+            standard_payment: "true",
+            transferred_value: "0",
+            session_entry_point: None,
+            chunked_args: None,
+        };
+
+        let transaction_builder_params = TransactionBuilderParams::EvmTransfer {
+            maybe_source: Some(source_uref),
+            target,
+            amount,
+            maybe_id,
+        };
+        let transaction =
+            create_transaction(transaction_builder_params, transaction_string_params, true);
+        assert!(transaction.is_ok(), "{:?}", transaction);
+        let transaction_v1 = unwrap_transaction(transaction);
+
+        assert_eq!(transaction_v1.chain_name(), "evm-transfer");
+        assert_eq!(
+            transaction_v1
+                .deserialize_field::<TransactionEntryPoint>(ENTRY_POINT_MAP_KEY)
+                .unwrap(),
+            TransactionEntryPoint::Transfer
+        );
+        assert_eq!(
+            transaction_v1
+                .deserialize_field::<TransactionTarget>(TARGET_MAP_KEY)
+                .unwrap(),
+            TransactionTarget::Native
+        );
+
+        let args = transaction_v1
+            .deserialize_field::<TransactionArgs>(ARGS_MAP_KEY)
+            .unwrap()
+            .into_named()
+            .unwrap();
+        assert_eq!(
+            args.get("source").unwrap().to_t::<URef>().unwrap(),
+            source_uref
+        );
+        let target_arg = args.get("target").unwrap();
+        assert_eq!(target_arg.cl_type(), &CLType::ByteArray(20));
+        assert_eq!(target_arg.inner_bytes().as_slice(), target);
+        assert_eq!(args.get("amount").unwrap().to_t::<U512>().unwrap(), amount);
+        assert_eq!(
+            args.get("id").unwrap().to_t::<Option<u64>>().unwrap(),
+            maybe_id
+        );
+    }
+
     fn unwrap_transaction(
         transaction: Result<casper_types::Transaction, CliError>,
     ) -> casper_types::TransactionV1 {
@@ -1525,6 +1602,9 @@ mod transaction {
                 unreachable!("Expected transaction, got deploy")
             }
             casper_types::Transaction::V1(transaction_v1) => transaction_v1,
+            casper_types::Transaction::Evm(_) => {
+                unreachable!("Expected transaction V1, got EVM transaction")
+            }
         }
     }
     #[test]

@@ -1,8 +1,11 @@
 use core::marker::PhantomData;
 
-use casper_types::system::auction::{DelegatorKind, Reservation, ARG_VALIDATOR};
 use casper_types::TransferTarget;
 use casper_types::{bytesrepr::ToBytes, CLTyped, CLValueError, PublicKey, RuntimeArgs, URef, U512};
+use casper_types::{
+    evm,
+    system::auction::{DelegatorKind, Reservation, ARG_VALIDATOR},
+};
 
 const TRANSFER_ARG_AMOUNT: RequiredArg<U512> = RequiredArg::new("amount");
 
@@ -109,6 +112,7 @@ pub(crate) fn new_transfer_args<A: Into<U512>, T: Into<TransferTarget>>(
         TransferTarget::AccountHash(account_hash) => {
             args.insert(TRANSFER_ARG_TARGET, account_hash)?
         }
+        TransferTarget::EvmAddress(address) => args.insert(TRANSFER_ARG_TARGET, address)?,
         TransferTarget::URef(uref) => args.insert(TRANSFER_ARG_TARGET, uref)?,
     }
     TRANSFER_ARG_AMOUNT.insert(&mut args, amount.into())?;
@@ -116,6 +120,16 @@ pub(crate) fn new_transfer_args<A: Into<U512>, T: Into<TransferTarget>>(
         TRANSFER_ARG_ID.insert(&mut args, maybe_id)?;
     }
     Ok(args)
+}
+
+/// Creates a [`RuntimeArgs`] suitable for a native transfer to an EVM address.
+pub(crate) fn new_evm_transfer_args<A: Into<U512>>(
+    amount: A,
+    maybe_source: Option<URef>,
+    target: [u8; 20],
+    maybe_id: Option<u64>,
+) -> Result<RuntimeArgs, CLValueError> {
+    new_transfer_args(amount, maybe_source, evm::Address::new(target), maybe_id)
 }
 
 /// Creates a `RuntimeArgs` suitable for use in a activate bid transaction.

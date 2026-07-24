@@ -40,7 +40,7 @@ impl From<GetBlockResult> for ListDeploysResult {
                         .all_transactions()
                         .filter_map(|txn_hash| match txn_hash {
                             TransactionHash::Deploy(deploy_hash) => Some(*deploy_hash),
-                            TransactionHash::V1(_) => None,
+                            TransactionHash::V1(_) | TransactionHash::Evm(_) => None,
                         })
                         .collect(),
                 },
@@ -52,7 +52,7 @@ impl From<GetBlockResult> for ListDeploysResult {
                         .mint()
                         .filter_map(|txn_hash| match txn_hash {
                             TransactionHash::Deploy(deploy_hash) => Some(deploy_hash),
-                            TransactionHash::V1(_) => None,
+                            TransactionHash::V1(_) | TransactionHash::Evm(_) => None,
                         })
                         .collect(),
                 }

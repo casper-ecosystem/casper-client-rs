@@ -175,6 +175,23 @@ impl<'a> TransactionV1Builder<'a> {
         Ok(builder)
     }
 
+    /// Returns a new `TransactionV1Builder` suitable for building a native transfer transaction to
+    /// a 20-byte EVM address.
+    pub fn new_evm_transfer<A: Into<U512>>(
+        amount: A,
+        maybe_source: Option<URef>,
+        target: [u8; 20],
+        maybe_id: Option<u64>,
+    ) -> Result<Self, CLValueError> {
+        let args = arg_handling::new_evm_transfer_args(amount, maybe_source, target, maybe_id)?;
+        let mut builder = TransactionV1Builder::new();
+        builder.args = TransactionArgs::Named(args);
+        builder.target = TransactionTarget::Native;
+        builder.entry_point = TransactionEntryPoint::Transfer;
+        builder.scheduling = Self::DEFAULT_SCHEDULING;
+        Ok(builder)
+    }
+
     /// Returns a new `TransactionV1Builder` suitable for building a native add_bid transaction.
     pub fn new_add_bid<A: Into<U512>>(
         public_key: PublicKey,

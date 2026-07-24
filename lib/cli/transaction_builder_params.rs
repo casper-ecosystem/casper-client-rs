@@ -160,6 +160,17 @@ pub enum TransactionBuilderParams<'a> {
         /// The optional id for the transfer transaction
         maybe_id: Option<u64>,
     },
+    /// Parameters for a native transfer to an EVM address
+    EvmTransfer {
+        /// Source of the transfer transaction
+        maybe_source: Option<URef>,
+        /// The 20-byte EVM target address
+        target: [u8; 20],
+        /// The amount of motes for the transfer transaction
+        amount: U512,
+        /// The optional id for the transfer transaction
+        maybe_id: Option<u64>,
+    },
     /// Parameters for the withdraw bid variant of the transaction builder
     WithdrawBid {
         /// The public key for the withdraw bid transaction

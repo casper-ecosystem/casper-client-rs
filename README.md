@@ -163,6 +163,25 @@ cargo run --release -- transfer \
 
 The `deploy_hash` in the response is worth noting, as it can be used to identify this deploy.
 
+### Transfer funds to an EVM address
+
+The `make-transaction transfer` and `put-transaction transfer` commands accept a 20-byte EVM
+address through `--target`:
+
+```
+casper-client put-transaction transfer \
+    --node-address=http://localhost:11101 \
+    --secret-key=../casper-node/utils/nctl/assets/net-1/nodes/node-3/keys/secret_key.pem \
+    --target=0xde709f2102306220921060314715629080e2fb77 \
+    --transfer-amount=500000000 \
+    --chain-name=casper-net-1 \
+    --payment-amount=3000000000 \
+    --standard-payment=true \
+    --gas-price-tolerance=1
+```
+
+EVM targets require a `0x` prefix. All-lowercase and all-uppercase addresses are accepted;
+mixed-case addresses must have a valid EIP-55 checksum.
 
 ### Get details of a deploy
 

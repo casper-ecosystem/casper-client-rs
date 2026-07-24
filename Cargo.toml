@@ -34,7 +34,7 @@ async-trait = { version = "0.1.74", default-features = false, optional = true }
 base16 = "0.2.1"
 base64 = { version = "0.22.1", default-features = false }
 bytes = { version = "1.6.0", default-features = false }
-casper-types = { version = "6.0.1", features = ["std", "json-schema"] }
+casper-types = { version = "7.0.0", features = ["std", "json-schema"], git = "https://github.com/casper-network/casper-node.git", branch = "feat-evm" }
 clap = { version = "~4.5", features = ["cargo", "deprecated"], optional = true }
 clap_complete = { version = "~4.5", default-features = false, optional = true }
 flate2 = "1.0.30"
@@ -50,6 +50,7 @@ schemars = "0.8.18"
 serde = { version = "1", default-features = false, features = ["derive"] }
 serde-map-to-array = "1.1.1"
 serde_json = { version = "1", features = ["preserve_order"] }
+sha3 = { version = "0.12.0", default-features = false }
 tar = { version = "0.4.41", default-features = false }
 thiserror = "1"
 tokio = { version = "1.39.3", features = ["macros", "rt", "sync", "time"] }
@@ -58,10 +59,7 @@ toml = "0.8.22"
 
 [dev-dependencies]
 tempfile = "3.8.1"
-casper-types = { version = "6.0.1", features = ["std", "json-schema", "testing"] }
-
-[patch.crates-io]
-casper-types = { git = "https://github.com/casper-network/casper-node.git", branch = "dev" }
+casper-types = { version = "7.0.0", features = ["std", "json-schema", "testing"], git = "https://github.com/casper-network/casper-node.git", branch = "feat-evm" }
 
 [package.metadata.deb]
 revision = "0"

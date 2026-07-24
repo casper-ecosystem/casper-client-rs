@@ -2448,10 +2448,13 @@ pub(super) mod transfer {
     use super::*;
     use crate::cli::parse;
     use casper_client::cli::{CliError, TransactionBuilderParams};
+    use sha3::{Digest as _, Keccak256};
 
     pub const NAME: &str = "transfer";
 
     const ACCEPT_SESSION_ARGS: bool = false;
+    const EVM_ADDRESS_LENGTH: usize = 20;
+    const EVM_ADDRESS_HEX_LENGTH: usize = EVM_ADDRESS_LENGTH * 2;
 
     const ABOUT: &str = "Creates a new native transfer transaction";
 
@@ -2478,23 +2481,103 @@ pub(super) mod transfer {
             None
         };
 
-        let target_str = target::get(matches);
-        let target = parse::transfer_target(target_str)?;
-
         let amount = transfer_amount::get(matches);
         let amount = transaction_amount::parse_transaction_amount(amount)?;
 
         let maybe_id = transfer_id::get(matches);
 
-        let params = TransactionBuilderParams::Transfer {
-            maybe_source,
-            target,
-            amount,
-            maybe_id,
+        let target_str = target::get(matches);
+        let params = match parse::transfer_target(target_str) {
+            Ok(target) => TransactionBuilderParams::Transfer {
+                maybe_source,
+                target,
+                amount,
+                maybe_id,
+            },
+            Err(native_error) => match parse_evm_address(target_str)? {
+                Some(target) => TransactionBuilderParams::EvmTransfer {
+                    maybe_source,
+                    target,
+                    amount,
+                    maybe_id,
+                },
+                None => return Err(native_error),
+            },
         };
         let transaction_str_params = build_transaction_str_params(matches, ACCEPT_SESSION_ARGS);
 
         Ok((params, transaction_str_params))
+    }
+
+    pub(super) fn parse_evm_address(
+        value: &str,
+    ) -> Result<Option<[u8; EVM_ADDRESS_LENGTH]>, CliError> {
+        let trimmed = value.trim();
+        let Some(hex) = trimmed
+            .strip_prefix("0x")
+            .or_else(|| trimmed.strip_prefix("0X"))
+        else {
+            if trimmed.len() == EVM_ADDRESS_HEX_LENGTH
+                && trimmed.bytes().all(|byte| byte.is_ascii_hexdigit())
+            {
+                return Err(invalid_evm_address(
+                    "EVM address targets must include a 0x prefix",
+                ));
+            }
+            return Ok(None);
+        };
+
+        if hex.len() != EVM_ADDRESS_HEX_LENGTH {
+            return Err(invalid_evm_address(
+                "EVM address targets must contain exactly 40 hexadecimal characters after the 0x prefix",
+            ));
+        }
+        if !hex.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            return Err(invalid_evm_address(
+                "invalid hexadecimal EVM address target",
+            ));
+        }
+        if has_mixed_hex_case(hex) && !has_valid_eip55_checksum(hex) {
+            return Err(invalid_evm_address(
+                "invalid EIP-55 checksum for EVM address target",
+            ));
+        }
+
+        let bytes = base16::decode(hex)
+            .map_err(|_| invalid_evm_address("invalid hexadecimal EVM address target"))?;
+        let mut address = [0u8; EVM_ADDRESS_LENGTH];
+        address.copy_from_slice(&bytes);
+        Ok(Some(address))
+    }
+
+    fn invalid_evm_address(error: &str) -> CliError {
+        CliError::InvalidArgument {
+            context: "target",
+            error: error.to_string(),
+        }
+    }
+
+    fn has_mixed_hex_case(value: &str) -> bool {
+        let has_lower = value.bytes().any(|byte| byte.is_ascii_lowercase());
+        let has_upper = value.bytes().any(|byte| byte.is_ascii_uppercase());
+        has_lower && has_upper
+    }
+
+    fn has_valid_eip55_checksum(value: &str) -> bool {
+        let lower = value.to_ascii_lowercase();
+        let hash = Keccak256::digest(lower.as_bytes());
+        value.bytes().enumerate().all(|(index, byte)| {
+            if !byte.is_ascii_alphabetic() {
+                return true;
+            }
+            let hash_byte = hash[index / 2];
+            let hash_nibble = if index % 2 == 0 {
+                hash_byte >> 4
+            } else {
+                hash_byte & 0x0f
+            };
+            byte.is_ascii_uppercase() == (hash_nibble >= 8)
+        })
     }
 
     fn add_args(transfer_subcommand: Command) -> Command {
@@ -2534,7 +2617,9 @@ pub(super) mod target {
 
     pub const ARG_NAME: &str = "target";
     const ARG_VALUE_NAME: &str = "FORMATTED STRING";
-    const ARG_HELP: &str = "the hex string representing the target URef for the transfer";
+    const ARG_HELP: &str =
+        "the public key, account hash, URef, or 0x-prefixed 20-byte EVM address \
+        representing the transfer target";
 
     pub fn arg() -> Arg {
         Arg::new(ARG_NAME)
@@ -2712,12 +2797,32 @@ fn get_transaction_runtime(matches: &ArgMatches) -> Result<TransactionRuntimePar
 
 #[cfg(test)]
 mod tests {
-    use super::is_install_upgrade;
-    use clap::Command;
+    use super::{is_install_upgrade, transfer};
+    use casper_client::cli::TransactionBuilderParams;
+    use casper_types::TransferTarget;
+    use clap::{ArgMatches, Command};
 
     // Helper function to build a command with `is_install_upgrade` argument
     fn build_app() -> Command {
         Command::new("put-transaction session").arg(is_install_upgrade::arg(1))
+    }
+
+    fn transfer_matches(command: Command, target: &str) -> ArgMatches {
+        command
+            .try_get_matches_from(vec![
+                "transfer",
+                "--target",
+                target,
+                "--transfer-amount",
+                "500000000",
+                "--chain-name",
+                "casper-net-1",
+                "--gas-price-tolerance",
+                "1",
+                "--initiator-address",
+                "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d",
+            ])
+            .unwrap()
     }
 
     #[test]
@@ -2740,5 +2845,110 @@ mod tests {
 
         // Assert that `get` returns false when the flag is absent
         assert!(!is_install_upgrade::get(&matches));
+    }
+
+    #[test]
+    fn parses_lowercase_evm_address() {
+        let parsed = transfer::parse_evm_address("0xde709f2102306220921060314715629080e2fb77")
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            parsed,
+            [
+                0xde, 0x70, 0x9f, 0x21, 0x02, 0x30, 0x62, 0x20, 0x92, 0x10, 0x60, 0x31, 0x47, 0x15,
+                0x62, 0x90, 0x80, 0xe2, 0xfb, 0x77,
+            ]
+        );
+    }
+
+    #[test]
+    fn parses_uppercase_evm_address_and_prefix() {
+        let parsed = transfer::parse_evm_address("0XDE709F2102306220921060314715629080E2FB77")
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            parsed,
+            [
+                0xde, 0x70, 0x9f, 0x21, 0x02, 0x30, 0x62, 0x20, 0x92, 0x10, 0x60, 0x31, 0x47, 0x15,
+                0x62, 0x90, 0x80, 0xe2, 0xfb, 0x77,
+            ]
+        );
+    }
+
+    #[test]
+    fn parses_eip55_checksummed_evm_address() {
+        let parsed = transfer::parse_evm_address("0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed")
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            parsed,
+            [
+                0x5a, 0xae, 0xb6, 0x05, 0x3f, 0x3e, 0x94, 0xc9, 0xb9, 0xa0, 0x9f, 0x33, 0x66, 0x94,
+                0x35, 0xe7, 0xef, 0x1b, 0xea, 0xed,
+            ]
+        );
+    }
+
+    #[test]
+    fn rejects_evm_address_without_prefix() {
+        let error =
+            transfer::parse_evm_address("de709f2102306220921060314715629080e2fb77").unwrap_err();
+        assert!(error.to_string().contains("must include a 0x prefix"));
+    }
+
+    #[test]
+    fn rejects_invalid_eip55_checksum() {
+        let error =
+            transfer::parse_evm_address("0x52908400098527886E0F7030069857D2E4169Ee7").unwrap_err();
+        assert!(error.to_string().contains("invalid EIP-55 checksum"));
+    }
+
+    #[test]
+    fn rejects_malformed_evm_address_hex() {
+        let error =
+            transfer::parse_evm_address("0xde709f2102306220921060314715629080e2fb7z").unwrap_err();
+        assert!(error.to_string().contains("invalid hexadecimal"));
+    }
+
+    #[test]
+    fn rejects_incorrect_evm_address_lengths() {
+        let short = transfer::parse_evm_address("0x1234").unwrap_err();
+        assert!(short.to_string().contains("exactly 40"));
+
+        let long = transfer::parse_evm_address(&format!("0x{}", "11".repeat(21))).unwrap_err();
+        assert!(long.to_string().contains("exactly 40"));
+    }
+
+    #[test]
+    fn make_and_put_transfer_commands_accept_evm_target() {
+        let target = "0xde709f2102306220921060314715629080e2fb77";
+        for command in [transfer::build(), transfer::put_transaction_build()] {
+            let matches = transfer_matches(command, target);
+            let (params, _) = transfer::run(&matches).unwrap();
+            assert!(matches!(
+                params,
+                TransactionBuilderParams::EvmTransfer {
+                    target: [
+                        0xde, 0x70, 0x9f, 0x21, 0x02, 0x30, 0x62, 0x20, 0x92, 0x10, 0x60, 0x31,
+                        0x47, 0x15, 0x62, 0x90, 0x80, 0xe2, 0xfb, 0x77,
+                    ],
+                    ..
+                }
+            ));
+        }
+    }
+
+    #[test]
+    fn native_transfer_target_uses_existing_params() {
+        let target = "uref-0202030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20-007";
+        let matches = transfer_matches(transfer::build(), target);
+        let (params, _) = transfer::run(&matches).unwrap();
+        assert!(matches!(
+            params,
+            TransactionBuilderParams::Transfer {
+                target: TransferTarget::URef(_),
+                ..
+            }
+        ));
     }
 }

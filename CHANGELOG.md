@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file.  The format
 [comment]: <> (Fixed:      any bug fixes)
 [comment]: <> (Security:   in case of vulnerabilities)
 
+## [Unreleased]
+
+### Added
+* Native transaction transfers now accept `0x`-prefixed 20-byte EVM addresses via `--target`.
+
 ## 4.0.0
 
 ### Added
