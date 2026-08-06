@@ -50,6 +50,10 @@ pub enum EntityOrAccount {
     /// An addressable entity with named keys and entry points.
     AddressableEntity(AddressableEntity),
     /// A legacy account.
+    ///
+    /// Nodes with `enable_addressable_entity = false` still serialize this
+    /// variant as `Account`; accept that tag on deserialize.
+    #[serde(alias = "Account")]
     LegacyAccount(Account),
 }
 
